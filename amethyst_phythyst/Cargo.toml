@@ -1,0 +1,10 @@
+[package]
+name = "amethyst_phythyst"
+version = "0.0.1"
+authors = ["Andrea Catania <info@andreacatania.com>"]
+edition = "2018"
+description = "The Amethyst physics engine manager"
+
+[dependencies]
+amethyst_core = { path = "../amethyst_core", version = "0.5" }
+amethyst_error = { path = "../amethyst_error", version = "0.1.0" }

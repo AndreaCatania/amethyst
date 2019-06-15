@@ -81,6 +81,7 @@ pub use amethyst_locale as locale;
 #[cfg(feature = "network")]
 pub use amethyst_network as network;
 pub use amethyst_rendy as renderer;
+pub use amethyst_phythyst as phythyst;
 pub use amethyst_ui as ui;
 pub use amethyst_utils as utils;
 pub use amethyst_window as window;
