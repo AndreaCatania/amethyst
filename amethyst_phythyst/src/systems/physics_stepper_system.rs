@@ -17,6 +17,8 @@ impl<'a> System<'a> for PhysicsStepperSystem{
 
     type SystemData = ();
 
+    define_setup_with_physics_assertion!();
+    
     fn run(&mut self, data: Self::SystemData){
         println!("Stepper {}", self.c);
         self.c +=1;

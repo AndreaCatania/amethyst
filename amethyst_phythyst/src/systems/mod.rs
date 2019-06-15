@@ -1,4 +1,7 @@
 
+#[macro_use]
+mod assertions;
+
 mod physics_sync_transform_system;
 mod physics_stepper_system;
 
