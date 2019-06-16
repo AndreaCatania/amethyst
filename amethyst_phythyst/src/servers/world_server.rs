@@ -1,7 +1,7 @@
 
 
 /// The world handle to refer to a particular world
-pub struct WorldHandle(pub usize);
+pub struct WorldHandle(pub std::num::NonZeroUsize);
 
 /// The world server interface
 /// This contains all functionalities to manipulate the world

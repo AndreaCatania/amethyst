@@ -3,8 +3,11 @@ name = "amethyst_nphysics"
 version = "0.1.0"
 authors = ["Andrea Catania"]
 edition = "2018"
-description = "The Amethyst nPhysics bridge"
+description = "The Amethyst NPhysics engine backend"
 
 [dependencies]
 amethyst_phythyst = {path = "../amethyst_phythyst", version = "0.0.1"}
 log = "0.4.6"
+nalgebra = "0.18.0"
+ncollide3d = "0.19.2"
+nphysics3d = "0.11.1"

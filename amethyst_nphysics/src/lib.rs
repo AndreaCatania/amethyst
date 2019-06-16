@@ -21,7 +21,7 @@ use world_server::NWorldServer;
 /// Register this object as resource to allow Amethyst to use NPhysics.
 pub fn create_physics() -> Physics {
     Physics {
-        world_server: Box::new(NWorldServer),
+        world_server: Box::new(NWorldServer::new()),
     }
 }
 
