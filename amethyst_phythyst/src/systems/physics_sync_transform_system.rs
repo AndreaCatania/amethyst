@@ -28,7 +28,7 @@ impl<'a> System<'a> for PhysicsSyncTransformSystem{
     define_setup_with_physics_assertion!();
 
     fn run(&mut self, (physics, transform): Self::SystemData){
-        physics.server.create_world();
+        physics.world_server.create_world();
         println!("Sync {}", self.c);
         self.c += 1;
     }

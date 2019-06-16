@@ -31,3 +31,9 @@ impl<'a, 'b> SystemBundle<'a, 'b> for PhysicsBundle{
         Ok(())
     }
 }
+
+impl Default for PhysicsBundle{
+    fn default() -> Self {
+        Self{}
+    }
+}

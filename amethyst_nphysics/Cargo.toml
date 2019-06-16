@@ -1,7 +1,10 @@
 [package]
 name = "amethyst_nphysics"
 version = "0.1.0"
-authors = ["Andrea Catania <info@andreacatania.com>"]
+authors = ["Andrea Catania"]
 edition = "2018"
+description = "The Amethyst nPhysics bridge"
 
 [dependencies]
+amethyst_phythyst = {path = "../amethyst_phythyst", version = "0.0.1"}
+log = "0.4.6"

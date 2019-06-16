@@ -3,10 +3,8 @@
 /// The world handle to refer to a particular world
 pub struct WorldHandle(pub usize);
 
-/// The body handle to refer to a particular body
-pub struct BodyHandle(pub usize);
-
-pub trait PhysicsServer{
+/// The world server interface
+/// This contains all functionalities to manipulate the world
+pub trait WorldServer{
     fn create_world(&self) -> WorldHandle;
 }
-

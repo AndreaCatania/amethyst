@@ -1,7 +1,6 @@
-mod physics_server;
+mod world_server;
 
-pub use physics_server::{
-    PhysicsServer,
+pub use world_server::{
     WorldHandle,
-    BodyHandle
+    WorldServer,
 };

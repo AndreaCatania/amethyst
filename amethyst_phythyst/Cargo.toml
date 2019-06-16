@@ -1,7 +1,7 @@
 [package]
 name = "amethyst_phythyst"
 version = "0.0.1"
-authors = ["Andrea Catania <info@andreacatania.com>"]
+authors = ["Andrea Catania"]
 edition = "2018"
 description = "The Amethyst physics engine manager"
 
