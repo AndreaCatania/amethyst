@@ -3,7 +3,7 @@ use log::warn;
 use log::error;
 use amethyst_core::ecs::prelude::Resources;
 
-use crate::servers::PhysicsServer;
+use crate::Physics;
 
 /// This macro implements the `setup` function that checks if the current world
 /// has all the required physics resources.
@@ -29,7 +29,7 @@ pub fn assert_physics_resources(res: &mut Resources){
 
     warn!("TODO please improve the message of the function explain_physics_server_setup");
 
-    if !res.has_value::<PhysicsServer>() {
+    if !res.has_value::<Physics>() {
         explain_physics_server_setup();
     }
 }
@@ -43,7 +43,7 @@ fn explain_physics_server_setup(){
     error!("Example:");
     error!("```");
     error!("let mut game = Application::build(\"./\", GameState)?");
-    error!("    .with_resource(PhysicsServer::default())");
+    error!("    .with_resource(Physics::default())");
     error!("    .build(game_data)?;");
     error!("```");
     panic!();

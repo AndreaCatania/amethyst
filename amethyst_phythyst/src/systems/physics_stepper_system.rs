@@ -2,13 +2,13 @@
 use amethyst_core::ecs::{System};
 
 pub struct PhysicsStepperSystem{
-    c: i32
+    c: i32,
 }
 
 impl PhysicsStepperSystem {
     pub fn new() -> PhysicsStepperSystem{
         PhysicsStepperSystem{
-            c:0
+            c: 0
         }
     }
 }
