@@ -52,3 +52,7 @@ pub mod servers;
 
 pub use physics_bundle::PhysicsBundle;
 pub use physics::Physics;
+
+/// StoreTag is the opaque ID that identify something in the physics server
+#[derive(Copy, Clone)]
+pub struct StoreTag(pub std::num::NonZeroUsize);

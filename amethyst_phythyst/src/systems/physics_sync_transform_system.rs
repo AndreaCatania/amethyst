@@ -1,7 +1,7 @@
 
 
 use amethyst_core::{
-    ecs::{System, ReadExpect, ReadStorage,},
+    ecs::{System, ReadExpect, ReadStorage, WriteExpect,},
     transform::components::Transform,
 };
 
@@ -21,13 +21,13 @@ impl PhysicsSyncTransformSystem{
 
 impl<'a> System<'a> for PhysicsSyncTransformSystem{
     type SystemData = (
-        ReadExpect<'a, Physics>,
+        WriteExpect<'a, Physics>,
         ReadStorage<'a, Transform>,
     );
 
     define_setup_with_physics_assertion!();
 
-    fn run(&mut self, (physics, transform): Self::SystemData){
+    fn run(&mut self, (mut physics, transform): Self::SystemData){
         physics.world_server.create_world();
         println!("Sync {}", self.c);
         self.c += 1;

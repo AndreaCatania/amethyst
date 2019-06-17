@@ -10,10 +10,13 @@
 //! 
 //! Follow the instructions of Phythyst to make more info about it.
 
-mod world_server;
+#[macro_use]
+mod conditional_macros;
+mod n_world_server;
+mod storage;
 
 use amethyst_phythyst::Physics;
-use world_server::NWorldServer;
+use n_world_server::NWorldServer;
 
 /// This function returns an object that wrap all the functionalities required
 /// by Phythyst.
