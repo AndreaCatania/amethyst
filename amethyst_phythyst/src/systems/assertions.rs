@@ -17,6 +17,14 @@ macro_rules! define_setup_with_physics_assertion{
             Self::SystemData::setup(res);
             crate::systems::assertions::assert_physics_resources(res);
         }
+    };
+    ($x:ident) => {
+        fn setup(&mut self, res: &mut amethyst_core::ecs::Resources){
+            use amethyst_core::ecs::prelude::SystemData;
+            Self::SystemData::setup(res);
+            crate::systems::assertions::assert_physics_resources(res);
+            self.$x(res);
+        }
     }
 }
 

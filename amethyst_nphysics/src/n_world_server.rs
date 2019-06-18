@@ -34,4 +34,13 @@ impl WorldServer for NWorldServer{
 
         self.world_storage.drop(world);
     }
+
+    fn step_world(&mut self, world: StoreTag, delta_time: f32){
+        let world = self.world_storage.get_mut(world);
+        fail_cond!(world.is_none());
+        let world = world.unwrap();
+
+        world.set_timestep(delta_time);
+        world.step();
+    }
 }

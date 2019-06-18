@@ -7,6 +7,7 @@ use amethyst_core::{
 use amethyst_error::Error;
 
 use crate::systems::{
+    CommandExecutorSystem,
     PhysicsSyncTransformSystem,
     PhysicsStepperSystem,
 };
@@ -21,8 +22,9 @@ pub struct PhysicsBundle;
 
 impl<'a, 'b> SystemBundle<'a, 'b> for PhysicsBundle{
     fn build(self, builder: &mut DispatcherBuilder<'a, 'b>) -> Result<(), Error>{
-        
-        builder.add(PhysicsSyncTransformSystem::new(), "physics_sync_transform_system", &[]);
+
+        builder.add(CommandExecutorSystem::new(), "physics_command_executor_system", &[]);
+        builder.add(PhysicsSyncTransformSystem::new(), "physics_sync_transform_system", &["physics_command_executor_system"]);
         builder.add_barrier();
         builder.add(PhysicsStepperSystem::new(), "", &["physics_sync_transform_system"]);
 

@@ -1,27 +1,34 @@
 
-use amethyst_core::ecs::{System};
+use amethyst_core::{
+    Time,
+    ecs::{System, WriteExpect, ReadExpect}
+};
+use crate::{
+        Physics,
+        PhysicsWorld,
+        servers::WorldServer,
+};
 
-pub struct PhysicsStepperSystem{
-    c: i32,
-}
+pub struct PhysicsStepperSystem;
 
 impl PhysicsStepperSystem {
     pub fn new() -> PhysicsStepperSystem{
-        PhysicsStepperSystem{
-            c: 0
-        }
+        PhysicsStepperSystem{}
     }
 }
 
 impl<'a> System<'a> for PhysicsStepperSystem{
 
-    type SystemData = ();
+    type SystemData = (
+        ReadExpect<'a, Time>,
+        WriteExpect<'a, Physics>,
+        ReadExpect<'a, PhysicsWorld>,
+    );
 
     define_setup_with_physics_assertion!();
     
-    fn run(&mut self, data: Self::SystemData){
-        println!("Stepper {}", self.c);
-        self.c +=1;
+    fn run(&mut self, (time, mut physics, physics_world): Self::SystemData){
+        physics.world_server.step_world(physics_world.0, time.delta_real_seconds());
     }
 
 }

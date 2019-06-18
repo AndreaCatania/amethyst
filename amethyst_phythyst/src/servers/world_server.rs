@@ -6,4 +6,6 @@ use crate::StoreTag;
 pub trait WorldServer{
     fn create_world(&mut self) -> StoreTag;
     fn drop_world(&mut self, world: StoreTag);
+
+    fn step_world(&mut self, world: StoreTag, delta_time: f32);
 }
