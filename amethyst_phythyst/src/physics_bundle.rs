@@ -7,7 +7,7 @@ use amethyst_core::{
 use amethyst_error::Error;
 
 use crate::systems::{
-    CommandExecutorSystem,
+    PhysicsCommandExecutorSystem,
     PhysicsSyncTransformSystem,
     PhysicsStepperSystem,
 };
@@ -16,14 +16,14 @@ use crate::systems::{
 /// 
 /// This bundle will automatically place a barrier in the dispatcher, in this way
 /// allow you to control the systems that you want to execute before and after the
-/// syncrhonization phase just by registering them before or after this bundle.
+/// synchronization phase just by registering them before or after this bundle.
 /// Usually this is the first bundle that you want to register.
 pub struct PhysicsBundle;
 
 impl<'a, 'b> SystemBundle<'a, 'b> for PhysicsBundle{
     fn build(self, builder: &mut DispatcherBuilder<'a, 'b>) -> Result<(), Error>{
 
-        builder.add(CommandExecutorSystem::new(), "physics_command_executor_system", &[]);
+        builder.add(PhysicsCommandExecutorSystem::new(), "physics_command_executor_system", &[]);
         builder.add(PhysicsSyncTransformSystem::new(), "physics_sync_transform_system", &["physics_command_executor_system"]);
         builder.add_barrier();
         builder.add(PhysicsStepperSystem::new(), "", &["physics_sync_transform_system"]);

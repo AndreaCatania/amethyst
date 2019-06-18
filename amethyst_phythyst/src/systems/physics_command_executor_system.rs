@@ -7,11 +7,11 @@ use crate::{
 };
 use log::debug;
 
-pub struct CommandExecutorSystem;
+pub struct PhysicsCommandExecutorSystem;
 
-impl CommandExecutorSystem {
+impl PhysicsCommandExecutorSystem {
     pub fn new() -> Self {
-        CommandExecutorSystem{}
+        PhysicsCommandExecutorSystem {}
     }
 
     fn setup_2(&mut self, res: &mut Resources){
@@ -24,7 +24,7 @@ impl CommandExecutorSystem {
 
 
 
-impl<'a> System<'a> for CommandExecutorSystem{
+impl<'a> System<'a> for PhysicsCommandExecutorSystem {
     type SystemData = (
         WriteExpect<'a, Physics>,
         WriteExpect<'a, PhysicsWorld>,
