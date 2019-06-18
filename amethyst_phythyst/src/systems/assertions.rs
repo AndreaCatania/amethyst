@@ -35,8 +35,6 @@ macro_rules! define_setup_with_physics_assertion{
 /// correctness of physics server status.
 pub fn assert_physics_resources(res: &mut Resources){
 
-    warn!("TODO please improve the message of the function explain_physics_server_setup");
-
     if !res.has_value::<Physics>() {
         explain_physics_server_setup();
     }
@@ -46,12 +44,13 @@ pub fn assert_physics_resources(res: &mut Resources){
 fn explain_physics_server_setup(){
 
     error!("The physics server is not correctly initialized.");
-    error!("Add the PhysicsBundle is not enough, is necessary to add the PhysicsServer resource.");
-    error!("In the Application creation use the function `.with` to add the PhysicsServer resource.");
-    error!("Example:");
+    error!("Adding the PhysicsBundle is not enough, is necessary to add the PhysicsServer resource also.");
+    error!("In the Application object creation use the function `.with_resource` to add the Physics");
+    error!("backed object created by the function `create_physics`.");
+    error!("**Example:**");
     error!("```");
     error!("let mut game = Application::build(\"./\", GameState)?");
-    error!("    .with_resource(Physics::default())");
+    error!("    .with_resource(amethyst_nphysics::create_physics())");
     error!("    .build(game_data)?;");
     error!("```");
     panic!();
