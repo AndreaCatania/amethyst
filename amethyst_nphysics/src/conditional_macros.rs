@@ -1,4 +1,5 @@
 
+
 /// These macros are used to assert the validity of some data, but instead to panics they stop
 /// the functions processing print a message on the console.
 ///
@@ -8,7 +9,8 @@ macro_rules! fail_cond{
     ($x:expr) => {
         {
             if $x {
-                println!("Error");
+                use log::error;
+                error!("[{}::{}] The expression `{}` failed execution.", file!(), line!(), stringify!($x));
                 return;
             }
         }
@@ -16,7 +18,8 @@ macro_rules! fail_cond{
     ($x:expr, $y:expr) => {
         {
             if $x {
-                println!("Error");
+                use log::error;
+                error!("[{}::{}] The expression `{}` failed execution. Return {}.", file!(), line!(), stringify!($x), stringify!($y));
                 return $y;
             }
         }
