@@ -1,7 +1,8 @@
 
 use amethyst_core::{
     Time,
-    ecs::{System, WriteExpect, ReadExpect}
+    ecs::{System, RunNow, WriteExpect, ReadExpect},
+    shred::Resources,
 };
 use crate::{
     Physics,
@@ -9,6 +10,7 @@ use crate::{
     PhysicsTime,
     servers::WorldServer,
 };
+
 
 pub struct PhysicsStepperSystem;
 
@@ -18,7 +20,7 @@ impl PhysicsStepperSystem {
     }
 }
 
-impl<'a> System<'a> for PhysicsStepperSystem{
+impl<'a,> System<'a> for PhysicsStepperSystem{
 
     type SystemData = (
         ReadExpect<'a, Time>,
@@ -35,6 +37,8 @@ impl<'a> System<'a> for PhysicsStepperSystem{
 
         // Avoid spiral performance degradation
         physics_time._time_bank = physics_time._time_bank.min(physics_time._max_bank_size);
+
+
 
         while physics_time._time_bank >= physics_time.sub_step_seconds {
 

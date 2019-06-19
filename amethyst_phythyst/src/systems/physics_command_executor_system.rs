@@ -11,9 +11,7 @@ use log::debug;
 pub struct PhysicsCommandExecutorSystem;
 
 impl PhysicsCommandExecutorSystem {
-    pub fn new() -> Self {
-        PhysicsCommandExecutorSystem {}
-    }
+    pub fn new() -> Self {PhysicsCommandExecutorSystem {}}
 
     fn setup_2(&mut self, res: &mut Resources){
         let mut physics = res.get_mut::<Physics>().unwrap();
