@@ -27,15 +27,20 @@ pub struct PhysicsTime{
 
     /// The time used to advance the physics.
     /// The default is 60 frames per second : 1 / 60
-    pub sub_step_seconds: f32,
+    pub(crate) sub_step_seconds: f32,
 
     /// This is the maximum number of sub steps, to avoid spiral performance drop.
     /// Default is 8
-    pub max_sub_steps: u8,
+    pub(crate) max_sub_steps: u32,
 
     /// ### IMPORTANT
     /// This is used internally, don't change it in any way please.
-    pub _time_bank: f32,
+    pub(crate) _max_bank_size: f32,
+
+    /// ### IMPORTANT
+    /// This is used internally, don't change it in any way please.
+    pub(crate) _time_bank: f32,
+
 }
 
 impl Default for PhysicsTime{
@@ -43,7 +48,41 @@ impl Default for PhysicsTime{
         PhysicsTime{
             sub_step_seconds: 1.0 / 60.0,
             max_sub_steps: 8,
+            _max_bank_size: ( 1.0 / 60.0 ) * 8.0,
             _time_bank: 0.0,
         }
+    }
+}
+
+impl PhysicsTime{
+
+    pub fn set_sub_step_seconds(mut self, sub_step_seconds: f32) -> Self{
+
+        self.sub_step_seconds = sub_step_seconds;
+        self.update_max_bank_size();
+        self
+    }
+
+    pub fn set_frames_per_second(mut self, frames_per_second: u32) -> Self{
+
+        self.set_sub_step_seconds( 1.0 / frames_per_second as f32)
+    }
+
+    pub fn set_max_sub_steps(mut self, max_sub_steps: u32) -> Self{
+        self.max_sub_steps = max_sub_steps;
+        self.update_max_bank_size();
+        self
+    }
+
+    pub fn sub_step_seconds(&self) -> f32{
+        self.sub_step_seconds
+    }
+
+    pub fn sub_max_sub_steps(&self) -> u32 {
+        self.max_sub_steps
+    }
+
+    fn update_max_bank_size(&mut self){
+        self._max_bank_size = self.sub_step_seconds * self.max_sub_steps as f32;
     }
 }

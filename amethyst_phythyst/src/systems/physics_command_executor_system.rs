@@ -3,6 +3,7 @@ use amethyst_core::ecs::{Resources, System, WriteExpect, Write};
 use crate::{
     Physics,
     PhysicsWorld,
+    PhysicsTime,
     servers::WorldServer,
 };
 use log::debug;
@@ -18,6 +19,9 @@ impl PhysicsCommandExecutorSystem {
         let mut physics = res.get_mut::<Physics>().unwrap();
         let world = PhysicsWorld(physics.world_server.create_world());
         res.insert(world);
+        if !res.has_value::<PhysicsTime>() {
+            res.insert(PhysicsTime::default());
+        }
         debug!("The physics world is created");
     }
 }
