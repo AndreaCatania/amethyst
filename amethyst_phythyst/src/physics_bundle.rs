@@ -23,11 +23,11 @@ use crate::{
 /// synchronization phase just by registering them before or after this bundle.
 /// Usually this is the first bundle that you want to register.
 pub struct PhysicsBundle<G: PhysicsDispatcherCreator + Sync + Send>{
-    graph_creator: Box<G>,
+    graph_creator: G,
 }
 
 impl<G: PhysicsDispatcherCreator + Sync + Send> PhysicsBundle<G>{
-    pub fn new(graph_creator: Box<G>) -> Self {
+    pub fn new(graph_creator: G) -> Self {
         Self{
             graph_creator
         }

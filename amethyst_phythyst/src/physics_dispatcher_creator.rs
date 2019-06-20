@@ -5,9 +5,9 @@ use amethyst_core::ecs::{
     DispatcherBuilder,
 };
 
-pub trait PhysicsDispatcherCreator<'a, 'b> {
+pub trait PhysicsDispatcherCreator {
     fn rebuild(&mut self, res: &Resources) -> bool;
-    fn build(&mut self, res: &Resources) -> Option<Dispatcher<'a, 'b>>;
+    fn build<'a, 'b>(&mut self, res: &Resources) -> Option<Dispatcher<'a, 'b>>;
 }
 
 pub struct EmptyPhysicsDispatcherCreator;
@@ -17,7 +17,7 @@ pub struct EmptyPhysicsDispatcherCreator;
 ///
 /// To control the physics objects you must create a dispatcher and register the systems that will
 /// processed each sub step.
-impl<'a, 'b> PhysicsDispatcherCreator<'a, 'b> for EmptyPhysicsDispatcherCreator {
+impl PhysicsDispatcherCreator for EmptyPhysicsDispatcherCreator {
 
     /// Check if graph needs to be rebuilt.
     /// This function is evaluated every frame before running the graph.
@@ -26,7 +26,7 @@ impl<'a, 'b> PhysicsDispatcherCreator<'a, 'b> for EmptyPhysicsDispatcherCreator 
     }
 
     /// Build and return the configured complete physics dispatcher.
-    fn build(&mut self, res: &Resources) -> Option<Dispatcher<'a, 'b>>{
+    fn build<'a, 'b>(&mut self, res: &Resources) -> Option<Dispatcher<'a, 'b>>{
         None
     }
 }
