@@ -6,8 +6,11 @@ use amethyst_core::ecs::prelude::Resources;
 use crate::{
     PhysicsWorldServer,
     PhysicsBodyServer,
-    PhysicsWorld,
     PhysicsTime,
+    servers::{
+        PhysicsWorldTag,
+        PhysicsBodyTag,
+    },
 };
 
 /// This macro implements the `setup` function that checks if the current world
@@ -49,7 +52,7 @@ pub fn assert_physics_resources(res: &mut Resources){
     }else if !res.has_value::<PhysicsTime>() {
         error!("The resource PhysicsTime not found");
         explain_physics_server_setup();
-    }else if !res.has_value::<PhysicsWorld>() {
+    }else if !res.has_value::<PhysicsWorldTag>() {
         error!("The resource PhysicsWorld not found");
         explain_physics_server_setup();
     }

@@ -47,16 +47,10 @@
 mod systems;
 mod physics_bundle;
 mod physics;
-mod physics_world;
 mod physics_time;
 
 pub mod servers;
 
 pub use physics_bundle::PhysicsBundle;
 pub use physics::{Physics, PhysicsWorldServer, PhysicsBodyServer};
-pub use physics_world::PhysicsWorld;
 pub use physics_time::PhysicsTime;
-
-/// StoreTag is the opaque ID that identify something in the physics server
-#[derive(Copy, Clone)]
-pub struct StoreTag(pub std::num::NonZeroUsize);

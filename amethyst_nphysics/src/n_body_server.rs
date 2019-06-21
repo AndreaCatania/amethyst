@@ -1,8 +1,11 @@
 
 
 use amethyst_phythyst::{
-    servers::BodyServer,
-    StoreTag,
+    servers::{
+        PhysicsWorldTag,
+        PhysicsBodyTag,
+        BodyServer,
+    },
 };
 
 pub struct NBodyServer{
@@ -17,12 +20,12 @@ impl NBodyServer{
 
 impl BodyServer for NBodyServer{
 
-    fn create(&mut self, world: StoreTag) -> StoreTag{
+    fn create(&mut self, world: PhysicsWorldTag) -> PhysicsBodyTag {
 
-        StoreTag(std::num::NonZeroUsize::new(1).unwrap())
+        PhysicsBodyTag(std::num::NonZeroUsize::new(1).unwrap())
     }
 
-    fn drop(&mut self, body: StoreTag){
+    fn drop(&mut self, body: PhysicsBodyTag){
 
     }
 }

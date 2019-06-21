@@ -1,6 +1,7 @@
 
 use slab::{Slab};
-use amethyst_phythyst::StoreTag;
+
+type StoreTag = std::num::NonZeroUsize;
 
 /// This struct is used to store the physics resources, and return an opaque handle that allow to
 /// return a reference to them.
@@ -66,10 +67,10 @@ impl<T> Default for Storage<T> {
 struct TagMachine;
 impl TagMachine{
     pub fn make(id: usize) -> StoreTag {
-        StoreTag(std::num::NonZeroUsize::new(id).unwrap())
+        std::num::NonZeroUsize::new(id).unwrap()
     }
 
     pub fn read(tag: StoreTag) -> usize {
-        tag.0.get()
+        tag.get()
     }
 }

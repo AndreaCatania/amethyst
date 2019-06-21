@@ -1,13 +1,15 @@
 
-use crate::StoreTag;
+
+/// PhysicsWorld is the opaque ID that identify a world in the physics server
+#[derive(Copy, Clone)]
+pub struct PhysicsWorldTag(pub std::num::NonZeroUsize);
 
 /// The world server interface
 /// This contains all functionalities to manipulate the world.
 pub trait WorldServer{
-    fn create(&mut self) -> StoreTag;
-    fn drop(&mut self, world: StoreTag);
+    fn create(&mut self) -> PhysicsWorldTag;
+    fn drop(&mut self, world: PhysicsWorldTag);
 
-    fn step(&mut self, world: StoreTag, delta_time: f32);
+    fn step(&mut self, world: PhysicsWorldTag, delta_time: f32);
 
-    //fn add_body(&mut self, world: StoreTag, body: StoreTag );
 }

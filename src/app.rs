@@ -28,7 +28,7 @@ use crate::{
     state::{State, StateData, StateMachine, TransEvent},
     state_event::{StateEvent, StateEventReader},
     ui::UiEvent,
-    phythyst::{Physics, PhysicsTime, PhysicsWorld},
+    phythyst::{Physics, PhysicsTime, servers::PhysicsWorldTag},
 };
 
 /// `CoreApplication` is the application implementation for the game engine. This is fully generic
@@ -800,7 +800,7 @@ where
 
         let mut physics = physics;
 
-        let world = PhysicsWorld(physics.0.create());
+        let world = physics.0.create();
 
         self.world.add_resource(physics.0);
         self.world.add_resource(physics.1);
