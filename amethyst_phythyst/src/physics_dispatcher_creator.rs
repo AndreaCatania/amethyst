@@ -27,6 +27,7 @@ impl PhysicsDispatcherCreator for EmptyPhysicsDispatcherCreator {
 
     /// Build and return the configured complete physics dispatcher.
     fn build<'a, 'b>(&mut self, res: &Resources) -> Option<Dispatcher<'a, 'b>>{
+        DispatcherBuilder::new().
         None
     }
 }
