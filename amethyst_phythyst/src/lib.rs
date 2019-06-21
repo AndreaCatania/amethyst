@@ -49,7 +49,6 @@ mod physics_bundle;
 mod physics;
 mod physics_world;
 mod physics_time;
-mod physics_dispatcher_creator;
 
 pub mod servers;
 
@@ -57,7 +56,6 @@ pub use physics_bundle::PhysicsBundle;
 pub use physics::Physics;
 pub use physics_world::PhysicsWorld;
 pub use physics_time::PhysicsTime;
-pub use physics_dispatcher_creator::{PhysicsDispatcherCreator, EmptyPhysicsDispatcherCreator};
 
 /// StoreTag is the opaque ID that identify something in the physics server
 #[derive(Copy, Clone)]

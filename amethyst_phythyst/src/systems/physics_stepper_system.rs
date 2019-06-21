@@ -9,7 +9,6 @@ use crate::{
     PhysicsWorld,
     PhysicsTime,
     servers::WorldServer,
-    physics_dispatcher_creator::PhysicsDispatcher,
 };
 
 
@@ -28,7 +27,6 @@ impl<'a,> System<'a> for PhysicsStepperSystem{
         WriteExpect<'a, PhysicsTime>,
         WriteExpect<'a, Physics>,
         ReadExpect<'a, PhysicsWorld>,
-        //Read<'a, PhysicsDispatcher>,
     );
 
     define_setup_with_physics_assertion!();
@@ -46,9 +44,6 @@ impl<'a,> System<'a> for PhysicsStepperSystem{
             physics_time._time_bank -= physics_time.sub_step_seconds;
 
             // TODO start dispatcher
-            //if let Some(physics_dispatcher) = physics_dispatcher {
-            //    physics_dispatcher.0.dispatch();
-            //}
 
             physics.world_server.step_world(physics_world.0, physics_time.sub_step_seconds);
         }
