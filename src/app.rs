@@ -28,6 +28,7 @@ use crate::{
     state::{State, StateData, StateMachine, TransEvent},
     state_event::{StateEvent, StateEventReader},
     ui::UiEvent,
+    phythyst::{Physics, PhysicsTime, PhysicsWorld},
 };
 
 /// `CoreApplication` is the application implementation for the game engine. This is fully generic
@@ -792,6 +793,19 @@ where
             let mut loader = self.world.write_resource::<Loader>();
             loader.set_default_source(store);
         }
+        self
+    }
+
+    pub fn with_physics(mut self, physics: Physics) -> Self {
+
+        let mut physics = physics;
+
+        let world = PhysicsWorld(physics.0.create());
+
+        self.world.add_resource(physics.0);
+        self.world.add_resource(PhysicsTime::default());
+        self.world.add_resource(world);
+
         self
     }
 

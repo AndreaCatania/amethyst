@@ -3,7 +3,11 @@ use log::warn;
 use log::error;
 use amethyst_core::ecs::prelude::Resources;
 
-use crate::Physics;
+use crate::{
+    PhysicsWorldServer,
+    PhysicsWorld,
+    PhysicsTime,
+};
 
 /// This macro implements the `setup` function that checks if the current world
 /// has all the required physics resources.
@@ -35,7 +39,14 @@ macro_rules! define_setup_with_physics_assertion{
 /// correctness of physics server status.
 pub fn assert_physics_resources(res: &mut Resources){
 
-    if !res.has_value::<Physics>() {
+    if !res.has_value::<PhysicsWorldServer>() {
+        error!("The resource PhysicsWorldServer not found");
+        explain_physics_server_setup();
+    }else if !res.has_value::<PhysicsTime>() {
+        error!("The resource PhysicsTime not found");
+        explain_physics_server_setup();
+    }else if !res.has_value::<PhysicsWorld>() {
+        error!("The resource PhysicsWorld not found");
         explain_physics_server_setup();
     }
 }
@@ -43,15 +54,17 @@ pub fn assert_physics_resources(res: &mut Resources){
 /// Prints the explanation on how to setup the physics server on the logger, then panics.
 fn explain_physics_server_setup(){
 
-    error!("The physics server is not correctly initialized.");
-    error!("Adding the PhysicsBundle is not enough, is necessary to add the PhysicsServer resource also.");
-    error!("In the Application object creation use the function `.with_resource` to add the Physics");
-    error!("backed object created by the function `create_physics`.");
-    error!("**Example:**");
-    error!("```");
-    error!("let mut game = Application::build(\"./\", GameState)?");
-    error!("    .with_resource(amethyst_nphysics::create_physics())");
-    error!("    .build(game_data)?;");
-    error!("```");
+    error!(" |");
+    error!(" | Note: The physics server is not correctly initialized.");
+    error!(" | Adding the PhysicsBundle is not enough, is necessary to add all physics resources.");
+    error!(" | In the Application object creation use the function `.with_physics` to add them.");
+    error!(" | ");
+    error!(" | **Example:**");
+    error!(" | ```");
+    error!(" | let mut game = Application::build(\"./\", GameState)?");
+    error!(" |     .with_physics(amethyst_nphysics::create_physics())");
+    error!(" |     .build(game_data)?;");
+    error!(" | ```");
+    error!(" |__________________________");
     panic!();
 }

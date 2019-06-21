@@ -15,7 +15,10 @@ mod conditional_macros;
 mod n_world_server;
 mod storage;
 
-use amethyst_phythyst::Physics;
+use amethyst_phythyst::{
+    Physics,
+    PhysicsWorldServer,
+};
 use n_world_server::NWorldServer;
 
 /// This function returns an object that wrap all the functionalities required
@@ -23,8 +26,9 @@ use n_world_server::NWorldServer;
 /// 
 /// Register this object as resource to allow Amethyst to use NPhysics.
 pub fn create_physics() -> Physics {
-    Physics {
-        world_server: Box::new(NWorldServer::new()),
-    }
+    (
+        PhysicsWorldServer(Box::new(NWorldServer::new())),
+        None
+    )
 }
 

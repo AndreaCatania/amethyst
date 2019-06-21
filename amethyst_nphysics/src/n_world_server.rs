@@ -25,17 +25,17 @@ impl NWorldServer{
 }
 
 impl WorldServer for NWorldServer{
-    fn create_world(&mut self) -> StoreTag {
+    fn create(&mut self) -> StoreTag {
         self.world_storage.make_opaque(Box::new(World::new()))
     }
 
-    fn drop_world(&mut self, world: StoreTag){
+    fn drop(&mut self, world: StoreTag){
         fail_cond!(!self.world_storage.has(world));
 
         self.world_storage.drop(world);
     }
 
-    fn step_world(&mut self, world: StoreTag, delta_time: f32){
+    fn step(&mut self, world: StoreTag, delta_time: f32){
         let world = self.world_storage.get_mut(world);
         fail_cond!(world.is_none());
         let world = world.unwrap();

@@ -5,7 +5,7 @@ use amethyst_core::{
     shred::Resources,
 };
 use crate::{
-    Physics,
+    PhysicsWorldServer,
     PhysicsWorld,
     PhysicsTime,
     servers::WorldServer,
@@ -25,13 +25,13 @@ impl<'a,> System<'a> for PhysicsStepperSystem{
     type SystemData = (
         ReadExpect<'a, Time>,
         WriteExpect<'a, PhysicsTime>,
-        WriteExpect<'a, Physics>,
+        WriteExpect<'a, PhysicsWorldServer>,
         ReadExpect<'a, PhysicsWorld>,
     );
 
     define_setup_with_physics_assertion!();
     
-    fn run(&mut self, (time, mut physics_time, mut physics, physics_world/*, physics_dispatcher*/): Self::SystemData){
+    fn run(&mut self, (time, mut physics_time, mut physics_world_server, physics_world): Self::SystemData){
 
         physics_time._time_bank += time.delta_seconds();
 
@@ -45,7 +45,7 @@ impl<'a,> System<'a> for PhysicsStepperSystem{
 
             // TODO start dispatcher
 
-            physics.world_server.step_world(physics_world.0, physics_time.sub_step_seconds);
+            physics_world_server.step(physics_world.0, physics_time.sub_step_seconds);
         }
     }
 

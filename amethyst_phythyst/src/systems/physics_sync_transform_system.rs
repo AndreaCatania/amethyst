@@ -5,8 +5,6 @@ use amethyst_core::{
     transform::components::Transform,
 };
 
-use crate::Physics;
-
 pub struct PhysicsSyncTransformSystem{
     c: i32
 }
@@ -21,14 +19,12 @@ impl PhysicsSyncTransformSystem{
 
 impl<'a> System<'a> for PhysicsSyncTransformSystem{
     type SystemData = (
-        WriteExpect<'a, Physics>,
         ReadStorage<'a, Transform>,
     );
 
     define_setup_with_physics_assertion!();
 
-    fn run(&mut self, (mut physics, transform): Self::SystemData){
-        physics.world_server.create_world();
+    fn run(&mut self, (transform): Self::SystemData){
         println!("Sync {}", self.c);
         self.c += 1;
     }
