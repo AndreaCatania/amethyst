@@ -803,6 +803,7 @@ where
         let world = PhysicsWorld(physics.0.create());
 
         self.world.add_resource(physics.0);
+        self.world.add_resource(physics.1);
         self.world.add_resource(PhysicsTime::default());
         self.world.add_resource(world);
 

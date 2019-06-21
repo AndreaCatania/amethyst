@@ -30,7 +30,7 @@ impl PhysicsBundle{
 impl<'a, 'b> SystemBundle<'a, 'b> for PhysicsBundle{
     fn build(self, builder: &mut DispatcherBuilder<'a, 'b>) -> Result<(), Error>{
 
-        builder.add(PhysicsSyncTransformSystem::new(), "physics_sync_transform_system", &[""]);
+        builder.add(PhysicsSyncTransformSystem::new(), "physics_sync_transform_system", &[]);
         builder.add_barrier();
         builder.add(PhysicsStepperSystem::new(), "", &["physics_sync_transform_system"]);
 

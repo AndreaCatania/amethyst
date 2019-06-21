@@ -53,7 +53,7 @@ mod physics_time;
 pub mod servers;
 
 pub use physics_bundle::PhysicsBundle;
-pub use physics::{Physics, PhysicsWorldServer};
+pub use physics::{Physics, PhysicsWorldServer, PhysicsBodyServer};
 pub use physics_world::PhysicsWorld;
 pub use physics_time::PhysicsTime;
 

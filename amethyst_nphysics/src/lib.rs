@@ -13,13 +13,16 @@
 #[macro_use]
 mod conditional_macros;
 mod n_world_server;
+mod n_body_server;
 mod storage;
 
 use amethyst_phythyst::{
     Physics,
     PhysicsWorldServer,
+    PhysicsBodyServer,
 };
 use n_world_server::NWorldServer;
+use n_body_server::NBodyServer;
 
 /// This function returns an object that wrap all the functionalities required
 /// by Phythyst.
@@ -28,7 +31,7 @@ use n_world_server::NWorldServer;
 pub fn create_physics() -> Physics {
     (
         PhysicsWorldServer(Box::new(NWorldServer::new())),
-        None
+        PhysicsBodyServer(Box::new(NBodyServer::new())),
     )
 }
 

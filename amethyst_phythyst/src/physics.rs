@@ -1,32 +1,41 @@
 
-use crate::servers::WorldServer;
+use crate::servers::{
+    WorldServer,
+    BodyServer,
+};
 use std::ops::{Deref, DerefMut};
 
-pub type Physics = (PhysicsWorldServer, Option<i32>);
+pub type Physics = (PhysicsWorldServer, PhysicsBodyServer);
 
-/// This wrapper contains all physics servers and is the access points that the
-/// Systems will use.
-/// 
-/// Each Physics engine that you want to use in amethyst need to fill this object,
-/// check the function `create_physics` in the amethyst_nphysics crate to see how.
-pub struct PhysicsWorldServer(pub Box<dyn WorldServer>);
 
-unsafe impl Send for PhysicsWorldServer {}
-unsafe impl Sync for PhysicsWorldServer {}
+#[macro_export]
+macro_rules! define_server{
+    ($x:ident, $y:ident) => {
+        /// This is a wrapper to the object that provide access to the $y functionalities.
+        ///
+        /// Check the function `amethyst_nphysics::create_physics` doc to see how.
+        pub struct $x(pub Box<dyn $y>);
 
-impl Deref for PhysicsWorldServer{
+        unsafe impl Send for $x {}
+        unsafe impl Sync for $x {}
 
-    type Target = Box<dyn WorldServer>;
+        impl Deref for $x{
 
-    fn deref(&self) -> &Box<dyn WorldServer>{
-        &self.0
+            type Target = Box<dyn $y>;
+
+            fn deref(&self) -> &Box<dyn $y>{
+                &self.0
+            }
+        }
+
+        impl DerefMut for $x{
+
+            fn deref_mut(&mut self) -> &mut Box<dyn $y>{
+                &mut self.0
+            }
+        }
     }
 }
 
-impl DerefMut for PhysicsWorldServer{
-
-    fn deref_mut(&mut self) -> &mut Box<dyn WorldServer>{
-        &mut self.0
-    }
-}
-
+define_server!(PhysicsWorldServer, WorldServer);
+define_server!(PhysicsBodyServer, BodyServer);
