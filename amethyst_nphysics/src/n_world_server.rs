@@ -1,9 +1,14 @@
 
+use crate::storages::Storages;
 use crate::storage::Storage;
-
+use std::{
+    rc::Rc,
+    cell::RefCell
+};
 use amethyst_phythyst::{
     servers::{
         PhysicsWorldTag,
+        PhysicsBodyTag,
         WorldServer,
     }
 };
@@ -13,30 +18,35 @@ use nphysics3d::{
 };
 
 pub struct NWorldServer{
-    world_storage: Storage<Box<World<f32>>>,
+    storages: Rc<RefCell<Storages>>,
 }
 
 impl NWorldServer{
-    pub fn new() -> NWorldServer {
+    pub fn new(storages: Rc<RefCell<Storages>>) -> NWorldServer {
         NWorldServer{
-            world_storage: Storage::new(1, 1),
+            storages,
         }
     }
 }
 
 impl WorldServer for NWorldServer{
     fn create(&mut self) -> PhysicsWorldTag {
-        PhysicsWorldTag(self.world_storage.make_opaque(Box::new(World::new())))
+        let w = self.storages.borrow_mut();
+        PhysicsWorldTag(w.worlds.make_opaque(Box::new(World::new())))
     }
 
     fn drop(&mut self, world: PhysicsWorldTag){
-        fail_cond!(!self.world_storage.has(world.0));
+        fail_cond!(!self.storages.borrow_mut().worlds.has(world.0));
 
-        self.world_storage.drop(world.0);
+        self.storages.borrow_mut().worlds.drop(world.0);
+    }
+
+    fn add_body(&mut self, world: PhysicsWorldTag, body: PhysicsBodyTag){
+
     }
 
     fn step(&mut self, world: PhysicsWorldTag, delta_time: f32){
-        let world = self.world_storage.get_mut(world.0);
+        let world = self.storages.borrow_mut().worlds.get_mut(world.0);
         fail_cond!(world.is_none());
         let world = world.unwrap();
 

@@ -15,23 +15,28 @@ mod conditional_macros;
 mod n_world_server;
 mod n_body_server;
 mod storage;
+mod storages;
+mod rigid_body;
 
 use amethyst_phythyst::{
     Physics,
     PhysicsWorldServer,
-    PhysicsBodyServer,
+    PhysicsRigidBodyServer,
 };
 use n_world_server::NWorldServer;
-use n_body_server::NBodyServer;
+use n_body_server::NRigidBodyServer;
 
 /// This function returns an object that wrap all the functionalities required
 /// by Phythyst.
 /// 
 /// Register this object as resource to allow Amethyst to use NPhysics.
 pub fn create_physics() -> Physics {
+
+    let storages = storages::Storages::new();
+
     (
-        PhysicsWorldServer(Box::new(NWorldServer::new())),
-        PhysicsBodyServer(Box::new(NBodyServer::new())),
+        PhysicsWorldServer(Box::new(NWorldServer::new(storages))),
+        PhysicsRigidBodyServer(Box::new(NRigidBodyServer::new())),
     )
 }
 

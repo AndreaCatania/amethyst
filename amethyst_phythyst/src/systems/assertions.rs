@@ -5,7 +5,7 @@ use amethyst_core::ecs::prelude::Resources;
 
 use crate::{
     PhysicsWorldServer,
-    PhysicsBodyServer,
+    PhysicsRigidBodyServer,
     PhysicsTime,
     servers::{
         PhysicsWorldTag,
@@ -46,8 +46,8 @@ pub fn assert_physics_resources(res: &mut Resources){
     if !res.has_value::<PhysicsWorldServer>() {
         error!("The resource PhysicsWorldServer not found");
         explain_physics_server_setup();
-    }else if !res.has_value::<PhysicsBodyServer>() {
-        error!("The resource PhysicsBodyServer not found");
+    }else if !res.has_value::<PhysicsRigidBodyServer>() {
+        error!("The resource PhysicsRigidBodyServer not found");
         explain_physics_server_setup();
     }else if !res.has_value::<PhysicsTime>() {
         error!("The resource PhysicsTime not found");

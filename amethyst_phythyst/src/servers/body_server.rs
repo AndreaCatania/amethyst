@@ -6,9 +6,15 @@ use crate::servers::PhysicsWorldTag;
 pub struct PhysicsBodyTag(pub std::num::NonZeroUsize);
 
 /// The body server interface
-/// This contains all functionalities to manipulate the body.
-pub trait BodyServer{
+/// This contains all functionalities to manipulate
+/// - RigidBody
+/// - StaticBody
+/// - KinematicBody
+/// - Areas
+///
+pub trait RigidBodyServer {
 
-    fn create(&mut self, world: PhysicsWorldTag) -> PhysicsBodyTag;
+    fn create(&mut self) -> PhysicsBodyTag;
     fn drop(&mut self, body: PhysicsBodyTag);
+
 }

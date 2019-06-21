@@ -8,5 +8,5 @@ pub use world_server::{
 
 pub use body_server::{
     PhysicsBodyTag,
-    BodyServer,
+    RigidBodyServer,
 };

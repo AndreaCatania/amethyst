@@ -1,31 +1,38 @@
 
-
 use amethyst_phythyst::{
     servers::{
         PhysicsWorldTag,
         PhysicsBodyTag,
-        BodyServer,
+        RigidBodyServer,
     },
 };
 
-pub struct NBodyServer{
+use crate::{
+    storage::Storage,
+    rigid_body::ARigidBody
+};
+
+pub struct NRigidBodyServer {
+    storage: Storage<Box<ARigidBody>>,
 }
 
-impl NBodyServer{
+impl NRigidBodyServer {
 
     pub fn new() -> Self{
-        NBodyServer{}
+        NRigidBodyServer {
+            storage: Storage::new(50, 50),
+        }
     }
 }
 
-impl BodyServer for NBodyServer{
+impl RigidBodyServer for NRigidBodyServer {
 
-    fn create(&mut self, world: PhysicsWorldTag) -> PhysicsBodyTag {
-
-        PhysicsBodyTag(std::num::NonZeroUsize::new(1).unwrap())
+    fn create(&mut self) -> PhysicsBodyTag {
+        let body = ARigidBody::new();
+        PhysicsBodyTag(self.storage.make_opaque(body))
     }
 
     fn drop(&mut self, body: PhysicsBodyTag){
-
+        self.storage.drop(body.0);
     }
 }
