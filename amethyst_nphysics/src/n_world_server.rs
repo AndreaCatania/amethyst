@@ -29,11 +29,11 @@ impl NWorldServer{
 }
 
 impl WorldServer for NWorldServer{
-    fn create(&mut self) -> PhysicsWorldTag {
+    fn create_world(&mut self) -> PhysicsWorldTag {
         PhysicsWorldTag(storage_write!(self.storages).worlds.make_opaque(Box::new(World::new())))
     }
 
-    fn drop(&mut self, world: PhysicsWorldTag){
+    fn drop_world(&mut self, world: PhysicsWorldTag){
         let mut s = storage_write!(self.storages);
         fail_cond!(!s.worlds.has(world.0));
 

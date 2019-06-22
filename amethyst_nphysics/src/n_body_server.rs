@@ -31,12 +31,12 @@ impl NRigidBodyServer {
 
 impl RigidBodyServer for NRigidBodyServer {
 
-    fn create(&mut self) -> PhysicsBodyTag {
+    fn create_body(&mut self) -> PhysicsBodyTag {
         let body = ARigidBody::new();
         PhysicsBodyTag(self.storages.write().unwrap().rigid_bodies.make_opaque(body))
     }
 
-    fn drop(&mut self, body: PhysicsBodyTag){
+    fn drop_body(&mut self, body: PhysicsBodyTag){
         self.storages.write().unwrap().rigid_bodies.drop(body.0);
     }
 }

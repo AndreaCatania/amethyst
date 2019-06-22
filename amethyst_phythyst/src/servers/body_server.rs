@@ -14,7 +14,7 @@ pub struct PhysicsBodyTag(pub std::num::NonZeroUsize);
 ///
 pub trait RigidBodyServer {
 
-    fn create(&mut self) -> PhysicsBodyTag;
-    fn drop(&mut self, body: PhysicsBodyTag);
+    fn create_body(&mut self) -> PhysicsBodyTag;
+    fn drop_body(&mut self, body: PhysicsBodyTag);
 
 }

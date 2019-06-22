@@ -9,8 +9,8 @@ pub struct PhysicsWorldTag(pub std::num::NonZeroUsize);
 /// The world server interface
 /// This contains all functionalities to manipulate the world.
 pub trait WorldServer{
-    fn create(&mut self) -> PhysicsWorldTag;
-    fn drop(&mut self, world: PhysicsWorldTag);
+    fn create_world(&mut self) -> PhysicsWorldTag;
+    fn drop_world(&mut self, world: PhysicsWorldTag);
 
     fn add_body(&mut self, world: PhysicsWorldTag, body: PhysicsBodyTag);
 
