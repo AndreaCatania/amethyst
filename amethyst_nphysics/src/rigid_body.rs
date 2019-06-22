@@ -11,7 +11,7 @@ use nphysics3d::{
     },
 };
 
-pub(crate) struct ARigidBody{
+pub struct ARigidBody{
 
 }
 

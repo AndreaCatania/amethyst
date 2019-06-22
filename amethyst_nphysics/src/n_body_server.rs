@@ -8,19 +8,23 @@ use amethyst_phythyst::{
 };
 
 use crate::{
-    storage::Storage,
+    storages::Storages,
     rigid_body::ARigidBody
 };
 
+use std::sync::{
+    Arc, RwLock,
+};
+
 pub struct NRigidBodyServer {
-    storage: Storage<Box<ARigidBody>>,
+    storages: Arc<RwLock<Storages>>,
 }
 
 impl NRigidBodyServer {
 
-    pub fn new() -> Self{
+    pub fn new(storages: Arc<RwLock<Storages>>) -> Self{
         NRigidBodyServer {
-            storage: Storage::new(50, 50),
+            storages
         }
     }
 }
@@ -29,10 +33,10 @@ impl RigidBodyServer for NRigidBodyServer {
 
     fn create(&mut self) -> PhysicsBodyTag {
         let body = ARigidBody::new();
-        PhysicsBodyTag(self.storage.make_opaque(body))
+        PhysicsBodyTag(self.storages.write().unwrap().rigid_bodies.make_opaque(body))
     }
 
     fn drop(&mut self, body: PhysicsBodyTag){
-        self.storage.drop(body.0);
+        self.storages.write().unwrap().rigid_bodies.drop(body.0);
     }
 }

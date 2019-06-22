@@ -12,10 +12,11 @@
 
 #[macro_use]
 mod conditional_macros;
+mod storage;
+#[macro_use]
+mod storages;
 mod n_world_server;
 mod n_body_server;
-mod storage;
-mod storages;
 mod rigid_body;
 
 use amethyst_phythyst::{
@@ -35,8 +36,8 @@ pub fn create_physics() -> Physics {
     let storages = storages::Storages::new();
 
     (
-        PhysicsWorldServer(Box::new(NWorldServer::new(storages))),
-        PhysicsRigidBodyServer(Box::new(NRigidBodyServer::new())),
+        PhysicsWorldServer(Box::new(NWorldServer::new(storages.clone()))),
+        PhysicsRigidBodyServer(Box::new(NRigidBodyServer::new(storages.clone()))),
     )
 }
 
