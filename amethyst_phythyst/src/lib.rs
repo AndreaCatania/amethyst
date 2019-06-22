@@ -54,3 +54,4 @@ pub mod servers;
 pub use physics_bundle::PhysicsBundle;
 pub use physics::{Physics, PhysicsWorldServer, PhysicsRigidBodyServer};
 pub use physics_time::PhysicsTime;
+use crate::servers::PhysicsBodyTag;

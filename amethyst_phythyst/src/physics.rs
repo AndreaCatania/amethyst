@@ -7,7 +7,6 @@ use std::ops::{Deref, DerefMut};
 
 pub type Physics = (PhysicsWorldServer, PhysicsRigidBodyServer);
 
-
 #[macro_export]
 macro_rules! define_server{
     ($x:ident, $y:ident) => {

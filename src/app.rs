@@ -798,6 +798,9 @@ where
 
     pub fn with_physics(mut self, physics: Physics) -> Self {
 
+        self.world.register::<amethyst_phythyst::servers::PhysicsWorldTag>();
+        self.world.register::<amethyst_phythyst::servers::PhysicsBodyTag>();
+
         let mut physics = physics;
 
         let world = physics.0.create_world();
