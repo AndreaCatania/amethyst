@@ -5,19 +5,20 @@ use crate::{
 };
 use nphysics3d::world::World;
 use std::sync::{
-    Arc, RwLock, RwLockWriteGuard, RwLockReadGuard
+    Arc, RwLock,
 };
-use core::borrow::{Borrow, BorrowMut};
+
+pub type ServersStorageType = Arc<RwLock<ServersStorage>>;
 
 /// This struct is responsible to hold all the storages
-pub struct Storages{
+pub struct ServersStorage {
     pub worlds: Storage<Box<World<f32>>>,
     pub rigid_bodies: Storage<Box<ARigidBody>>,
 }
 
-impl Storages{
-    pub fn new() -> Arc<RwLock<Self>>{
-        Arc::new(RwLock::new(Storages{
+impl ServersStorage {
+    pub fn new() -> ServersStorageType {
+        Arc::new(RwLock::new(ServersStorage {
             worlds: Storage::new(1, 1),
             rigid_bodies: Storage::new(50, 50),
         }))

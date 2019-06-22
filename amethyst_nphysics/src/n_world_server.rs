@@ -1,9 +1,6 @@
 
-use crate::storages::Storages;
-use crate::storage::Storage;
-use std::sync::{
-    Arc, RwLock,
-};
+use crate::servers_storage::{ServersStorageType};
+
 use amethyst_phythyst::{
     servers::{
         WorldPhysicsServerTrait,
@@ -16,11 +13,11 @@ use nphysics3d::{
 };
 
 pub struct NWorldServer{
-    storages: Arc<RwLock<Storages>>,
+    storages: ServersStorageType,
 }
 
 impl NWorldServer{
-    pub fn new(storages: Arc<RwLock<Storages>>) -> NWorldServer {
+    pub fn new(storages: ServersStorageType) -> NWorldServer {
         NWorldServer{
             storages,
         }

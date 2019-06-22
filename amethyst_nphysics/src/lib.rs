@@ -14,7 +14,7 @@
 mod conditional_macros;
 mod storage;
 #[macro_use]
-mod storages;
+mod servers_storage;
 mod n_world_server;
 mod n_body_server;
 mod rigid_body;
@@ -35,7 +35,7 @@ use n_body_server::NRigidBodyServer;
 /// Register this object as resource to allow Amethyst to use NPhysics.
 pub fn create_physics() -> PhysicsServers {
 
-    let storages = storages::Storages::new();
+    let storages = servers_storage::ServersStorage::new();
 
     (
         WorldPhysicsServer(Box::new(NWorldServer::new(storages.clone()))),
