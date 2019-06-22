@@ -4,18 +4,17 @@ use log::error;
 use amethyst_core::ecs::prelude::Resources;
 
 use crate::{
-    PhysicsWorldServer,
-    PhysicsRigidBodyServer,
-    PhysicsTime,
     servers::{
-        PhysicsWorldTag,
-        PhysicsBodyTag,
+        WorldPhysicsServer,
+        RBodyPhysicsServer,
     },
+    PhysicsTime,
+    objects::*,
 };
 
 /// This macro implements the `setup` function that checks if the current world
 /// has all the required physics resources.
-/// 
+///
 /// Before to panics, it carefully tell how to properly initialize the physics.
 #[macro_export]
 macro_rules! define_setup_with_physics_assertion{
@@ -43,11 +42,11 @@ macro_rules! define_setup_with_physics_assertion{
 /// correctness of physics server status.
 pub fn assert_physics_resources(res: &mut Resources){
 
-    if !res.has_value::<PhysicsWorldServer>() {
-        error!("The resource PhysicsWorldServer not found");
+    if !res.has_value::<WorldPhysicsServer>() {
+        error!("The resource WorldPhysicsServer not found");
         explain_physics_server_setup();
-    }else if !res.has_value::<PhysicsRigidBodyServer>() {
-        error!("The resource PhysicsRigidBodyServer not found");
+    }else if !res.has_value::<RBodyPhysicsServer>() {
+        error!("The resource RBodyPhysicsServer not found");
         explain_physics_server_setup();
     }else if !res.has_value::<PhysicsTime>() {
         error!("The resource PhysicsTime not found");

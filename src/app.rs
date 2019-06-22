@@ -28,7 +28,7 @@ use crate::{
     state::{State, StateData, StateMachine, TransEvent},
     state_event::{StateEvent, StateEventReader},
     ui::UiEvent,
-    phythyst::{Physics, PhysicsTime, servers::PhysicsWorldTag},
+    phythyst::{servers::PhysicsServers, PhysicsTime,},
 };
 
 /// `CoreApplication` is the application implementation for the game engine. This is fully generic
@@ -796,10 +796,11 @@ where
         self
     }
 
-    pub fn with_physics(mut self, physics: Physics) -> Self {
+    /// Sets all
+    pub fn with_physics(mut self, physics: PhysicsServers) -> Self {
 
-        self.world.register::<amethyst_phythyst::servers::PhysicsWorldTag>();
-        self.world.register::<amethyst_phythyst::servers::PhysicsBodyTag>();
+        self.world.register::<amethyst_phythyst::objects::PhysicsWorldTag>();
+        self.world.register::<amethyst_phythyst::objects::PhysicsBodyTag>();
 
         let mut physics = physics;
 

@@ -6,10 +6,9 @@ use std::sync::{
 };
 use amethyst_phythyst::{
     servers::{
-        PhysicsWorldTag,
-        PhysicsBodyTag,
-        WorldServer,
-    }
+        WorldPhysicsServerTrait,
+    },
+    objects::*,
 };
 
 use nphysics3d::{
@@ -28,7 +27,7 @@ impl NWorldServer{
     }
 }
 
-impl WorldServer for NWorldServer{
+impl WorldPhysicsServerTrait for NWorldServer{
     fn create_world(&mut self) -> PhysicsWorldTag {
         PhysicsWorldTag(storage_write!(self.storages).worlds.make_opaque(Box::new(World::new())))
     }

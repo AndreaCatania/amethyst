@@ -46,12 +46,10 @@
 
 mod systems;
 mod physics_bundle;
-mod physics;
 mod physics_time;
 
 pub mod servers;
+pub mod objects;
 
 pub use physics_bundle::PhysicsBundle;
-pub use physics::{Physics, PhysicsWorldServer, PhysicsRigidBodyServer};
 pub use physics_time::PhysicsTime;
-use crate::servers::PhysicsBodyTag;

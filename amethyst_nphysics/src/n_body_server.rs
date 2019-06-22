@@ -1,10 +1,9 @@
 
 use amethyst_phythyst::{
     servers::{
-        PhysicsWorldTag,
-        PhysicsBodyTag,
-        RigidBodyServer,
+        RBodyPhysicsServerTrait,
     },
+    objects::*,
 };
 
 use crate::{
@@ -29,7 +28,7 @@ impl NRigidBodyServer {
     }
 }
 
-impl RigidBodyServer for NRigidBodyServer {
+impl RBodyPhysicsServerTrait for NRigidBodyServer {
 
     fn create_body(&mut self) -> PhysicsBodyTag {
         let body = ARigidBody::new();

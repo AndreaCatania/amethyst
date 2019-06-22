@@ -20,9 +20,11 @@ mod n_body_server;
 mod rigid_body;
 
 use amethyst_phythyst::{
-    Physics,
-    PhysicsWorldServer,
-    PhysicsRigidBodyServer,
+    servers::{
+        PhysicsServers,
+        WorldPhysicsServer,
+        RBodyPhysicsServer,
+    },
 };
 use n_world_server::NWorldServer;
 use n_body_server::NRigidBodyServer;
@@ -31,13 +33,13 @@ use n_body_server::NRigidBodyServer;
 /// by Phythyst.
 /// 
 /// Register this object as resource to allow Amethyst to use NPhysics.
-pub fn create_physics() -> Physics {
+pub fn create_physics() -> PhysicsServers {
 
     let storages = storages::Storages::new();
 
     (
-        PhysicsWorldServer(Box::new(NWorldServer::new(storages.clone()))),
-        PhysicsRigidBodyServer(Box::new(NRigidBodyServer::new(storages.clone()))),
+        WorldPhysicsServer(Box::new(NWorldServer::new(storages.clone()))),
+        RBodyPhysicsServer(Box::new(NRigidBodyServer::new(storages.clone()))),
     )
 }
 
