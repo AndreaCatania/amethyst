@@ -12,7 +12,7 @@ use nphysics3d::{
 };
 
 pub struct ARigidBody{
-
+    pub a: i32,
 }
 
 impl ARigidBody{
@@ -26,6 +26,8 @@ impl ARigidBody{
 //        let a = RigidBodyDesc::new()
 //            .collider(&collider_desc);
 
-        Box::new(ARigidBody{})
+        Box::new(ARigidBody{
+            a: 10,
+        })
     }
 }

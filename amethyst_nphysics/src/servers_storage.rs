@@ -27,6 +27,9 @@ impl ServersStorage {
 
 #[macro_export]
 macro_rules! storage_read{
+    ($x:ident) => {
+        $x.storages.read().unwrap()
+    };
     ($x:expr) => {
         $x.read().unwrap()
     }
@@ -34,6 +37,9 @@ macro_rules! storage_read{
 
 #[macro_export]
 macro_rules! storage_write{
+    ($x:ident) => {
+        $x.storages.write().unwrap()
+    };
     ($x:expr) => {
         $x.write().unwrap()
     }

@@ -3,7 +3,7 @@
 use amethyst_core::ecs::{DenseVecStorage, Component};
 
 /// PhysicsWorld is the opaque ID that identify a world in the physics server
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone,)]
 pub struct PhysicsWorldTag(pub std::num::NonZeroUsize);
 
 /// Panic if called
@@ -16,6 +16,13 @@ impl Default for PhysicsWorldTag{
 
 impl Component for PhysicsWorldTag{
     type Storage = DenseVecStorage<PhysicsWorldTag>;
+}
+
+impl std::ops::Deref for PhysicsWorldTag{
+    type Target = std::num::NonZeroUsize;
+    fn deref(&self) -> &std::num::NonZeroUsize {
+        &self.0
+    }
 }
 
 /// PhysicsBody is the opaque ID that identify a body in the physics server
@@ -32,4 +39,11 @@ impl Default for PhysicsBodyTag{
 
 impl Component for PhysicsBodyTag{
     type Storage = DenseVecStorage<PhysicsBodyTag>;
+}
+
+impl std::ops::Deref for PhysicsBodyTag{
+    type Target = std::num::NonZeroUsize;
+    fn deref(&self) -> &std::num::NonZeroUsize {
+        &self.0
+    }
 }
