@@ -5,7 +5,7 @@ use amethyst_phythyst::{
     },
     objects::*,
 };
-
+use amethyst_core::components::Transform;
 use crate::{
     servers_storage::{ServersStorageType},
     rigid_body::RigidBody
@@ -33,5 +33,16 @@ impl RBodyPhysicsServerTrait for RBodyNpServer {
 
     fn drop_body(&mut self, body: PhysicsBodyTag){
         self.storages.rbodies_w().destroy(*body);
+    }
+
+    fn body_transform(&self, body: PhysicsBodyTag) -> Transform {
+
+        let body = self.storages.rbodies_r().get(PhysicsBodyTag);
+        fail_cond!(body.is_none());
+        let body = body.unwrap();
+
+        body.get_handle();
+
+        Transform::default()
     }
 }

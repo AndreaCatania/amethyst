@@ -1,6 +1,6 @@
 
 use crate::objects::*;
-
+use amethyst_core::components::Transform;
 
 /// This is the interface that contains all functionalities to manipulate
 /// - RigidBody
@@ -15,4 +15,5 @@ pub trait RBodyPhysicsServerTrait {
     fn create_body(&mut self) -> PhysicsBodyTag;
     fn drop_body(&mut self, body: PhysicsBodyTag);
 
+    fn body_transform(&self, body: PhysicsBodyTag) -> Transform;
 }

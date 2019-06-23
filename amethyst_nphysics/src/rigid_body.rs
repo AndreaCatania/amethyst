@@ -77,4 +77,14 @@ impl RigidBody {
 
         self.phase = RBPhase::InWorld(rb.handle());
     }
+
+    // This function is here mainly because I would like to handle all the possible things inside
+    // the server rather creating a function per each thing.
+    pub fn get_handle(&self) -> Option<NpBodyHandle> {
+        if let RBPhase::InWorld(phase) = self.phase {
+            Some(phase)
+        } else {
+            None
+        }
+    }
 }
