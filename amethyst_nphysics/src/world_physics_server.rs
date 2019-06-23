@@ -1,5 +1,10 @@
 
-use crate::servers_storage::{ServersStorageType,};
+use crate::{
+    world::World,
+    servers_storage::{
+        ServersStorageType,
+    }
+};
 
 use amethyst_phythyst::{
     servers::{
@@ -8,23 +13,19 @@ use amethyst_phythyst::{
     objects::*,
 };
 
-use nphysics3d::{
-    world::World
-};
-
-pub struct NWorldServer{
+pub struct WorldNpServer {
     storages: ServersStorageType,
 }
 
-impl NWorldServer{
-    pub fn new(storages: ServersStorageType) -> NWorldServer {
-        NWorldServer{
+impl WorldNpServer {
+    pub fn new(storages: ServersStorageType) -> WorldNpServer {
+        WorldNpServer {
             storages,
         }
     }
 }
 
-impl WorldPhysicsServerTrait for NWorldServer{
+impl WorldPhysicsServerTrait for WorldNpServer {
     fn create_world(&mut self) -> PhysicsWorldTag {
 
         PhysicsWorldTag(self.storages.worlds_w().make_opaque(Box::new(World::new())))

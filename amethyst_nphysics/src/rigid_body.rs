@@ -5,17 +5,17 @@ use ncollide3d::{
 };
 use nphysics3d::{
     object::{
-        RigidBody,
-        RigidBodyDesc,
-        ColliderDesc,
+        RigidBody as NpRigidBody,
+        RigidBodyDesc as NpRigidBodyDesc,
+        ColliderDesc as NpColliderDesc,
     },
 };
 
-pub struct ARigidBody{
+pub struct RigidBody {
     pub a: i32,
 }
 
-impl ARigidBody{
+impl RigidBody {
     pub fn new() -> Box<Self> {
 
         //let shape = ShapeHandle::new(Ball::new(1.5));
@@ -23,10 +23,10 @@ impl ARigidBody{
 //        collider_desc.set_density(1.0);
 //        collider_desc.set_translation(Vector3::y() * 5.0);
 //
-//        let a = RigidBodyDesc::new()
+//        let a = NpRigidBodyDesc::new();
 //            .collider(&collider_desc);
 
-        Box::new(ARigidBody{
+        Box::new(RigidBody {
             a: 10,
         })
     }

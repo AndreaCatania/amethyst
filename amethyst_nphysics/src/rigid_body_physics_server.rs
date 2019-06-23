@@ -8,26 +8,26 @@ use amethyst_phythyst::{
 
 use crate::{
     servers_storage::{ServersStorageType},
-    rigid_body::ARigidBody
+    rigid_body::RigidBody
 };
 
-pub struct NRigidBodyServer {
+pub struct RBodyNpServer {
     storages: ServersStorageType,
 }
 
-impl NRigidBodyServer {
+impl RBodyNpServer {
 
     pub fn new(storages: ServersStorageType) -> Self{
-        NRigidBodyServer {
+        RBodyNpServer {
             storages
         }
     }
 }
 
-impl RBodyPhysicsServerTrait for NRigidBodyServer {
+impl RBodyPhysicsServerTrait for RBodyNpServer {
 
     fn create_body(&mut self) -> PhysicsBodyTag {
-        let body = ARigidBody::new();
+        let body = RigidBody::new();
         PhysicsBodyTag(self.storages.rbodies_w().make_opaque(body))
     }
 

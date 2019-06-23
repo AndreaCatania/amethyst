@@ -1,23 +1,23 @@
 
 use crate::{
     storage::Storage,
-    rigid_body::ARigidBody,
+    world::World,
+    rigid_body::RigidBody,
 };
-use nphysics3d::world::World;
 use std::sync::{
     Arc, RwLock, RwLockReadGuard, RwLockWriteGuard,
 };
 
 pub type ServersStorageType = Arc<ServersStorage>;
-pub type WorldStorageWrite<'a> = RwLockWriteGuard<'a, Storage<Box<World<f32>>>>;
-pub type WorldStorageRead<'a> = RwLockReadGuard<'a, Storage< Box<World<f32>>>>;
-pub type RigidBodyStorageWrite<'a> = RwLockWriteGuard<'a, Storage<Box<ARigidBody>>>;
-pub type RigidBodyStorageRead<'a> = RwLockReadGuard<'a, Storage<Box<ARigidBody>>>;
+pub type WorldStorageWrite<'a> = RwLockWriteGuard<'a, Storage<Box<World>>>;
+pub type WorldStorageRead<'a> = RwLockReadGuard<'a, Storage< Box<World>>>;
+pub type RigidBodyStorageWrite<'a> = RwLockWriteGuard<'a, Storage<Box<RigidBody>>>;
+pub type RigidBodyStorageRead<'a> = RwLockReadGuard<'a, Storage<Box<RigidBody>>>;
 
 /// This struct is responsible to hold all the storages
 pub struct ServersStorage {
-    worlds: Arc<RwLock<Storage<Box<World<f32>>>>>,
-    rigid_bodies: Arc<RwLock<Storage<Box<ARigidBody>>>>,
+    worlds: Arc<RwLock<Storage<Box<World>>>>,
+    rigid_bodies: Arc<RwLock<Storage<Box<RigidBody>>>>,
 }
 
 impl ServersStorage {
