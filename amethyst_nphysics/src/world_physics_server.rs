@@ -12,6 +12,7 @@ use amethyst_phythyst::{
     },
     objects::*,
 };
+use core::borrow::BorrowMut;
 
 pub struct WorldNpServer {
     storages: ServersStorageType,
@@ -40,20 +41,18 @@ impl WorldPhysicsServerTrait for WorldNpServer {
 
     fn add_body(&mut self, world: PhysicsWorldTag, body: PhysicsBodyTag){
 
-        let w = self.storages.worlds_w();
+        let mut w = self.storages.worlds_w();
 
-        let world = w.get(*world);
+        let world = w.get_mut(*world);
         fail_cond!(world.is_none());
+        let mut world = world.unwrap();
 
-        let world = world.unwrap();
-
-        let r = self.storages.rbodies_r();
-        let body = r.get(*body);
+        let mut r = self.storages.rbodies_w();
+        let body = r.get_mut(*body);
         fail_cond!(body.is_none());
-        let body = body.unwrap();
+        let mut body = body.unwrap();
 
-        println!("Body a: {}", body.a);
-
+        body.set_world(world);
     }
 
     fn step(&mut self, world: PhysicsWorldTag, delta_time: f32){
