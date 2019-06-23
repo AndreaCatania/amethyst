@@ -51,7 +51,7 @@ impl<T> Storage<T>{
     }
 
     /// Destroy an object and release the SoreTag for future use.
-    pub fn drop(&mut self, tag: StoreTag){
+    pub fn destroy(&mut self, tag: StoreTag){
         let object = self.memory.remove(TagMachine::read(tag) - 1 );
         drop(object );
     }

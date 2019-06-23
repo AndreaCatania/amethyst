@@ -22,35 +22,33 @@ impl NWorldServer{
             storages,
         }
     }
-
-
 }
 
 impl WorldPhysicsServerTrait for NWorldServer{
     fn create_world(&mut self) -> PhysicsWorldTag {
-        PhysicsWorldTag(storage_write!(self).worlds.make_opaque(Box::new(World::new())))
+
+        PhysicsWorldTag(self.storages.worlds_w().make_opaque(Box::new(World::new())))
     }
 
     fn drop_world(&mut self, world: PhysicsWorldTag){
-        let mut s = storage_write!(self);
-        fail_cond!(!s.worlds.has(world.0));
+        let mut w = self.storages.worlds_w();
+        fail_cond!(!w.has(world.0));
 
-        s.worlds.drop(world.0);
+        w.destroy(world.0);
     }
 
     fn add_body(&mut self, world: PhysicsWorldTag, body: PhysicsBodyTag){
 
-        let s = storage_write!(self);
+        let w = self.storages.worlds_w();
 
-        let world = s.worlds.get(*world);
+        let world = w.get(*world);
         fail_cond!(world.is_none());
 
         let world = world.unwrap();
 
-        let body = s.rigid_bodies.get(*body);
+        let r = self.storages.rbodies_r();
+        let body = r.get(*body);
         fail_cond!(body.is_none());
-
-
         let body = body.unwrap();
 
         println!("Body a: {}", body.a);
@@ -58,8 +56,8 @@ impl WorldPhysicsServerTrait for NWorldServer{
     }
 
     fn step(&mut self, world: PhysicsWorldTag, delta_time: f32){
-        let mut s = storage_write!(self);
-        let world = s.worlds.get_mut(world.0);
+        let mut w = self.storages.worlds_w();
+        let world = w.get_mut(world.0);
         fail_cond!(world.is_none());
         let world = world.unwrap();
 

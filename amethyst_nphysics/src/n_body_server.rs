@@ -28,10 +28,10 @@ impl RBodyPhysicsServerTrait for NRigidBodyServer {
 
     fn create_body(&mut self) -> PhysicsBodyTag {
         let body = ARigidBody::new();
-        PhysicsBodyTag(storage_write!(self).rigid_bodies.make_opaque(body))
+        PhysicsBodyTag(self.storages.rbodies_w().make_opaque(body))
     }
 
     fn drop_body(&mut self, body: PhysicsBodyTag){
-        storage_write!(self).rigid_bodies.drop(body.0);
+        self.storages.rbodies_w().destroy(*body);
     }
 }
