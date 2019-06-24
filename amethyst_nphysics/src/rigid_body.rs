@@ -11,6 +11,7 @@ use nphysics3d::{
         RigidBodyDesc as NpRigidBodyDesc,
         ColliderDesc as NpColliderDesc,
         BodyHandle as NpBodyHandle,
+        BodyStatus as NpBodyStatus,
     },
 };
 use nalgebra::{
@@ -70,9 +71,11 @@ impl RigidBody {
 
         fail_cond!(self.phase.is_in_world());
 
-        let mut collider_desc = NpColliderDesc::new(NcShapeHandle::new(NcBall::new(0.01)) );
+        let mut collider_desc = NpColliderDesc::new(NcShapeHandle::new(NcBall::new(0.01)) )
+            .density(0.01);
         let rb = NpRigidBodyDesc::new()
             .collider(&collider_desc)
+            .set_translation(Vector3::new(5.0, 5.0, 5.0))
             .build(world);
 
         self.phase = RBPhase::InWorld(rb.handle());

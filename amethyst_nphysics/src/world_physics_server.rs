@@ -1,18 +1,21 @@
 
-use crate::{
-    world::World,
-    servers_storage::{
-        ServersStorageType,
-    }
-};
-
 use amethyst_phythyst::{
     servers::{
         WorldPhysicsServerTrait,
     },
     objects::*,
 };
+
+use nalgebra::Vector3;
+
 use core::borrow::BorrowMut;
+
+use crate::{
+    world::World,
+    servers_storage::{
+        ServersStorageType,
+    }
+};
 
 pub struct WorldNpServer {
     storages: ServersStorageType,
@@ -29,7 +32,11 @@ impl WorldNpServer {
 impl WorldPhysicsServerTrait for WorldNpServer {
     fn create_world(&mut self) -> PhysicsWorldTag {
 
-        PhysicsWorldTag(self.storages.worlds_w().make_opaque(Box::new(World::new())))
+        let mut w = World::new();
+
+        w.set_gravity(Vector3::new(0.0, -9.8, 0.0));
+
+        PhysicsWorldTag(self.storages.worlds_w().make_opaque(Box::new(w)))
     }
 
     fn drop_world(&mut self, world: PhysicsWorldTag){
