@@ -5,7 +5,16 @@ use amethyst_phythyst::{
     },
     objects::*,
 };
-use amethyst_core::components::Transform;
+use amethyst_core::{
+    components::Transform,
+    Float,
+    math::{
+        Vector3,
+        Translation3,
+        UnitQuaternion,
+    },
+};
+use nalgebra::Isometry3;
 use crate::{
     servers_storage::{ServersStorageType},
     rigid_body::RigidBody
@@ -35,14 +44,36 @@ impl RBodyPhysicsServerTrait for RBodyNpServer {
         self.storages.rbodies_w().destroy(*body);
     }
 
-    fn body_transform(&self, body: PhysicsBodyTag) -> Transform {
+    fn body_transform(&self, world: PhysicsWorldTag, body: PhysicsBodyTag) -> Transform {
 
-        let body = self.storages.rbodies_r().get(PhysicsBodyTag);
-        fail_cond!(body.is_none());
+        // TODO Improve this function it has too much overhead.
+
+        let w = self.storages.worlds_r();
+
+        let world = w.get(*world);
+        fail_cond!(world.is_none(), Transform::default());
+        let world = world.unwrap();
+
+        let r = self.storages.rbodies_r();
+
+        let body = r.get(*body);
+        fail_cond!(body.is_none(), Transform::default());
         let body = body.unwrap();
 
-        body.get_handle();
+        let body = body.get_handle();
+        fail_cond!(body.is_none(), Transform::default());
+        let body = world.rigid_body(body.unwrap()).unwrap();
 
-        Transform::default()
+        let t: &Isometry3<f32> = body.position();
+
+        let position = t.translation;
+        let rotation = t.rotation;
+        let scale = Vector3::new(1.0, 1.0, 1.0);
+
+        let t = Transform::new(position, rotation, scale);
+
+        dbg!(position);
+
+        t
     }
 }

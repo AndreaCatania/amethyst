@@ -66,7 +66,7 @@ impl RigidBody {
         })
     }
 
-    pub fn set_world(&mut self, world: &mut Box<World>){
+    pub fn set_world(&mut self, world: &mut World){
 
         fail_cond!(self.phase.is_in_world());
 

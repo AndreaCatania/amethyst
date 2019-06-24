@@ -15,5 +15,5 @@ pub trait RBodyPhysicsServerTrait {
     fn create_body(&mut self) -> PhysicsBodyTag;
     fn drop_body(&mut self, body: PhysicsBodyTag);
 
-    fn body_transform(&self, body: PhysicsBodyTag) -> Transform;
+    fn body_transform(&self, world: PhysicsWorldTag, body: PhysicsBodyTag) -> Transform;
 }
