@@ -1,10 +1,11 @@
-use crate::world::World;
+
 use ncollide3d::{
     shape::{
         ShapeHandle as NcShapeHandle,
         Ball as NcBall,
     },
 };
+
 use nphysics3d::{
     object::{
         RigidBody as NpRigidBody,
@@ -14,11 +15,18 @@ use nphysics3d::{
         BodyStatus as NpBodyStatus,
     },
 };
+
 use nalgebra::{
     RealField,
     Isometry3,
     Vector3,
 };
+
+use crate::{
+    world::World,
+};
+
+use amethyst_phythyst::objects::*;
 
 struct RigidBodyData<N: RealField>{
     transformation: Isometry3<N>,
@@ -37,7 +45,7 @@ impl<N: RealField> Default for RigidBodyData<N>{
 // https://github.com/rustsim/nphysics/issues/205
 pub enum RBPhase<N: RealField>{
     OutWorld(Box<RigidBodyData<N>>),
-    InWorld(NpBodyHandle)
+    InWorld(NpBodyHandle, PhysicsWorldTag)
 }
 
 impl<N: RealField> RBPhase<N> {
@@ -67,7 +75,7 @@ impl RigidBody {
         })
     }
 
-    pub fn set_world(&mut self, world: &mut World){
+    pub fn set_world(&mut self, world_tag: PhysicsWorldTag, world: &mut World){
 
         fail_cond!(self.phase.is_in_world());
 
@@ -78,16 +86,17 @@ impl RigidBody {
             .set_translation(Vector3::new(5.0, 5.0, 5.0))
             .build(world);
 
-        self.phase = RBPhase::InWorld(rb.handle());
+        self.phase = RBPhase::InWorld(rb.handle(), world_tag);
     }
 
     // This function is here mainly because I would like to handle all the possible things inside
     // the server rather creating a function per each thing.
-    pub fn get_handle(&self) -> Option<NpBodyHandle> {
-        if let RBPhase::InWorld(phase) = self.phase {
-            Some(phase)
+    pub fn get_handle(&self) -> Option<(NpBodyHandle, PhysicsWorldTag)> {
+        if let RBPhase::InWorld(phase, world_tag) = self.phase {
+            Some((phase, world_tag ))
         } else {
             None
         }
     }
+
 }

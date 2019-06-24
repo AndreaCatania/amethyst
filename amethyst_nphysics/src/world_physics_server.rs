@@ -46,11 +46,11 @@ impl WorldPhysicsServerTrait for WorldNpServer {
         w.destroy(world.0);
     }
 
-    fn add_body(&mut self, world: PhysicsWorldTag, body: PhysicsBodyTag){
+    fn add_body(&mut self, world_tag: PhysicsWorldTag, body: PhysicsBodyTag){
 
         let mut w = self.storages.worlds_w();
 
-        let world = w.get_mut(*world);
+        let world = w.get_mut(*world_tag);
         fail_cond!(world.is_none());
         let mut world = world.unwrap();
 
@@ -59,7 +59,7 @@ impl WorldPhysicsServerTrait for WorldNpServer {
         fail_cond!(body.is_none());
         let mut body = body.unwrap();
 
-        body.set_world(world);
+        body.set_world(world_tag, world);
     }
 
     fn step(&mut self, world: PhysicsWorldTag, delta_time: f32){

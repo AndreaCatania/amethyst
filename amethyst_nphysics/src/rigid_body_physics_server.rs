@@ -1,10 +1,16 @@
 
+use crate::{
+    servers_storage::*,
+    rigid_body::RigidBody
+};
+
 use amethyst_phythyst::{
     servers::{
         RBodyPhysicsServerTrait,
     },
     objects::*,
 };
+
 use amethyst_core::{
     components::Transform,
     Float,
@@ -14,14 +20,52 @@ use amethyst_core::{
         UnitQuaternion,
     },
 };
-use nalgebra::Isometry3;
-use crate::{
-    servers_storage::{ServersStorageType},
-    rigid_body::RigidBody
+
+use nphysics3d::{
+    object::{
+        RigidBody as NpRigidBody,
+        RigidBodyDesc as NpRigidBodyDesc,
+        ColliderDesc as NpColliderDesc,
+        BodyHandle as NpBodyHandle,
+        BodyStatus as NpBodyStatus,
+    },
 };
+
+use nalgebra::Isometry3;
+
+
 
 pub struct RBodyNpServer {
     storages: ServersStorageType,
+}
+
+macro_rules! extract_rigid_body {
+    ($_self:ident, $body:ident) => {
+
+        let worlds_storage = $_self.storages.worlds_r();
+        let $body = {
+            let (__body, __world) = $body.unwrap().get_handle().unwrap();
+
+            let world = worlds_storage.get(*__world);
+            fail_cond!(world.is_none());
+            let __body = world.unwrap().rigid_body(__body);
+            fail_cond!(__body.is_none());
+            __body
+        }
+    };
+    ($_self:ident, $body:ident, $on_fail_ret:expr) => {
+
+        let worlds_storage = $_self.storages.worlds_r();
+        let $body = {
+            let (__body, __world) = $body.unwrap().get_handle().unwrap();
+
+            let world = worlds_storage.get(*__world);
+            fail_cond!(world.is_none(), $on_fail_ret);
+            let __body = world.unwrap().rigid_body(__body);
+            fail_cond!(__body.is_none(), $on_fail_ret);
+            __body.unwrap()
+        }
+    }
 }
 
 impl RBodyNpServer {
@@ -31,6 +75,15 @@ impl RBodyNpServer {
             storages
         }
     }
+
+//    pub fn rigid_body<'s>(storage :&'s WorldStorageRead, world_tag: PhysicsWorldTag, body_handle: NpBodyHandle) -> Option<&'s NpRigidBody<f32>> {
+//
+//        let world = storage.get(*world_tag);
+//        fail_cond!(world.is_none(), None);
+//
+//        world.unwrap().rigid_body(body_handle)
+//    }
+
 }
 
 impl RBodyPhysicsServerTrait for RBodyNpServer {
@@ -44,25 +97,14 @@ impl RBodyPhysicsServerTrait for RBodyNpServer {
         self.storages.rbodies_w().destroy(*body);
     }
 
-    fn body_transform(&self, world: PhysicsWorldTag, body: PhysicsBodyTag) -> Transform {
+    fn body_transform(&self, body: PhysicsBodyTag) -> Transform {
 
-        // TODO Improve this function it has too much overhead.
+        let bodies_storage = self.storages.rbodies_r();
 
-        let w = self.storages.worlds_r();
-
-        let world = w.get(*world);
-        fail_cond!(world.is_none(), Transform::default());
-        let world = world.unwrap();
-
-        let r = self.storages.rbodies_r();
-
-        let body = r.get(*body);
+        let body = bodies_storage.get(*body);
         fail_cond!(body.is_none(), Transform::default());
-        let body = body.unwrap();
 
-        let body = body.get_handle();
-        fail_cond!(body.is_none(), Transform::default());
-        let body = world.rigid_body(body.unwrap()).unwrap();
+        extract_rigid_body!(self, body, Transform::default());
 
         let t: &Isometry3<f32> = body.position();
 
