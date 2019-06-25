@@ -12,8 +12,15 @@ use amethyst_core::components::Transform;
 /// It's stored as resource in the world.
 pub trait RBodyPhysicsServerTrait {
 
-    fn create_body(&mut self) -> PhysicsBodyTag;
-    fn drop_body(&mut self, body: PhysicsBodyTag);
+    fn create_body(&mut self, world_tag: PhysicsWorldTag, body_desc : &RigidBodyDesc) -> PhysicsBodyTag;
+    fn drop_body(&mut self, body_tag: PhysicsBodyTag);
 
-    fn body_transform(&self, body: PhysicsBodyTag) -> Transform;
+    fn body_transform(&self, body_tag: PhysicsBodyTag) -> Transform;
+}
+
+/// This structure holds all information about the Rigid body before it is created.
+#[derive(Default)]
+pub struct RigidBodyDesc{
+    pub transformation: Transform,
+    pub mass: f32,
 }

@@ -1,7 +1,7 @@
 
 use slab::{Slab};
 
-type StoreTag = std::num::NonZeroUsize;
+pub type StoreTag = std::num::NonZeroUsize;
 
 /// This struct is used to store the physics resources, and return an opaque handle that allow to
 /// return a reference to them.

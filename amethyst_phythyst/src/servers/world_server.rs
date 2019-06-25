@@ -8,7 +8,5 @@ pub trait WorldPhysicsServerTrait {
     fn create_world(&mut self) -> PhysicsWorldTag;
     fn drop_world(&mut self, world: PhysicsWorldTag);
 
-    fn add_body(&mut self, world: PhysicsWorldTag, body: PhysicsBodyTag);
-
     fn step(&mut self, world: PhysicsWorldTag, delta_time: f32);
 }

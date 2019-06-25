@@ -1,11 +1,19 @@
 
 use crate::{
-    storage::Storage,
+    storage::{StoreTag, Storage},
     world::World,
     rigid_body::RigidBody,
 };
+
+use amethyst_phythyst::objects::*;
+
 use std::sync::{
     Arc, RwLock, RwLockReadGuard, RwLockWriteGuard,
+};
+
+use nphysics3d::object::{
+    RigidBody as NpRigidBody,
+    BodyHandle as NpBodyHandle
 };
 
 pub type ServersStorageType = Arc<ServersStorage>;
@@ -23,11 +31,23 @@ pub struct ServersStorage {
 impl ServersStorage {
     pub fn new() -> ServersStorageType {
         Arc::new(ServersStorage {
-            worlds: Arc::new( RwLock::new(Storage::new(1, 1))),
+            worlds: Arc::new(RwLock::new(Storage::new(1, 1))),
             rigid_bodies: Arc::new(RwLock::new(Storage::new(50, 50))),
         })
     }
 
+    pub fn rigid_body<'s>(body_handle: NpBodyHandle, world_tag :StoreTag, storage: &'s WorldStorageRead) -> Option<&'s NpRigidBody<f32>>{
+        let world = storage.get(world_tag);
+        if let Some(world) = world {
+            world.rigid_body(body_handle)
+        }else{
+            None
+        }
+    }
+
+}
+
+impl ServersStorage{
     pub fn worlds_w(&self) -> WorldStorageWrite {
         self.worlds.write().unwrap()
     }

@@ -32,7 +32,10 @@ mod world_server;
 mod body_server;
 
 pub use world_server::WorldPhysicsServerTrait;
-pub use body_server::RBodyPhysicsServerTrait;
+pub use body_server::{
+    RBodyPhysicsServerTrait,
+    RigidBodyDesc,
+};
 
 define_server!(WorldPhysicsServer, WorldPhysicsServerTrait);
 define_server!(RBodyPhysicsServer, RBodyPhysicsServerTrait);
