@@ -28,6 +28,7 @@ mod world;
 mod world_physics_server;
 mod rigid_body;
 mod rigid_body_physics_server;
+mod shape_physics_server;
 mod conversors;
 
 use amethyst_phythyst::{
@@ -39,6 +40,7 @@ use amethyst_phythyst::{
 };
 use world_physics_server::WorldNpServer;
 use rigid_body_physics_server::RBodyNpServer;
+use shape_physics_server::*;
 
 /// This function returns an object that wrap all the functionalities required
 /// by Phythyst.
@@ -51,6 +53,7 @@ pub fn create_physics() -> PhysicsServers {
     (
         WorldPhysicsServer(Box::new(WorldNpServer::new(storages.clone()))),
         RBodyPhysicsServer(Box::new(RBodyNpServer::new(storages.clone()))),
+        ShapePhysicsServer(Box::new(ShapeNpServer::new(storages.clone()))),
     )
 }
 

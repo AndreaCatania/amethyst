@@ -30,14 +30,17 @@ macro_rules! define_server{
 
 mod world_server;
 mod body_server;
+mod shape_server;
 
 pub use world_server::WorldPhysicsServerTrait;
 pub use body_server::{
     RBodyPhysicsServerTrait,
     RigidBodyDesc,
 };
+pub use shape_server::ShapePhysicsServerTrait;
 
 define_server!(WorldPhysicsServer, WorldPhysicsServerTrait);
 define_server!(RBodyPhysicsServer, RBodyPhysicsServerTrait);
+define_server!(ShapePhysicsServer, ShapePhysicsServerTrait);
 
-pub type PhysicsServers = (WorldPhysicsServer, RBodyPhysicsServer);
+pub type PhysicsServers = (WorldPhysicsServer, RBodyPhysicsServer, ShapePhysicsServer);

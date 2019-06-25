@@ -41,6 +41,4 @@ impl RigidBody {
             world_tag,
         })
     }
-
-    // TODO please add here get ref from storage
 }
