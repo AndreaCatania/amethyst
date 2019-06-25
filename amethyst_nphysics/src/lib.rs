@@ -28,6 +28,7 @@ mod world;
 mod world_physics_server;
 mod rigid_body;
 mod rigid_body_physics_server;
+mod conversors;
 
 use amethyst_phythyst::{
     servers::{

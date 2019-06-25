@@ -1,7 +1,8 @@
 
 use crate::{
     servers_storage::*,
-    rigid_body::RigidBody
+    rigid_body::RigidBody,
+    conversors::*,
 };
 
 use amethyst_phythyst::{
@@ -14,14 +15,6 @@ use amethyst_phythyst::{
 
 use amethyst_core::{
     components::Transform,
-    Float,
-    math::{
-        Vector3,
-        Translation3,
-        Quaternion,
-        Vector4,
-        UnitQuaternion,
-    },
 };
 
 use nphysics3d::{
@@ -40,8 +33,6 @@ use ncollide3d::{
         Ball as NcBall,
     }
 };
-
-use nalgebra::Isometry3;
 
 pub struct RBodyNpServer {
     storages: ServersStorageType,
@@ -98,16 +89,12 @@ impl RBodyPhysicsServerTrait for RBodyNpServer {
         assert!(world.is_some());
         let world = world.unwrap();
 
-        let v : &Vector3<Float> = body_desc.transformation.translation();
-        let r = body_desc.transformation.rotation();
-        let pos = Isometry3::from_parts(Translation3::from(Vector3::<f32>::new(v.x.as_f32(), v.y.as_f32(), v.z.as_f32())),UnitQuaternion::new_normalize(Quaternion::from(Vector4::new(r.i.as_f32(), r.j.as_f32(), r.k.as_f32(), r.w.as_f32()))) );
-
         let mut collider_desc = NpColliderDesc::new(NcShapeHandle::new(NcBall::new(0.01)) )
             .density(body_desc.mass);
 
         let rb = NpRigidBodyDesc::new()
             .collider(&collider_desc)
-            .set_position(pos)
+            .set_position(TransfConversor::to_physics(&body_desc.transformation))
             .build(world);
 
         PhysicsBodyTag(self.storages.rbodies_w().make_opaque(RigidBody::new(rb.handle(), world_tag)))
@@ -122,7 +109,6 @@ impl RBodyPhysicsServerTrait for RBodyNpServer {
 
         extract_rigid_body!(self, body, Transform::default());
 
-        let t: &Isometry3<f32> = body.position();
-        Transform::new(t.translation, t.rotation, Vector3::new(1.0, 1.0, 1.0))
+        TransfConversor::from_physics(body.position())
     }
 }
