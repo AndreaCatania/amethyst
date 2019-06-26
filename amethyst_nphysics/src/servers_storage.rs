@@ -3,6 +3,7 @@ use crate::{
     storage::{StoreTag, Storage},
     world::World,
     rigid_body::RigidBody,
+    shape::RigidShape,
 };
 
 use amethyst_phythyst::objects::*;
@@ -16,27 +17,33 @@ use nphysics3d::object::{
     BodyHandle as NpBodyHandle
 };
 
-pub type ServersStorageType = Arc<ServersStorage>;
-pub type WorldStorageWrite<'a> = RwLockWriteGuard<'a, Storage<Box<World>>>;
-pub type WorldStorageRead<'a> = RwLockReadGuard<'a, Storage< Box<World>>>;
+use nalgebra::RealField;
+
+pub type ServersStorageType<N> = Arc<ServersStorage<N>>;
+pub type WorldStorageWrite<'a, N> = RwLockWriteGuard<'a, Storage<Box<World<N>>>>;
+pub type WorldStorageRead<'a, N> = RwLockReadGuard<'a, Storage< Box<World<N>>>>;
 pub type RigidBodyStorageWrite<'a> = RwLockWriteGuard<'a, Storage<Box<RigidBody>>>;
 pub type RigidBodyStorageRead<'a> = RwLockReadGuard<'a, Storage<Box<RigidBody>>>;
+pub type ShapeStorageWrite<'a, N> = RwLockWriteGuard<'a, Storage<Box<RigidShape<N>>>>;
+pub type ShapeStorageRead<'a, N> = RwLockReadGuard<'a, Storage<Box<RigidShape<N>>>>;
 
 /// This struct is responsible to hold all the storages
-pub struct ServersStorage {
-    worlds: Arc<RwLock<Storage<Box<World>>>>,
+pub struct ServersStorage<N: RealField> { // TODO is possible to remove RealField here?
+    worlds: Arc<RwLock<Storage<Box<World<N>>>>>,
     rigid_bodies: Arc<RwLock<Storage<Box<RigidBody>>>>,
+    shapes: Arc<RwLock<Storage<Box<RigidShape<N>>>>>,
 }
 
-impl ServersStorage {
-    pub fn new() -> ServersStorageType {
+impl<N: RealField> ServersStorage<N> {
+    pub fn new() -> ServersStorageType<N> {
         Arc::new(ServersStorage {
             worlds: Arc::new(RwLock::new(Storage::new(1, 1))),
             rigid_bodies: Arc::new(RwLock::new(Storage::new(50, 50))),
+            shapes: Arc::new(RwLock::new(Storage::new(50, 50))),
         })
     }
 
-    pub fn rigid_body<'s>(body_handle: NpBodyHandle, world_tag :StoreTag, storage: &'s WorldStorageRead) -> Option<&'s NpRigidBody<f32>>{
+    pub fn rigid_body<'s>(body_handle: NpBodyHandle, world_tag :StoreTag, storage: &'s WorldStorageRead<N>) -> Option<&'s NpRigidBody<N>>{
         let world = storage.get(world_tag);
         if let Some(world) = world {
             world.rigid_body(body_handle)
@@ -47,12 +54,12 @@ impl ServersStorage {
 
 }
 
-impl ServersStorage{
-    pub fn worlds_w(&self) -> WorldStorageWrite {
+impl<N: RealField> ServersStorage<N>{
+    pub fn worlds_w(&self) -> WorldStorageWrite<N> {
         self.worlds.write().unwrap()
     }
 
-    pub fn worlds_r(&self) -> WorldStorageRead {
+    pub fn worlds_r(&self) -> WorldStorageRead<N> {
         self.worlds.read().unwrap()
     }
 
@@ -62,5 +69,13 @@ impl ServersStorage{
 
     pub fn rbodies_r(&self) -> RigidBodyStorageRead {
         self.rigid_bodies.read().unwrap()
+    }
+
+    pub fn shapes_w(&self) -> ShapeStorageWrite<N> {
+        self.shapes.write().unwrap()
+    }
+
+    pub fn shapes_r(&self) -> ShapeStorageRead<N> {
+        self.shapes.read().unwrap()
     }
 }

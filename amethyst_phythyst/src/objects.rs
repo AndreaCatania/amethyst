@@ -47,3 +47,22 @@ impl std::ops::Deref for PhysicsBodyTag{
         &self.0
     }
 }
+
+/// Physics shape is the opaque ID that identify a body in the physics server
+#[derive(Copy, Clone)]
+pub struct PhysicsShapeTag(pub std::num::NonZeroUsize);
+
+/// Panic if called
+impl Default for PhysicsShapeTag{
+    fn default() -> Self {
+        panic!();
+        PhysicsShapeTag(std::num::NonZeroUsize::new(1).unwrap())
+    }
+}
+
+impl std::ops::Deref for PhysicsShapeTag{
+    type Target = std::num::NonZeroUsize;
+    fn deref(&self) -> &std::num::NonZeroUsize {
+        &self.0
+    }
+}

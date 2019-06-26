@@ -34,8 +34,10 @@ use ncollide3d::{
     }
 };
 
-pub struct RBodyNpServer {
-    storages: ServersStorageType,
+use nalgebra::RealField;
+
+pub struct RBodyNpServer<N: RealField> {
+    storages: ServersStorageType<N>,
 }
 
 macro_rules! extract_rigid_body {
@@ -48,7 +50,7 @@ macro_rules! extract_rigid_body {
         fail_cond!($body.is_none());
         let $body = $body.unwrap();
 
-        let $body = ServersStorage::rigid_body($body.body_handle, *$body.world_tag, &worlds_storage);
+        let $body = ServersStorage::<N>::rigid_body($body.body_handle, *$body.world_tag, &worlds_storage);
         fail_cond!($body.is_none());
         let $body = $body.unwrap();
 
@@ -62,16 +64,16 @@ macro_rules! extract_rigid_body {
         fail_cond!($body.is_none(), $on_fail_ret);
         let $body = $body.unwrap();
 
-        let $body = ServersStorage::rigid_body($body.body_handle, *$body.world_tag, &worlds_storage);
+        let $body = ServersStorage::<N>::rigid_body($body.body_handle, *$body.world_tag, &worlds_storage);
         fail_cond!($body.is_none(), $on_fail_ret);
         let $body = $body.unwrap();
 
     }
 }
 
-impl RBodyNpServer {
+impl<N: RealField> RBodyNpServer<N>{
 
-    pub fn new(storages: ServersStorageType) -> Self{
+    pub fn new(storages: ServersStorageType<N>) -> Self{
         RBodyNpServer {
             storages
         }
@@ -79,9 +81,9 @@ impl RBodyNpServer {
 
 }
 
-impl RBodyPhysicsServerTrait for RBodyNpServer {
+impl<N: RealField + std::convert::From<amethyst_core::Float>> RBodyPhysicsServerTrait<N> for RBodyNpServer<N> {
 
-    fn create_body(&mut self, world_tag: PhysicsWorldTag, body_desc : &RigidBodyDesc) -> PhysicsBodyTag {
+    fn create_body(&mut self, world_tag: PhysicsWorldTag, body_desc : &RigidBodyDesc<N>) -> PhysicsBodyTag {
 
         let mut world_storage = self.storages.worlds_w();
 
@@ -89,7 +91,9 @@ impl RBodyPhysicsServerTrait for RBodyNpServer {
         assert!(world.is_some());
         let world = world.unwrap();
 
-        let mut collider_desc = NpColliderDesc::new(NcShapeHandle::new(NcBall::new(0.01)) )
+        let shape = self.storages.shapes_w().get(*body_desc.shape).expect("During rigid body creation was not possible to find the shape");
+
+        let mut collider_desc = NpColliderDesc::new(shape.shape_handle())
             .density(body_desc.mass);
 
         let rb = NpRigidBodyDesc::new()

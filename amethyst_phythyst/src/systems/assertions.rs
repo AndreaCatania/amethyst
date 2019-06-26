@@ -42,10 +42,10 @@ macro_rules! define_setup_with_physics_assertion{
 /// correctness of physics server status.
 pub fn assert_physics_resources(res: &mut Resources){
 
-    if !res.has_value::<WorldPhysicsServer>() {
+    if !res.has_value::<WorldPhysicsServer<f32>>() {
         error!("The resource WorldPhysicsServer not found");
         explain_physics_server_setup();
-    }else if !res.has_value::<RBodyPhysicsServer>() {
+    }else if !res.has_value::<RBodyPhysicsServer<f32>>() {
         error!("The resource RBodyPhysicsServer not found");
         explain_physics_server_setup();
     }else if !res.has_value::<PhysicsTime>() {

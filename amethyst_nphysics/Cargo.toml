@@ -13,3 +13,4 @@ nalgebra = "0.18.0"
 ncollide3d = "0.19.2"
 nphysics3d = "0.11.1"
 slab = "0.4.2"
+alga = { version = "0.9.0", default-features = false }

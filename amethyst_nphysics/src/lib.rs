@@ -28,6 +28,7 @@ mod world;
 mod world_physics_server;
 mod rigid_body;
 mod rigid_body_physics_server;
+mod shape;
 mod shape_physics_server;
 mod conversors;
 
@@ -36,17 +37,19 @@ use amethyst_phythyst::{
         PhysicsServers,
         WorldPhysicsServer,
         RBodyPhysicsServer,
+        ShapePhysicsServer,
     },
 };
 use world_physics_server::WorldNpServer;
 use rigid_body_physics_server::RBodyNpServer;
 use shape_physics_server::*;
+use nalgebra::RealField;
 
 /// This function returns an object that wrap all the functionalities required
 /// by Phythyst.
 /// 
 /// Register this object as resource to allow Amethyst to use NPhysics.
-pub fn create_physics() -> PhysicsServers {
+pub fn create_physics<N: RealField + std::convert::From<amethyst_core::Float>>() -> PhysicsServers<N> {
 
     let storages = servers_storage::ServersStorage::new();
 

@@ -4,6 +4,7 @@ use amethyst_core::{
     ecs::{System, RunNow, WriteExpect, ReadExpect, Read, Dispatcher,},
     shred::Resources,
 };
+
 use crate::{
     PhysicsTime,
     servers::{
@@ -27,11 +28,11 @@ impl<'a,> System<'a> for PhysicsStepperSystem{
         ReadExpect<'a, Time>,
         WriteExpect<'a, PhysicsTime>,
         ReadExpect<'a, PhysicsWorldTag>,
-        WriteExpect<'a, WorldPhysicsServer>,
+        WriteExpect<'a, WorldPhysicsServer<f32>>,
     );
 
     define_setup_with_physics_assertion!();
-    
+
     fn run(&mut self, (time, mut physics_time, physics_world, mut world_server): Self::SystemData){
 
         physics_time._time_bank += time.delta_seconds();

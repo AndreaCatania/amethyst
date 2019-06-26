@@ -1,5 +1,4 @@
 
-#[macro_export]
 macro_rules! define_server{
     ($x:ident, $y:ident) => {
         /// This is a wrapper to the object that provide access to the $y functionalities.
@@ -28,6 +27,34 @@ macro_rules! define_server{
     }
 }
 
+macro_rules! define_server_generic{
+    ($x:ident, $y:ident) => {
+        /// This is a wrapper to the object that provide access to the $y functionalities.
+        ///
+        /// Check the function `amethyst_nphysics::create_physics` doc to see how.
+        pub struct $x<N>(pub Box<dyn $y<N>>);
+
+        unsafe impl<N> Send for $x<N> {}
+        unsafe impl<N> Sync for $x<N> {}
+
+        impl<N> std::ops::Deref for $x<N>{
+
+            type Target = Box<dyn $y<N>>;
+
+            fn deref(&self) -> &Box<dyn $y<N>>{
+                &self.0
+            }
+        }
+
+        impl<N> std::ops::DerefMut for $x<N>{
+
+            fn deref_mut(&mut self) -> &mut Box<dyn $y<N>>{
+                &mut self.0
+            }
+        }
+    }
+}
+
 mod world_server;
 mod body_server;
 mod shape_server;
@@ -37,10 +64,13 @@ pub use body_server::{
     RBodyPhysicsServerTrait,
     RigidBodyDesc,
 };
-pub use shape_server::ShapePhysicsServerTrait;
+pub use shape_server::{
+    ShapePhysicsServerTrait,
+    ShapeDesc,
+};
 
-define_server!(WorldPhysicsServer, WorldPhysicsServerTrait);
-define_server!(RBodyPhysicsServer, RBodyPhysicsServerTrait);
-define_server!(ShapePhysicsServer, ShapePhysicsServerTrait);
+define_server_generic!(WorldPhysicsServer, WorldPhysicsServerTrait);
+define_server_generic!(RBodyPhysicsServer, RBodyPhysicsServerTrait);
+define_server_generic!(ShapePhysicsServer, ShapePhysicsServerTrait);
 
-pub type PhysicsServers = (WorldPhysicsServer, RBodyPhysicsServer, ShapePhysicsServer);
+pub type PhysicsServers<N> = (WorldPhysicsServer<N>, RBodyPhysicsServer<N>, ShapePhysicsServer<N>);

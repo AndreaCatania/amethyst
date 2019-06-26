@@ -797,7 +797,7 @@ where
     }
 
     /// Sets all
-    pub fn with_physics(mut self, physics: PhysicsServers) -> Self {
+    pub fn with_physics<N>(mut self, physics: PhysicsServers<N>) -> Self {
 
         self.world.register::<amethyst_phythyst::objects::PhysicsWorldTag>();
         self.world.register::<amethyst_phythyst::objects::PhysicsBodyTag>();

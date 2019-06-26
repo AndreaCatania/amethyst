@@ -6,7 +6,10 @@ use amethyst_phythyst::{
     objects::*,
 };
 
-use nalgebra::Vector3;
+use nalgebra::{
+    RealField,
+    Vector3,
+};
 
 use core::borrow::BorrowMut;
 
@@ -17,24 +20,24 @@ use crate::{
     }
 };
 
-pub struct WorldNpServer {
-    storages: ServersStorageType,
+pub struct WorldNpServer<N: RealField> {
+    storages: ServersStorageType<N>,
 }
 
-impl WorldNpServer {
-    pub fn new(storages: ServersStorageType) -> WorldNpServer {
+impl<N: RealField> WorldNpServer<N> {
+    pub fn new(storages: ServersStorageType<N>) -> WorldNpServer<N> {
         WorldNpServer {
             storages,
         }
     }
 }
 
-impl WorldPhysicsServerTrait for WorldNpServer {
+impl<N: RealField> WorldPhysicsServerTrait<N> for WorldNpServer<N> {
     fn create_world(&mut self) -> PhysicsWorldTag {
 
-        let mut w = World::new();
+        let mut w = World::<N>::new();
 
-        w.set_gravity(Vector3::new(0.0, -9.8, 0.0));
+//        w.set_gravity(Vector3::new(0.0, -9.8, 0.0));
 
         PhysicsWorldTag(self.storages.worlds_w().make_opaque(Box::new(w)))
     }
@@ -46,7 +49,7 @@ impl WorldPhysicsServerTrait for WorldNpServer {
         w.destroy(world.0);
     }
 
-    fn step(&mut self, world: PhysicsWorldTag, delta_time: f32){
+    fn step(&mut self, world: PhysicsWorldTag, delta_time: N){
         let mut w = self.storages.worlds_w();
         let world = w.get_mut(world.0);
         fail_cond!(world.is_none());

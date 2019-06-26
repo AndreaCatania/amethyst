@@ -23,7 +23,7 @@ impl PhysicsSyncTransformSystem{
 
 impl<'a> System<'a> for PhysicsSyncTransformSystem{
     type SystemData = (
-        ReadExpect<'a, RBodyPhysicsServer>,
+        ReadExpect<'a, RBodyPhysicsServer<f32>>,
         WriteStorage<'a, Transform>,
         ReadStorage<'a, PhysicsBodyTag>,
     );
