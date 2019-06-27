@@ -81,17 +81,23 @@ impl<N: RealField> RBodyNpServer<N>{
 
 }
 
-impl<N: RealField + std::convert::From<amethyst_core::Float>> RBodyPhysicsServerTrait<N> for RBodyNpServer<N> {
+impl<N> RBodyPhysicsServerTrait<N> for RBodyNpServer<N>
+    where N: RealField,
+          amethyst_core::Float: std::convert::From<N>,
+          amethyst_core::Float: std::convert::Into<N>,
+          N: alga::general::SubsetOf<amethyst_core::Float>
+{
 
     fn create_body(&mut self, world_tag: PhysicsWorldTag, body_desc : &RigidBodyDesc<N>) -> PhysicsBodyTag {
 
         let mut world_storage = self.storages.worlds_w();
+        let mut shape_storage = self.storages.shapes_w();
 
         let world = world_storage.get_mut(*world_tag);
         assert!(world.is_some());
         let world = world.unwrap();
 
-        let shape = self.storages.shapes_w().get(*body_desc.shape).expect("During rigid body creation was not possible to find the shape");
+        let shape = shape_storage.get(*body_desc.shape).expect("During rigid body creation was not possible to find the shape");
 
         let mut collider_desc = NpColliderDesc::new(shape.shape_handle())
             .density(body_desc.mass);

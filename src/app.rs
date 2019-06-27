@@ -797,19 +797,20 @@ where
     }
 
     /// Sets all
-    pub fn with_physics<N>(mut self, physics: PhysicsServers<N>) -> Self {
+    pub fn with_physics<N: crate::core::math::RealField>(mut self, physics: PhysicsServers<N>) -> Self {
 
         self.world.register::<amethyst_phythyst::objects::PhysicsWorldTag>();
         self.world.register::<amethyst_phythyst::objects::PhysicsBodyTag>();
 
         let mut physics = physics;
 
-        let world = physics.0.create_world();
+        let physics_world = physics.0.create_world();
 
         self.world.add_resource(physics.0);
         self.world.add_resource(physics.1);
+        self.world.add_resource(physics.2);
         self.world.add_resource(PhysicsTime::default());
-        self.world.add_resource(world);
+        self.world.add_resource(physics_world);
 
         self
     }

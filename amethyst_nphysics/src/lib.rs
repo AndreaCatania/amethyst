@@ -49,8 +49,12 @@ use nalgebra::RealField;
 /// by Phythyst.
 /// 
 /// Register this object as resource to allow Amethyst to use NPhysics.
-pub fn create_physics<N: RealField + std::convert::From<amethyst_core::Float>>() -> PhysicsServers<N> {
-
+pub fn create_physics<N>() -> PhysicsServers<N>
+    where N: RealField,
+          amethyst_core::Float: std::convert::From<N>,
+          amethyst_core::Float: std::convert::Into<N>,
+          N: alga::general::SubsetOf<amethyst_core::Float>
+{
     let storages = servers_storage::ServersStorage::new();
 
     (

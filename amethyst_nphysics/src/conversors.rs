@@ -19,8 +19,9 @@ use nalgebra::{
 pub(crate) struct VecConversor;
 
 impl VecConversor{
-    pub fn to_physics<N: RealField>(v: &Vector3<Float>) -> Vector3<N>
-        where N: std::convert::From<amethyst_core::Float>
+    pub fn to_physics<N>(v: &Vector3<Float>) -> Vector3<N>
+        where N: RealField,
+              amethyst_core::Float: std::convert::Into<N>
     {
             Vector3::new(
                v.x.into(),
@@ -28,14 +29,15 @@ impl VecConversor{
                v.z.into())
     }
 
-    pub fn from_physics<N: RealField>(v: &Vector3<N>) -> Vector3<Float>
-        where amethyst_core::Float: std::convert::From<N>
+    pub fn from_physics<N>(v: &Vector3<N>) -> Vector3<Float>
+        where N: RealField,
+              amethyst_core::Float: std::convert::From<N>
     {
 
         Vector3::new(
-               v.x.into(),
-               v.y.into(),
-               v.z.into())
+               Float::from(v.x),
+               Float::from(v.y),
+               Float::from(v.z))
 
     }
 }
@@ -43,28 +45,46 @@ impl VecConversor{
 pub(crate) struct QuatConversor;
 
 impl QuatConversor{
-    pub fn to_physics<N: RealField + std::convert::From<Float>>(r: &Quaternion<Float>) -> Quaternion<N> {
+    pub fn to_physics<N>(r: &Quaternion<Float>) -> Quaternion<N>
+        where N: RealField,
+              amethyst_core::Float: std::convert::Into<N>
+    {
 
         Quaternion::from(Vector4::new(r.i.into(), r.j.into(), r.k.into(), r.w.into()))
     }
 
-    pub fn from_physics<N: RealField, Float: RealField + std::convert::From<N>>(r: &Quaternion<N>) -> Quaternion<Float> {
+    pub fn from_physics<N>(r: &Quaternion<N>) -> Quaternion<Float>
+        where N: RealField,
+              amethyst_core::Float: std::convert::From<N>
+    {
 
-        Quaternion::from(Vector4::new(r.i.into(), r.j.into(), r.k.into(), r.w.into()))
+        Quaternion::from(
+                Vector4::new(
+                    Float::from(r.i),
+                    Float::from(r.j),
+                    Float::from(r.k),
+                    Float::from(r.w)))
     }
 }
 
 pub(crate) struct TransfConversor;
 
 impl TransfConversor {
-    pub fn to_physics<N: RealField + std::convert::From<Float> + alga::general::SubsetOf<Float>>(t: &Transform) -> Isometry3<N> {
+    pub fn to_physics<N>(t: &Transform) -> Isometry3<N>
+        where N: RealField,
+              amethyst_core::Float: std::convert::Into<N>
+    {
         Isometry3::from_parts(
             Translation3::from(VecConversor::to_physics(t.translation())),
             UnitQuaternion::new_normalize(QuatConversor::to_physics(t.rotation())) )
 
     }
 
-    pub fn from_physics<N: RealField + std::convert::From<amethyst_core::Float> + alga::general::SubsetOf<Float>>(t: &Isometry3<N>) -> Transform {
+    pub fn from_physics<N>(t: &Isometry3<N>) -> Transform
+        where N: RealField,
+              amethyst_core::Float: std::convert::From<N>,
+              N: alga::general::SubsetOf<Float>
+    {
         Transform::new(t.translation, t.rotation, Vector3::x() + Vector3::y() + Vector3::z())
     }
 }
