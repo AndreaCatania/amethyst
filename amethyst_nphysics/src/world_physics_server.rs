@@ -37,7 +37,10 @@ impl<N: RealField> WorldPhysicsServerTrait<N> for WorldNpServer<N> {
 
         let mut w = World::<N>::new();
 
-//        w.set_gravity(Vector3::new(0.0, -9.8, 0.0));
+        w.set_gravity(Vector3::new(
+            nalgebra::convert(0.0),
+            nalgebra::convert(-9.8),
+            nalgebra::convert(0.0)));
 
         PhysicsWorldTag(self.storages.worlds_w().make_opaque(Box::new(w)))
     }
