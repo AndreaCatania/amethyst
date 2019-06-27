@@ -22,4 +22,7 @@ pub trait ShapePhysicsServerTrait<N: RealField>{
 pub enum ShapeDesc<N: RealField> {
    Sphere{radius: N},
    Cube{half_extents: Vector3<N>},
+   /// The plane is a shape with infinite size. The normal of the plane is Y+.
+   /// Usually this shape is used as world margin.
+   Plane,
 }

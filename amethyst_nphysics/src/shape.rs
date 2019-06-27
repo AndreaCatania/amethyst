@@ -7,11 +7,14 @@ use ncollide3d::shape::{
     ShapeHandle as NcShapeHandle,
     Ball as NcBall,
     Cuboid as NcCuboid,
+    Plane as NcPlane,
 };
 
 use nalgebra::{
     RealField,
     Vector3,
+    convert,
+    Unit,
 };
 
 pub struct RigidShape<N: RealField>{
@@ -44,6 +47,7 @@ impl<N: RealField> RigidShape<N> {
         match shape_desc {
             ShapeDesc::Sphere{radius} => NcShapeHandle::new(NcBall::new(*radius)),
             ShapeDesc::Cube{half_extents} => NcShapeHandle::new(NcCuboid::new(*half_extents)),
+            ShapeDesc::Plane => NcShapeHandle::new(NcPlane::new(Unit::new_normalize(Vector3::new(convert(0.0), convert(1.0), convert(0.0)))))
         }
     }
 }
