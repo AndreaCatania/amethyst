@@ -63,6 +63,7 @@ pub use world_server::WorldPhysicsServerTrait;
 pub use body_server::{
     RBodyPhysicsServerTrait,
     RigidBodyDesc,
+    BodyMode
 };
 pub use shape_server::{
     ShapePhysicsServerTrait,

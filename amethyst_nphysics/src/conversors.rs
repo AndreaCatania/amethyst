@@ -1,4 +1,5 @@
 
+
 use amethyst_core::{
     components::Transform,
     Float,
@@ -10,11 +11,13 @@ use amethyst_core::{
         UnitQuaternion,
     },
 };
+
 use nalgebra::{
     Transform3,
     Isometry3,
     RealField,
 };
+
 
 pub(crate) struct VecConversor;
 
@@ -86,5 +89,31 @@ impl TransfConversor {
               N: alga::general::SubsetOf<Float>
     {
         Transform::new(t.translation, t.rotation, Vector3::x() + Vector3::y() + Vector3::z())
+    }
+}
+
+pub mod body_mode_conversor{
+    use amethyst_phythyst::servers::BodyMode;
+
+    use nphysics3d::object::{
+        BodyStatus as NpBodyStatus,
+    };
+
+    pub fn to_physics(m: BodyMode) -> NpBodyStatus {
+        match m {
+            BodyMode::Disabled => NpBodyStatus::Disabled,
+            BodyMode::Static => NpBodyStatus::Static,
+            BodyMode::Dynamic => NpBodyStatus::Dynamic,
+            BodyMode::Kinematic => NpBodyStatus::Kinematic,
+        }
+    }
+
+    pub fn from_physics(s: NpBodyStatus) -> BodyMode {
+        match s {
+            NpBodyStatus::Disabled => BodyMode::Disabled,
+            NpBodyStatus::Static => BodyMode::Static,
+            NpBodyStatus::Dynamic => BodyMode::Dynamic,
+            NpBodyStatus::Kinematic => BodyMode::Kinematic,
+        }
     }
 }

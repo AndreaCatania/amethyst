@@ -21,7 +21,28 @@ pub trait RBodyPhysicsServerTrait<N> {
 /// This structure holds all information about the Rigid body before it is created.
 #[derive(Default)]
 pub struct RigidBodyDesc<N>{
+    pub mode: BodyMode,
     pub shape: PhysicsShapeTag,
     pub transformation: Transform,
     pub mass: N,
 }
+
+/// The mode of a body.
+#[derive(Copy, Clone, PartialEq, Eq, Hash, Debug)]
+pub enum BodyMode {
+    /// The body is disabled and ignored by the physics engine.
+    Disabled,
+    /// The body is static and thus cannot move.
+    Static,
+    /// The body is dynamic and thus can move and is subject to forces.
+    Dynamic,
+    /// The body is kinematic so its velocity is controlled by the user and it is not affected by forces and constraints.
+    Kinematic,
+}
+
+impl Default for BodyMode {
+    fn default() -> Self {
+        BodyMode::Dynamic
+    }
+}
+

@@ -19,6 +19,7 @@ use amethyst_core::{
 
 use nphysics3d::{
     object::{
+        Body as NpBody,
         RigidBody as NpRigidBody,
         RigidBodyDesc as NpRigidBodyDesc,
         ColliderDesc as NpColliderDesc,
@@ -107,6 +108,7 @@ impl<N> RBodyPhysicsServerTrait<N> for RBodyNpServer<N>
             .set_position(TransfConversor::to_physics(&body_desc.transformation))
             .build(world);
 
+        rb.set_status(body_mode_conversor::to_physics(body_desc.mode));
         PhysicsBodyTag(self.storages.rbodies_w().make_opaque(RigidBody::new(rb.handle(), world_tag)))
     }
 
