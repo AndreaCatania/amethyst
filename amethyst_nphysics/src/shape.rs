@@ -34,8 +34,8 @@ impl<N: RealField> RigidShape<N> {
         // TODo please update the shape on all bodies
     }
 
-    pub fn shape_handle(&self) -> NcShapeHandle<N> {
-        self.shape_handle.clone()
+    pub fn shape_handle(&self) -> &NcShapeHandle<N> {
+        &self.shape_handle
     }
 }
 

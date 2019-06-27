@@ -99,7 +99,7 @@ impl<N> RBodyPhysicsServerTrait<N> for RBodyNpServer<N>
 
         let shape = shape_storage.get(*body_desc.shape).expect("During rigid body creation was not possible to find the shape");
 
-        let mut collider_desc = NpColliderDesc::new(shape.shape_handle())
+        let mut collider_desc = NpColliderDesc::new(shape.shape_handle().clone())
             .density(body_desc.mass);
 
         let rb = NpRigidBodyDesc::new()
