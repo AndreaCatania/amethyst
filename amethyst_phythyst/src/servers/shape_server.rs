@@ -25,4 +25,5 @@ pub enum ShapeDesc<N: RealField> {
    /// The plane is a shape with infinite size. The normal of the plane is Y+.
    /// Usually this shape is used as world margin.
    Plane,
+   //Cylinder{half_height: N, radius: N},
 }
