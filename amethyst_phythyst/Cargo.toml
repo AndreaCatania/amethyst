@@ -6,7 +6,7 @@ edition = "2018"
 description = "The Amethyst physics engine manager"
 
 [dependencies]
-amethyst_core = { path = "../amethyst_core", version = "0.5" }
+amethyst_core = { path = "../amethyst_core", version = "0.6" }
 amethyst_error = { path = "../amethyst_error", version = "0.1.0" }
 log = "0.4.6"
 nalgebra = "0.18.0"
