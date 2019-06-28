@@ -1,4 +1,3 @@
-
 use crate::objects::*;
 
 /// This is the interface that contains all functionalities to manipulate the world.

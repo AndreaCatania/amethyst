@@ -1,4 +1,3 @@
-
 /// This resource is used to tweak the physics time step and at the same time store important
 /// information used by the stepper system.
 ///
@@ -23,8 +22,7 @@
 /// in a single frame increasing even more the `Timer::delta_time` of the next frame, entering so
 /// in a spiral that will drop the performances.
 /// For this reason the `max_sub_steps` is necessary in order to counter this behavior.
-pub struct PhysicsTime{
-
+pub struct PhysicsTime {
     /// The time used to advance the physics.
     /// The default is 60 frames per second : 1 / 60
     pub(crate) sub_step_seconds: f32,
@@ -40,41 +38,37 @@ pub struct PhysicsTime{
     /// ### IMPORTANT
     /// This is used internally, don't change it in any way please.
     pub(crate) _time_bank: f32,
-
 }
 
-impl Default for PhysicsTime{
-    fn default() -> Self{
-        PhysicsTime{
+impl Default for PhysicsTime {
+    fn default() -> Self {
+        PhysicsTime {
             sub_step_seconds: 1.0 / 60.0,
             max_sub_steps: 8,
-            _max_bank_size: ( 1.0 / 60.0 ) * 8.0,
+            _max_bank_size: (1.0 / 60.0) * 8.0,
             _time_bank: 0.0,
         }
     }
 }
 
-impl PhysicsTime{
-
-    pub fn set_sub_step_seconds(mut self, sub_step_seconds: f32) -> Self{
-
+impl PhysicsTime {
+    pub fn set_sub_step_seconds(mut self, sub_step_seconds: f32) -> Self {
         self.sub_step_seconds = sub_step_seconds;
         self.update_max_bank_size();
         self
     }
 
-    pub fn set_frames_per_second(mut self, frames_per_second: u32) -> Self{
-
-        self.set_sub_step_seconds( 1.0 / frames_per_second as f32)
+    pub fn set_frames_per_second(mut self, frames_per_second: u32) -> Self {
+        self.set_sub_step_seconds(1.0 / frames_per_second as f32)
     }
 
-    pub fn set_max_sub_steps(mut self, max_sub_steps: u32) -> Self{
+    pub fn set_max_sub_steps(mut self, max_sub_steps: u32) -> Self {
         self.max_sub_steps = max_sub_steps;
         self.update_max_bank_size();
         self
     }
 
-    pub fn sub_step_seconds(&self) -> f32{
+    pub fn sub_step_seconds(&self) -> f32 {
         self.sub_step_seconds
     }
 
@@ -82,7 +76,7 @@ impl PhysicsTime{
         self.max_sub_steps
     }
 
-    fn update_max_bank_size(&mut self){
+    fn update_max_bank_size(&mut self) {
         self._max_bank_size = self.sub_step_seconds * self.max_sub_steps as f32;
     }
 }

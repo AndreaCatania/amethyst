@@ -1,5 +1,4 @@
-
-macro_rules! define_server{
+macro_rules! define_server {
     ($x:ident, $y:ident) => {
         /// This is a wrapper to the object that provide access to the $y functionalities.
         ///
@@ -9,25 +8,23 @@ macro_rules! define_server{
         unsafe impl Send for $x {}
         unsafe impl Sync for $x {}
 
-        impl std::ops::Deref for $x{
-
+        impl std::ops::Deref for $x {
             type Target = Box<dyn $y>;
 
-            fn deref(&self) -> &Box<dyn $y>{
+            fn deref(&self) -> &Box<dyn $y> {
                 &self.0
             }
         }
 
-        impl std::ops::DerefMut for $x{
-
-            fn deref_mut(&mut self) -> &mut Box<dyn $y>{
+        impl std::ops::DerefMut for $x {
+            fn deref_mut(&mut self) -> &mut Box<dyn $y> {
                 &mut self.0
             }
         }
-    }
+    };
 }
 
-macro_rules! define_server_generic{
+macro_rules! define_server_generic {
     ($x:ident, $y:ident) => {
         /// This is a wrapper to the object that provide access to the $y functionalities.
         ///
@@ -37,41 +34,36 @@ macro_rules! define_server_generic{
         unsafe impl<N> Send for $x<N> {}
         unsafe impl<N> Sync for $x<N> {}
 
-        impl<N> std::ops::Deref for $x<N>{
-
+        impl<N> std::ops::Deref for $x<N> {
             type Target = Box<dyn $y<N>>;
 
-            fn deref(&self) -> &Box<dyn $y<N>>{
+            fn deref(&self) -> &Box<dyn $y<N>> {
                 &self.0
             }
         }
 
-        impl<N> std::ops::DerefMut for $x<N>{
-
-            fn deref_mut(&mut self) -> &mut Box<dyn $y<N>>{
+        impl<N> std::ops::DerefMut for $x<N> {
+            fn deref_mut(&mut self) -> &mut Box<dyn $y<N>> {
                 &mut self.0
             }
         }
-    }
+    };
 }
 
-mod world_server;
 mod body_server;
 mod shape_server;
+mod world_server;
 
+pub use body_server::{BodyMode, RBodyPhysicsServerTrait, RigidBodyDesc};
+pub use shape_server::{ShapeDesc, ShapePhysicsServerTrait};
 pub use world_server::WorldPhysicsServerTrait;
-pub use body_server::{
-    RBodyPhysicsServerTrait,
-    RigidBodyDesc,
-    BodyMode
-};
-pub use shape_server::{
-    ShapePhysicsServerTrait,
-    ShapeDesc,
-};
 
 define_server_generic!(WorldPhysicsServer, WorldPhysicsServerTrait);
 define_server_generic!(RBodyPhysicsServer, RBodyPhysicsServerTrait);
 define_server_generic!(ShapePhysicsServer, ShapePhysicsServerTrait);
 
-pub type PhysicsServers<N> = (WorldPhysicsServer<N>, RBodyPhysicsServer<N>, ShapePhysicsServer<N>);
+pub type PhysicsServers<N> = (
+    WorldPhysicsServer<N>,
+    RBodyPhysicsServer<N>,
+    ShapePhysicsServer<N>,
+);

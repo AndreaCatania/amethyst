@@ -1,4 +1,3 @@
-
 use crate::objects::*;
 use amethyst_core::components::Transform;
 
@@ -11,8 +10,11 @@ use amethyst_core::components::Transform;
 /// The object that implement this interface is wrapped by `RBodyPhysicsServer`.
 /// It's stored as resource in the world.
 pub trait RBodyPhysicsServerTrait<N> {
-
-    fn create_body(&mut self, world_tag: PhysicsWorldTag, body_desc : &RigidBodyDesc<N>) -> PhysicsBodyTag;
+    fn create_body(
+        &mut self,
+        world_tag: PhysicsWorldTag,
+        body_desc: &RigidBodyDesc<N>,
+    ) -> PhysicsBodyTag;
     fn drop_body(&mut self, body_tag: PhysicsBodyTag);
 
     fn body_transform(&self, body_tag: PhysicsBodyTag) -> Transform;
@@ -20,7 +22,7 @@ pub trait RBodyPhysicsServerTrait<N> {
 
 /// This structure holds all information about the Rigid body before it is created.
 #[derive(Default)]
-pub struct RigidBodyDesc<N>{
+pub struct RigidBodyDesc<N> {
     pub mode: BodyMode,
     pub shape: PhysicsShapeTag,
     pub transformation: Transform,
@@ -45,4 +47,3 @@ impl Default for BodyMode {
         BodyMode::Dynamic
     }
 }
-

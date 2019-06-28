@@ -74,7 +74,7 @@ impl From<Float> for f32 {
 }
 
 impl From<Float> for f64 {
-    fn from(val: Float) -> Self{
+    fn from(val: Float) -> Self {
         val.as_f64()
     }
 }

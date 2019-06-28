@@ -1,26 +1,16 @@
-use amethyst_phythyst::{
-    objects::*,
-    servers::ShapeDesc,
-};
+use amethyst_phythyst::{objects::*, servers::ShapeDesc};
 
 use ncollide3d::shape::{
+    Ball as NcBall, Cuboid as NcCuboid, Cylinder as NcCylinder, Plane as NcPlane,
     ShapeHandle as NcShapeHandle,
-    Ball as NcBall,
-    Cuboid as NcCuboid,
-    Plane as NcPlane,
-    Cylinder as NcCylinder,
 };
 
-use nalgebra::{
-    RealField,
-    Vector3,
-    convert,
-    Unit,
-};
+use nalgebra::{convert, RealField, Unit, Vector3};
 
-pub struct RigidShape<N: RealField>{
+pub struct RigidShape<N: RealField> {
     shape_desc: ShapeDesc<N>,
     shape_handle: NcShapeHandle<N>,
+    bodies: Vec<PhysicsBodyTag>,
 }
 
 impl<N: RealField> RigidShape<N> {
@@ -28,27 +18,36 @@ impl<N: RealField> RigidShape<N> {
         RigidShape {
             shape_desc: shape_desc.clone(),
             shape_handle: RigidShape::generate_handle(shape_desc),
+            bodies: Vec::new(),
         }
     }
 
-    pub fn update(&mut self, shape_desc: &ShapeDesc<N>){
+    pub fn update(&mut self, shape_desc: &ShapeDesc<N>) {
         self.shape_desc = shape_desc.clone();
         self.shape_handle = RigidShape::generate_handle(shape_desc);
-
-        // TODo please update the shape on all bodies
     }
 
     pub fn shape_handle(&self) -> &NcShapeHandle<N> {
         &self.shape_handle
+    }
+
+    pub fn register_body(&mut self, body: PhysicsBodyTag) {
+        self.bodies.push(body);
+    }
+
+    pub fn bodies(&self) -> &Vec<PhysicsBodyTag> {
+        &self.bodies
     }
 }
 
 impl<N: RealField> RigidShape<N> {
     fn generate_handle(shape_desc: &ShapeDesc<N>) -> NcShapeHandle<N> {
         match shape_desc {
-            ShapeDesc::Sphere{radius} => NcShapeHandle::new(NcBall::new(*radius)),
-            ShapeDesc::Cube{half_extents} => NcShapeHandle::new(NcCuboid::new(*half_extents)),
-            ShapeDesc::Plane => NcShapeHandle::new(NcPlane::new(Unit::new_normalize(Vector3::new(convert(0.0), convert(1.0), convert(0.0))))),
+            ShapeDesc::Sphere { radius } => NcShapeHandle::new(NcBall::new(*radius)),
+            ShapeDesc::Cube { half_extents } => NcShapeHandle::new(NcCuboid::new(*half_extents)),
+            ShapeDesc::Plane => NcShapeHandle::new(NcPlane::new(Unit::new_normalize(
+                Vector3::new(convert(0.0), convert(1.0), convert(0.0)),
+            ))),
             //ShapeDesc::Cylinder{half_height, radius} => NcShapeHandle::new( NcCylinder::new(*half_height, *radius) ),
         }
     }

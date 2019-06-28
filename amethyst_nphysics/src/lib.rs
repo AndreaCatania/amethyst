@@ -1,6 +1,6 @@
 //! # IMPORTANT:
 //! This library is not meant to stay inside the amethyst project.
-//! 
+//!
 //! Actually this is here only to make it more simple to develop.
 //! The idea is to move this outside once it's almost done.
 
@@ -8,7 +8,7 @@
 //! This is the default Amethyst physics engine.
 //! To use this you have to register the `PhysicsServers` returned by the fn `create_physics`
 //! that is located in this crate, using the fn `Application::with_physics`.
-//! 
+//!
 //! Follow the instructions of Phythyst to make more info about it.
 //!
 //! # Dev info
@@ -24,36 +24,32 @@ mod conditional_macros;
 mod storage;
 #[macro_use]
 mod servers_storage;
-mod world;
-mod world_physics_server;
+mod conversors;
 mod rigid_body;
 mod rigid_body_physics_server;
 mod shape;
 mod shape_physics_server;
-mod conversors;
+mod world;
+mod world_physics_server;
 
-use amethyst_phythyst::{
-    servers::{
-        PhysicsServers,
-        WorldPhysicsServer,
-        RBodyPhysicsServer,
-        ShapePhysicsServer,
-    },
+use amethyst_phythyst::servers::{
+    PhysicsServers, RBodyPhysicsServer, ShapePhysicsServer, WorldPhysicsServer,
 };
-use world_physics_server::WorldNpServer;
+use nalgebra::RealField;
 use rigid_body_physics_server::RBodyNpServer;
 use shape_physics_server::*;
-use nalgebra::RealField;
+use world_physics_server::WorldNpServer;
 
 /// This function returns an object that wrap all the functionalities required
 /// by Phythyst.
-/// 
+///
 /// Register this object as resource to allow Amethyst to use NPhysics.
 pub fn create_physics<N>() -> PhysicsServers<N>
-    where N: RealField,
-          amethyst_core::Float: std::convert::From<N>,
-          amethyst_core::Float: std::convert::Into<N>,
-          N: alga::general::SubsetOf<amethyst_core::Float>
+where
+    N: RealField,
+    amethyst_core::Float: std::convert::From<N>,
+    amethyst_core::Float: std::convert::Into<N>,
+    N: alga::general::SubsetOf<amethyst_core::Float>,
 {
     let storages = servers_storage::ServersStorage::new();
 
@@ -63,4 +59,3 @@ pub fn create_physics<N>() -> PhysicsServers<N>
         ShapePhysicsServer(Box::new(ShapeNpServer::new(storages.clone()))),
     )
 }
-
