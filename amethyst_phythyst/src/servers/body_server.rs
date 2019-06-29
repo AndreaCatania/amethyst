@@ -24,14 +24,52 @@ pub trait RBodyPhysicsServerTrait<N: RealField> {
         world_tag: PhysicsWorldTag,
         body_desc: &RigidBodyDesc<N>,
     ) -> PhysicsBodyTag;
+
     fn drop_body(&mut self, body_tag: PhysicsBodyTag);
 
     /// Get the actual transformation of the body
     fn body_transform(&self, body_tag: PhysicsBodyTag) -> Transform;
 
+    /// Clear forces
+    /// **Serial execution**
+    fn clear_forces(&mut self, body: PhysicsBodyTag);
+
     /// Apply a central force to the body
     /// **Serial execution**
     fn apply_force(&mut self, body: PhysicsBodyTag, force: &Vector3<N>);
+
+    /// Apply central angular force to the body
+    fn apply_torque(&mut self, body: PhysicsBodyTag, force: &Vector3<N>);
+
+    /// Apply force at position to the body
+    /// **Serial execution**
+    fn apply_force_at_position(&mut self, body: PhysicsBodyTag, force: &Vector3<N>, position: &Vector3<N>);
+
+    /// Apply central impulse to the body
+    /// **Serial execution**
+    fn apply_impulse(&mut self, body: PhysicsBodyTag, impulse: &Vector3<N>);
+
+    /// Apply central angulat impulse to the body
+    /// **Serial execution**
+    fn apply_angular_impulse(&mut self, body: PhysicsBodyTag, impulse: &Vector3<N>);
+
+    /// Apply impulse at position to the body
+    /// **Serial execution**
+    fn apply_impulse_at_position(&mut self, body: PhysicsBodyTag, impulse: &Vector3<N>, position: &Vector3<N>);
+
+    /// Set the velocity of the body
+    /// **Serial execution**
+    fn set_linear_velocity(&mut self, body: PhysicsBodyTag, velocity: &Vector3<N>);
+
+    /// Get the velocity of the body
+    fn linear_velocity(&self, body: PhysicsBodyTag) -> Vector3<N>;
+
+    /// Set the angular velocity of the body
+    /// **Serial execution**
+    fn set_angular_velocity(&mut self, body: PhysicsBodyTag, velocity: &Vector3<N>);
+
+    /// Get the angular velocity of the body
+    fn angular_velocity(&self, body: PhysicsBodyTag) -> Vector3<N>;
 }
 
 /// This structure holds all information about the Rigid body before it is created.

@@ -14,7 +14,7 @@ use nphysics3d::{
         RigidBodyDesc as NpRigidBodyDesc,
     },
     math::{
-        Force, ForceType,
+        Force, ForceType, Velocity,
     },
     world::World as NpWorld,
 };
@@ -23,9 +23,11 @@ use ncollide3d::shape::{Ball as NcBall, ShapeHandle as NcShapeHandle};
 
 use nalgebra::{
     RealField,
+    Vector,
     Vector3,
     Point,
 };
+use nphysics3d::algebra::Velocity3;
 
 pub struct RBodyNpServer<N: RealField> {
     storages: ServersStorageType<N>,
@@ -188,9 +190,69 @@ where
         TransfConversor::from_physics(body.position())
     }
 
+    fn clear_forces(&mut self, body: PhysicsBodyTag){
+        extract_rigid_body_mut!(self, body);
+
+        body.clear_forces();
+    }
+
     fn apply_force(&mut self, body: PhysicsBodyTag, force: &Vector3<N>){
         extract_rigid_body_mut!(self, body);
 
         body.apply_force(0, &Force::linear(*force), ForceType::Force, true);
+    }
+
+    fn apply_torque(&mut self, body: PhysicsBodyTag, force: &Vector3<N>){
+        extract_rigid_body_mut!(self, body);
+
+        body.apply_force(0, &Force::torque(*force), ForceType::Force, true);
+    }
+
+    fn apply_force_at_position(&mut self, body: PhysicsBodyTag, force: &Vector3<N>, position: &Vector3<N>){
+        extract_rigid_body_mut!(self, body);
+
+        body.apply_force_at_point(0, force, &Point::from(*position), ForceType::Force, true);
+    }
+
+    fn apply_impulse(&mut self, body: PhysicsBodyTag, impulse: &Vector3<N>){
+        extract_rigid_body_mut!(self, body);
+
+        body.apply_force(0, &Force::linear(*impulse), ForceType::Impulse, true);
+    }
+
+    fn apply_angular_impulse(&mut self, body: PhysicsBodyTag, impulse: &Vector3<N>){
+        extract_rigid_body_mut!(self, body);
+
+        body.apply_force(0, &Force::torque(*impulse), ForceType::Impulse, true);
+    }
+
+    fn apply_impulse_at_position(&mut self, body: PhysicsBodyTag, impulse: &Vector3<N>, position: &Vector3<N>){
+        extract_rigid_body_mut!(self, body);
+
+        body.apply_force_at_point(0, impulse, &Point::from(*position), ForceType::Impulse, true);
+    }
+
+    fn set_linear_velocity(&mut self, body: PhysicsBodyTag, velocity: &Vector3<N>){
+        extract_rigid_body_mut!(self, body);
+
+        body.set_velocity(Velocity3::new(*velocity, body.velocity().angular));
+    }
+
+    fn linear_velocity(&self, body: PhysicsBodyTag) -> Vector3<N>{
+        extract_rigid_body!(self, body, Vector3::zeros());
+
+        body.velocity().linear
+    }
+
+    fn set_angular_velocity(&mut self, body: PhysicsBodyTag, velocity: &Vector3<N>){
+        extract_rigid_body_mut!(self, body);
+
+        body.set_velocity(Velocity3::new(body.velocity().linear, *velocity));
+    }
+
+    fn angular_velocity(&self, body: PhysicsBodyTag) -> Vector3<N> {
+        extract_rigid_body!(self, body, Vector3::zeros());
+
+        body.velocity().angular
     }
 }
