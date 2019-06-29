@@ -74,7 +74,7 @@ impl TransfConversor {
         Transform::new(
             t.translation,
             t.rotation,
-            Vector3::x() + Vector3::y() + Vector3::z(),
+            Vector3::from_element(nalgebra::convert(1.0)),
         )
     }
 }
