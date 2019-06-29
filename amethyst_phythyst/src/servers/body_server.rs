@@ -1,5 +1,9 @@
 use crate::objects::*;
 use amethyst_core::components::Transform;
+use nalgebra::{
+    RealField,
+    Vector3,
+};
 
 /// This is the interface that contains all functionalities to manipulate
 /// - RigidBody
@@ -9,7 +13,7 @@ use amethyst_core::components::Transform;
 ///
 /// The object that implement this interface is wrapped by `RBodyPhysicsServer`.
 /// It's stored as resource in the world.
-pub trait RBodyPhysicsServerTrait<N> {
+pub trait RBodyPhysicsServerTrait<N: RealField> {
     fn create_body(
         &mut self,
         world_tag: PhysicsWorldTag,
@@ -18,6 +22,9 @@ pub trait RBodyPhysicsServerTrait<N> {
     fn drop_body(&mut self, body_tag: PhysicsBodyTag);
 
     fn body_transform(&self, body_tag: PhysicsBodyTag) -> Transform;
+
+    /// Apply a central force to the body
+    fn apply_force(&mut self, body: PhysicsBodyTag, force: &Vector3<N>);
 }
 
 /// This structure holds all information about the Rigid body before it is created.

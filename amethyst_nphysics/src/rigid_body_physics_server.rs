@@ -13,12 +13,19 @@ use nphysics3d::{
         BodyStatus as NpBodyStatus, ColliderDesc as NpColliderDesc, RigidBody as NpRigidBody,
         RigidBodyDesc as NpRigidBodyDesc,
     },
+    math::{
+        Force, ForceType,
+    },
     world::World as NpWorld,
 };
 
 use ncollide3d::shape::{Ball as NcBall, ShapeHandle as NcShapeHandle};
 
-use nalgebra::RealField;
+use nalgebra::{
+    RealField,
+    Vector3,
+    Point,
+};
 
 pub struct RBodyNpServer<N: RealField> {
     storages: ServersStorageType<N>,
@@ -48,6 +55,35 @@ macro_rules! extract_rigid_body {
 
         let $body =
             ServersStorage::<N>::rigid_body($body.body_handle, *$body.world_tag, &worlds_storage);
+        fail_cond!($body.is_none(), $on_fail_ret);
+        let $body = $body.unwrap();
+    };
+}
+
+macro_rules! extract_rigid_body_mut {
+    ($_self:ident, $body:ident) => {
+        let mut bodies_storage = $_self.storages.rbodies_w();
+        let mut worlds_storage = $_self.storages.worlds_w();
+
+        let $body = bodies_storage.get_mut(*$body);
+        fail_cond!($body.is_none());
+        let $body = $body.unwrap();
+
+        let $body =
+            ServersStorage::<N>::rigid_body_mut($body.body_handle, *$body.world_tag, &mut worlds_storage);
+        fail_cond!($body.is_none());
+        let $body = $body.unwrap();
+    };
+    ($_self:ident, $body:ident, $on_fail_ret:expr) => {
+        let bodies_storage = $_self.storages.rbodies_w();
+        let worlds_storage = $_self.storages.worlds_w();
+
+        let $body = bodies_storage.get(*$body);
+        fail_cond!($body.is_none(), $on_fail_ret);
+        let $body = $body.unwrap();
+
+        let $body =
+            ServersStorage::<N>::rigid_body_mut($body.body_handle, *$body.world_tag, &mut worlds_storage);
         fail_cond!($body.is_none(), $on_fail_ret);
         let $body = $body.unwrap();
     };
@@ -150,5 +186,11 @@ where
         extract_rigid_body!(self, body, Transform::default());
 
         TransfConversor::from_physics(body.position())
+    }
+
+    fn apply_force(&mut self, body: PhysicsBodyTag, force: &Vector3<N>){
+        extract_rigid_body_mut!(self, body);
+
+        body.apply_force(0, &Force::linear(*force), ForceType::Force, true);
     }
 }
