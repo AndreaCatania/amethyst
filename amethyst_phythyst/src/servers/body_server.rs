@@ -13,6 +13,11 @@ use nalgebra::{
 ///
 /// The object that implement this interface is wrapped by `RBodyPhysicsServer`.
 /// It's stored as resource in the world.
+///
+/// ### Serial execution
+/// There are functions that are marked as serial execution.
+/// These functions doesn't have the capacity to be executed in parallel. Even if executed by different
+/// threads.
 pub trait RBodyPhysicsServerTrait<N: RealField> {
     fn create_body(
         &mut self,
@@ -21,9 +26,11 @@ pub trait RBodyPhysicsServerTrait<N: RealField> {
     ) -> PhysicsBodyTag;
     fn drop_body(&mut self, body_tag: PhysicsBodyTag);
 
+    /// Get the actual transformation of the body
     fn body_transform(&self, body_tag: PhysicsBodyTag) -> Transform;
 
     /// Apply a central force to the body
+    /// **Serial execution**
     fn apply_force(&mut self, body: PhysicsBodyTag, force: &Vector3<N>);
 }
 
