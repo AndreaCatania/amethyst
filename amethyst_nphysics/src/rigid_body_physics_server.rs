@@ -141,9 +141,7 @@ where
         let mut bodies_storage = self.storages.rbodies_w();
         let mut shape_storage = self.storages.shapes_w();
 
-        let np_world = world_storage.get_mut(*world_tag);
-        assert!(np_world.is_some());
-        let np_world = np_world.unwrap();
+        let np_world = world_storage.get_mut(*world_tag).expect("During the rigid body creation the world tag passed was not valid");
 
         let (rb_tag, rb_part_handle) = {
             // Create Rigid body
