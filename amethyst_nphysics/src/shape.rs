@@ -11,6 +11,7 @@ pub struct RigidShape<N: RealField> {
     shape_desc: ShapeDesc<N>,
     shape_handle: NcShapeHandle<N>,
     bodies: Vec<PhysicsBodyTag>,
+    areas: Vec<PhysicsAreaTag>,
 }
 
 impl<N: RealField> RigidShape<N> {
@@ -19,6 +20,7 @@ impl<N: RealField> RigidShape<N> {
             shape_desc: shape_desc.clone(),
             shape_handle: RigidShape::generate_handle(shape_desc),
             bodies: Vec::new(),
+            areas: Vec::new(),
         }
     }
 
@@ -38,6 +40,12 @@ impl<N: RealField> RigidShape<N> {
     pub fn bodies(&self) -> &Vec<PhysicsBodyTag> {
         &self.bodies
     }
+
+    pub fn register_area(&mut self, area: PhysicsAreaTag) {
+        self.areas.push(area);
+    }
+
+    pub fn areas(&self) -> &Vec<PhysicsAreaTag> { &self.areas }
 }
 
 impl<N: RealField> RigidShape<N> {

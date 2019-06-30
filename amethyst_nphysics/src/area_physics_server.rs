@@ -43,7 +43,6 @@ impl<N: RealField> AreaPhysicsServerTrait for AreaNpServer<N> {
     ) -> PhysicsAreaTag {
 
         // TODO please add transformation
-        // TODO please register this area under the shape
         unimplemented!();
 
         let mut worlds_storage = self.storages.worlds_w();
@@ -56,6 +55,8 @@ impl<N: RealField> AreaPhysicsServerTrait for AreaNpServer<N> {
         let np_collider = NpColliderDesc::new(shape.shape_handle().clone()).sensor(true).build(np_world);
 
         let area_tag = PhysicsAreaTag(areas_storage.make_opaque(Box::new(Area::new(np_collider.handle(), world_tag, area_desc.shape))));
+
+        shape.register_area(area_tag);
 
         area_tag
     }

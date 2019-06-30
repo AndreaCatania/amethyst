@@ -43,6 +43,7 @@ impl<N: RealField> ShapePhysicsServerTrait<N> for ShapeNpServer<N> {
 
         shape.update(shape_desc);
 
+        // Phase 1. Update the shapes of all bodies.
         let bodies = shape.bodies();
         for body_tag in bodies {
             let body = bodies_storage.get_mut(**body_tag);
@@ -65,5 +66,9 @@ impl<N: RealField> ShapePhysicsServerTrait<N> for ShapeNpServer<N> {
                 }
             }
         }
+
+        // Phase 2. Update the shapes of all areas.
+        // TODO please make sure to reload the area shape
+        unimplemented!();
     }
 }
