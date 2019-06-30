@@ -29,6 +29,7 @@ mod world;
 mod world_physics_server;
 mod rigid_body;
 mod rigid_body_physics_server;
+mod area;
 mod area_physics_server;
 mod shape;
 mod shape_physics_server;

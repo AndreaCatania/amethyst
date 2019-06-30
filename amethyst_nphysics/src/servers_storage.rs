@@ -1,8 +1,9 @@
 use crate::{
+    world::World,
     rigid_body::RigidBody,
+    area::Area,
     shape::RigidShape,
     storage::{Storage, StoreTag},
-    world::World,
 };
 
 use amethyst_phythyst::objects::*;
@@ -18,6 +19,8 @@ pub type WorldStorageWrite<'a, N> = RwLockWriteGuard<'a, Storage<Box<World<N>>>>
 pub type WorldStorageRead<'a, N> = RwLockReadGuard<'a, Storage<Box<World<N>>>>;
 pub type RigidBodyStorageWrite<'a> = RwLockWriteGuard<'a, Storage<Box<RigidBody>>>;
 pub type RigidBodyStorageRead<'a> = RwLockReadGuard<'a, Storage<Box<RigidBody>>>;
+pub type AreaStorageWrite<'a> = RwLockWriteGuard<'a, Storage<Box<Area>>>;
+pub type AreaStorageRead<'a> = RwLockReadGuard<'a, Storage<Box<Area>>>;
 pub type ShapeStorageWrite<'a, N> = RwLockWriteGuard<'a, Storage<Box<RigidShape<N>>>>;
 pub type ShapeStorageRead<'a, N> = RwLockReadGuard<'a, Storage<Box<RigidShape<N>>>>;
 
@@ -41,6 +44,7 @@ pub struct ServersStorage<N: RealField> {
     // TODO is possible to remove RealField here?
     worlds: Arc<RwLock<Storage<Box<World<N>>>>>,
     rigid_bodies: Arc<RwLock<Storage<Box<RigidBody>>>>,
+    areas: Arc<RwLock<Storage<Box<Area>>>>,
     shapes: Arc<RwLock<Storage<Box<RigidShape<N>>>>>,
 }
 
@@ -49,6 +53,7 @@ impl<N: RealField> ServersStorage<N> {
         Arc::new(ServersStorage {
             worlds: Arc::new(RwLock::new(Storage::new(1, 1))),
             rigid_bodies: Arc::new(RwLock::new(Storage::new(50, 50))),
+            areas: Arc::new(RwLock::new(Storage::new(50, 50))),
             shapes: Arc::new(RwLock::new(Storage::new(50, 50))),
         })
     }
@@ -96,6 +101,10 @@ impl<N: RealField> ServersStorage<N> {
     pub fn rbodies_r(&self) -> RigidBodyStorageRead {
         self.rigid_bodies.read().unwrap()
     }
+
+    pub fn areas_w(&self) -> AreaStorageWrite { self.areas.write().unwrap() }
+
+    pub fn areas_r(&self) -> AreaStorageRead { self.areas.read().unwrap() }
 
     pub fn shapes_w(&self) -> ShapeStorageWrite<N> {
         self.shapes.write().unwrap()

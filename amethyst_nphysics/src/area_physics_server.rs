@@ -1,5 +1,8 @@
 
-use crate::servers_storage::*;
+use crate::{
+    servers_storage::*,
+    area::Area,
+};
 use amethyst_phythyst::{
     servers::{
         AreaPhysicsServerTrait,
@@ -38,8 +41,13 @@ impl<N: RealField> AreaPhysicsServerTrait for AreaNpServer<N> {
         world_tag: PhysicsWorldTag,
         area_desc: &AreaDesc,
     ) -> PhysicsAreaTag {
+
+        // TODO please add transformation
+        // TODO please register this area under the shape
+        unimplemented!();
+
         let mut worlds_storage = self.storages.worlds_w();
-        // area storage ?
+        let mut areas_storage = self.storages.areas_w();
         let mut shapes_storage = self.storages.shapes_w();
 
         let np_world = worlds_storage.get_mut(*world_tag).expect("During the area creation the world tag passed was not valid");
@@ -47,7 +55,9 @@ impl<N: RealField> AreaPhysicsServerTrait for AreaNpServer<N> {
 
         let np_collider = NpColliderDesc::new(shape.shape_handle().clone()).sensor(true).build(np_world);
 
-        PhysicsAreaTag::default()
+        let area_tag = PhysicsAreaTag(areas_storage.make_opaque(Box::new(Area::new(np_collider.handle(), world_tag, area_desc.shape))));
+
+        area_tag
     }
 
     fn drop_area(&mut self, area_tag: PhysicsAreaTag){
