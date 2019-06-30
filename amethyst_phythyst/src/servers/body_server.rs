@@ -9,7 +9,6 @@ use nalgebra::{
 /// - RigidBody
 /// - StaticBody
 /// - KinematicBody
-/// - Areas
 ///
 /// The object that implement this interface is wrapped by `RBodyPhysicsServer`.
 /// It's stored as resource in the world.

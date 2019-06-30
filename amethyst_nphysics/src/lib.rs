@@ -25,20 +25,22 @@ mod storage;
 #[macro_use]
 mod servers_storage;
 mod conversors;
-mod rigid_body;
-mod rigid_body_physics_server;
-mod shape;
-mod shape_physics_server;
 mod world;
 mod world_physics_server;
+mod rigid_body;
+mod rigid_body_physics_server;
+mod area_physics_server;
+mod shape;
+mod shape_physics_server;
 
 use amethyst_phythyst::servers::{
-    PhysicsServers, RBodyPhysicsServer, ShapePhysicsServer, WorldPhysicsServer,
+    PhysicsServers, WorldPhysicsServer, RBodyPhysicsServer, AreaPhysicsServer, ShapePhysicsServer,
 };
 use nalgebra::RealField;
-use rigid_body_physics_server::RBodyNpServer;
-use shape_physics_server::*;
 use world_physics_server::WorldNpServer;
+use rigid_body_physics_server::RBodyNpServer;
+use area_physics_server::*;
+use shape_physics_server::*;
 
 /// This function returns an object that wrap all the functionalities required
 /// by Phythyst.
@@ -56,6 +58,7 @@ where
     (
         WorldPhysicsServer(Box::new(WorldNpServer::new(storages.clone()))),
         RBodyPhysicsServer(Box::new(RBodyNpServer::new(storages.clone()))),
+        AreaPhysicsServer(Box::new(AreaNpServer::new(storages.clone()))),
         ShapePhysicsServer(Box::new(ShapeNpServer::new(storages.clone()))),
     )
 }

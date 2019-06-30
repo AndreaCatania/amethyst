@@ -50,20 +50,24 @@ macro_rules! define_server_generic {
     };
 }
 
-mod body_server;
-mod shape_server;
 mod world_server;
+mod body_server;
+mod area_server;
+mod shape_server;
 
-pub use body_server::{BodyMode, RBodyPhysicsServerTrait, RigidBodyDesc};
-pub use shape_server::{ShapeDesc, ShapePhysicsServerTrait};
 pub use world_server::WorldPhysicsServerTrait;
+pub use body_server::{RBodyPhysicsServerTrait, RigidBodyDesc, BodyMode};
+pub use area_server::{AreaPhysicsServerTrait, AreaDesc};
+pub use shape_server::{ShapePhysicsServerTrait, ShapeDesc};
 
 define_server_generic!(WorldPhysicsServer, WorldPhysicsServerTrait);
 define_server_generic!(RBodyPhysicsServer, RBodyPhysicsServerTrait);
+define_server!(AreaPhysicsServer, AreaPhysicsServerTrait);
 define_server_generic!(ShapePhysicsServer, ShapePhysicsServerTrait);
 
 pub type PhysicsServers<N> = (
     WorldPhysicsServer<N>,
     RBodyPhysicsServer<N>,
+    AreaPhysicsServer,
     ShapePhysicsServer<N>,
 );
