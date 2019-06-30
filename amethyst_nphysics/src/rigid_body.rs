@@ -1,13 +1,8 @@
-use ncollide3d::shape::{Ball as NcBall, ShapeHandle as NcShapeHandle};
 
 use nphysics3d::object::{
-    BodyHandle as NpBodyHandle, BodyStatus as NpBodyStatus, ColliderDesc as NpColliderDesc,
-    ColliderHandle as NpColliderHandle, RigidBody as NpRigidBody, RigidBodyDesc as NpRigidBodyDesc,
+    BodyHandle as NpBodyHandle,
+    ColliderHandle as NpColliderHandle,
 };
-
-use nalgebra::{Isometry3, RealField, Vector3};
-
-use crate::world::World;
 
 use amethyst_phythyst::objects::*;
 
