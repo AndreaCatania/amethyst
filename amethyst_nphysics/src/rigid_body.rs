@@ -1,3 +1,4 @@
+use crate::storage::StoreTag;
 
 use nphysics3d::object::{
     BodyHandle as NpBodyHandle,
@@ -14,9 +15,10 @@ pub struct RigidBody {
 }
 
 impl RigidBody {
-    pub fn new(body_handle: NpBodyHandle, world_tag: PhysicsWorldTag) -> Box<Self> {
+    pub(crate) fn new(world_tag: PhysicsWorldTag) -> Box<Self> {
+
         Box::new(RigidBody {
-            body_handle,
+            body_handle: NpBodyHandle::ground(),
             collider_handle: None,
             world_tag,
             shape_tag: None,

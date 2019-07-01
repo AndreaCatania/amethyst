@@ -7,5 +7,7 @@ pub trait WorldPhysicsServerTrait<N> {
     fn create_world(&mut self) -> PhysicsWorldTag;
     fn drop_world(&mut self, world: PhysicsWorldTag);
 
-    fn step(&mut self, world: PhysicsWorldTag, delta_time: N);
+    /// This function is responsible to perform the stepping of the world.
+    /// This must be called at a fixed rate
+    fn step(&self, world: PhysicsWorldTag, delta_time: N);
 }

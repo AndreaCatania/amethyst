@@ -4,7 +4,16 @@ use nalgebra::{RealField, Vector3};
 
 use core::borrow::BorrowMut;
 
-use crate::{servers_storage::ServersStorageType, world::World};
+use crate::{utils::*, servers_storage::ServersStorageType, world::World};
+
+use nphysics3d::{
+    world::World as NpWorld,
+    utils::UserData as NpUserData,
+};
+
+use ncollide3d::{
+    query::Proximity,
+};
 
 pub struct WorldNpServer<N: RealField> {
     storages: ServersStorageType<N>,
@@ -13,6 +22,50 @@ pub struct WorldNpServer<N: RealField> {
 impl<N: RealField> WorldNpServer<N> {
     pub fn new(storages: ServersStorageType<N>) -> WorldNpServer<N> {
         WorldNpServer { storages }
+    }
+}
+
+impl<N: RealField> WorldNpServer<N> {
+    fn fetch_events(&self, world: &mut NpWorld<N>) {
+
+        let events = world.proximity_events();
+        for e in events {
+            if e.prev_status != e.new_status {
+                match e.new_status {
+                    Proximity::Intersecting => {
+                        // In
+                        println!("Inside");
+                        let collider1 = world.collider(e.collider1).unwrap();
+                        let collider2 = world.collider(e.collider2).unwrap();
+
+                        let body_1_ud = collider1.user_data().unwrap().downcast_ref::<UserData>().unwrap();
+                        let body_2_ud = collider2.user_data().unwrap().downcast_ref::<UserData>().unwrap();
+
+                        let mut area_tag;
+                        let mut body_tag;
+
+                        match body_1_ud.object_type() {
+                            ObjectType::Area => {
+                                area_tag = body_1_ud.store_tag();
+                                body_tag = body_2_ud.store_tag();
+                            }
+                            _ => {
+                                area_tag = body_2_ud.store_tag();
+                                body_tag = body_1_ud.store_tag();
+                            }
+                        }
+
+                    },
+                    Proximity::Disjoint => {
+                        // Out
+                        println!("Outside")
+                    },
+                    Proximity::WithinMargin => {
+                        println!("Margin");
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -36,13 +89,15 @@ impl<N: RealField> WorldPhysicsServerTrait<N> for WorldNpServer<N> {
         w.destroy(world.0);
     }
 
-    fn step(&mut self, world: PhysicsWorldTag, delta_time: N) {
+    fn step(&self, world: PhysicsWorldTag, delta_time: N) {
         let mut w = self.storages.worlds_w();
         let world = w.get_mut(world.0);
         fail_cond!(world.is_none());
-        let world = world.unwrap();
+        let mut world = world.unwrap();
 
         world.set_timestep(delta_time);
         world.step();
+
+        self.fetch_events(world);
     }
 }

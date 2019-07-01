@@ -57,7 +57,7 @@ mod shape_server;
 
 pub use world_server::WorldPhysicsServerTrait;
 pub use body_server::{RBodyPhysicsServerTrait, RigidBodyDesc, BodyMode};
-pub use area_server::{AreaPhysicsServerTrait, AreaDesc};
+pub use area_server::{*};
 pub use shape_server::{ShapePhysicsServerTrait, ShapeDesc};
 
 define_server_generic!(WorldPhysicsServer, WorldPhysicsServerTrait);

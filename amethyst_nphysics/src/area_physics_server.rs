@@ -1,5 +1,6 @@
 
 use crate::{
+    utils::*,
     servers_storage::*,
     area::Area,
     conversors::*,
@@ -22,6 +23,7 @@ use nphysics3d::{
 use nalgebra::{
     RealField,
 };
+use amethyst_phythyst::servers::OverlapEvent;
 
 pub struct AreaNpServer<N: RealField>{
     storages: ServersStorageType<N>
@@ -55,10 +57,12 @@ impl<N: RealField> AreaNpServer<N> {
 
     pub fn set_collider<'w>(
         area: &mut Area,
+        area_tag: PhysicsAreaTag,
         np_world: &'w mut NpWorld<N>,
         collider_desc: &NpColliderDesc<N>,
     ) {
         let collider = collider_desc.build(np_world);
+        collider.set_user_data(Some(Box::new(UserData::new(ObjectType::Area, *area_tag))));
 
         // Collider registration
         area.collider_handle = Some(collider.handle());
@@ -95,13 +99,28 @@ where
             .sensor(true)
             .position(TransfConversor::to_physics(&area_desc.transform));
 
-        AreaNpServer::set_collider(area, np_world, &np_collider_desc);
+        AreaNpServer::set_collider(area, area_tag, np_world, &np_collider_desc);
 
         area_tag
     }
 
     fn drop_area(&mut self, area_tag: PhysicsAreaTag){
         unimplemented!();
+    }
+
+    fn overlap_events(&self, area_tag: PhysicsAreaTag) -> Vec<OverlapEvent> {
+        let s = self.storages.areas_r();
+        let area = s.get(*area_tag);
+        fail_cond!(area.is_none(), Vec::new());
+        area.unwrap().overlap_events.to_vec()
+    }
+
+    fn consume_events(&self) {
+
+        let mut s = self.storages.areas_w();
+        for a in s.iter_mut() {
+            a.1.overlap_events.clear();
+        }
     }
 }
 

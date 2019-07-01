@@ -51,6 +51,14 @@ impl<T> Storage<T> {
         let object = self.memory.remove(TagMachine::read(tag) - 1);
         drop(object);
     }
+
+    pub fn iter(&self) -> slab::Iter<'_, T>{
+        self.memory.iter()
+    }
+
+    pub fn iter_mut(&mut self) -> slab::IterMut<'_, T>{
+        self.memory.iter_mut()
+    }
 }
 
 impl<T> Default for Storage<T> {

@@ -1,4 +1,4 @@
-use crate::{conversors::*, rigid_body::RigidBody, servers_storage::*};
+use crate::{utils::*, conversors::*, rigid_body::RigidBody, servers_storage::*};
 
 use amethyst_phythyst::{
     objects::*,
@@ -27,6 +27,7 @@ use nalgebra::{
     Vector3,
     Point,
 };
+
 use nphysics3d::algebra::Velocity3;
 
 pub struct RBodyNpServer<N: RealField> {
@@ -115,14 +116,17 @@ impl<N: RealField> RBodyNpServer<N> {
 
     pub fn set_collider<'w>(
         body: &mut RigidBody,
+        body_tag: PhysicsBodyTag,
         np_part_handle: NpBodyPartHandle,
         np_world: &'w mut NpWorld<N>,
         collider_desc: &NpColliderDesc<N>,
     ) {
-        let collider = collider_desc.build_with_parent(np_part_handle, np_world);
+        let collider = collider_desc.build_with_parent(np_part_handle, np_world).unwrap();
+
+        collider.set_user_data(Some(Box::new(UserData::new(ObjectType::RigidBody, body_tag.0))));
 
         // Collider registration
-        body.collider_handle = Some(collider.unwrap().handle());
+        body.collider_handle = Some(collider.handle());
     }
 }
 
@@ -144,23 +148,17 @@ where
 
         let np_world = world_storage.get_mut(*world_tag).expect("During the rigid body creation the world tag passed was not valid");
 
-        let (rb_tag, rb_part_handle) = {
-            // Create Rigid body
-            let np_rigid_body = NpRigidBodyDesc::new()
-                .set_position(TransfConversor::to_physics(&body_desc.transformation))
-                .set_status(body_mode_conversor::to_physics(body_desc.mode))
-                .set_mass(body_desc.mass)
-                .build(np_world);
+        let rb_tag = PhysicsBodyTag(bodies_storage.make_opaque(RigidBody::new(world_tag)));
 
-            let rb_part_handle = np_rigid_body.part_handle();
-            (
-                PhysicsBodyTag(
-                    bodies_storage.make_opaque(RigidBody::new(np_rigid_body.handle(), world_tag)),
-                ),
-                rb_part_handle,
-            )
-        };
+            // Create Rigid body
+        let np_rigid_body = NpRigidBodyDesc::new()
+            .set_position(TransfConversor::to_physics(&body_desc.transformation))
+            .set_status(body_mode_conversor::to_physics(body_desc.mode))
+            .set_mass(body_desc.mass)
+            .build(np_world);
+
         let body = bodies_storage.get_mut(*rb_tag).unwrap();
+        body.body_handle = np_rigid_body.handle();
 
         // Create and attach the collider
         let mut shape = shape_storage
@@ -169,7 +167,7 @@ where
         let mut collider_desc =
             NpColliderDesc::new(shape.shape_handle().clone()).density(nalgebra::convert(1.0));
 
-        RBodyNpServer::set_collider(body, rb_part_handle, np_world, &collider_desc);
+        RBodyNpServer::set_collider(body, rb_tag, np_rigid_body.part_handle(), np_world, &collider_desc);
 
         // Collider registration
         shape.register_body(rb_tag);

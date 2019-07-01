@@ -25,6 +25,7 @@ mod storage;
 #[macro_use]
 mod servers_storage;
 mod conversors;
+mod utils;
 mod world;
 mod world_physics_server;
 mod rigid_body;

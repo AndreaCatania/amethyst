@@ -60,6 +60,7 @@ impl<N: RealField> ShapePhysicsServerTrait<N> for ShapeNpServer<N> {
 
                             RBodyNpServer::set_collider(
                                 body,
+                                *body_tag,
                                 np_body.part_handle(),
                                 np_world,
                                 &collider_desc,
@@ -92,6 +93,7 @@ impl<N: RealField> ShapePhysicsServerTrait<N> for ShapeNpServer<N> {
 
                         AreaNpServer::set_collider(
                             area,
+                            *area_tag,
                             np_world,
                             &collider_desc
                         );
