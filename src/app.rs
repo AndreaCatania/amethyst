@@ -799,21 +799,21 @@ where
     /// Sets all
     pub fn with_physics<N: crate::core::math::RealField>(
         mut self,
-        physics: PhysicsServers<N>,
+        servers: PhysicsServers<N>,
     ) -> Self {
         self.world
             .register::<amethyst_phythyst::objects::PhysicsWorldTag>();
         self.world
             .register::<amethyst_phythyst::objects::PhysicsBodyTag>();
+        
+        let (mut world_server, rb_server, area_server, shape_server) = servers;
 
-        let mut servers = physics;
+        let physics_world = world_server.create_world();
 
-        let physics_world = servers.0.create_world();
-
-        self.world.add_resource(servers.0);
-        self.world.add_resource(servers.1);
-        self.world.add_resource(servers.2);
-        self.world.add_resource(servers.3);
+        self.world.add_resource(world_server);
+        self.world.add_resource(rb_server);
+        self.world.add_resource(area_server);
+        self.world.add_resource(shape_server);
         self.world.add_resource(PhysicsTime::default());
         self.world.add_resource(physics_world);
 
