@@ -813,6 +813,7 @@ where
         self.world.add_resource(physics.0);
         self.world.add_resource(physics.1);
         self.world.add_resource(physics.2);
+        self.world.add_resource(physics.3);
         self.world.add_resource(PhysicsTime::default());
         self.world.add_resource(physics_world);
 
