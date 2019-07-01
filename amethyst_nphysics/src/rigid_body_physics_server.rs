@@ -97,7 +97,8 @@ impl<N: RealField> RBodyNpServer<N> {
     }
 }
 
-// This is a collection of function that can be used by other servers
+// This is a collection of function that can be used by other servers to perform some common
+// operations on areas.
 impl<N: RealField> RBodyNpServer<N> {
     pub fn destroy_collider(body: &mut RigidBody, world: &mut NpWorld<N>) {
         fail_cond!(body.collider_handle.is_none());

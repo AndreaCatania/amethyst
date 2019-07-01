@@ -2,6 +2,7 @@
 use crate::{
     servers_storage::*,
     area::Area,
+    conversors::*,
 };
 use amethyst_phythyst::{
     servers::{
@@ -34,16 +35,49 @@ impl<N: RealField> AreaNpServer<N> {
     }
 }
 
-impl<N: RealField> AreaPhysicsServerTrait for AreaNpServer<N> {
+// This is a collection of functions that can be used by other servers to perform some common
+// operation on areas.
+impl<N: RealField> AreaNpServer<N> {
+    pub fn destroy_collider(area: &mut Area, world: &mut NpWorld<N>) {
+        fail_cond!(area.collider_handle.is_none());
+        world.remove_colliders(&[area.collider_handle.unwrap()]);
+        area.collider_handle = None;
+    }
+
+    pub fn copy_collider_desc(
+        np_collider: &mut NpCollider<N>,
+        collider_desc: &mut NpColliderDesc<N>,
+    ) {
+        collider_desc
+            .set_is_sensor(true)
+            .set_position(*np_collider.position());
+    }
+
+    pub fn set_collider<'w>(
+        area: &mut Area,
+        np_world: &'w mut NpWorld<N>,
+        collider_desc: &NpColliderDesc<N>,
+    ) {
+        let collider = collider_desc.build(np_world);
+
+        // Collider registration
+        area.collider_handle = Some(collider.handle());
+    }
+}
+
+impl<N> AreaPhysicsServerTrait for AreaNpServer<N>
+where
+    N: RealField,
+    amethyst_core::Float: std::convert::From<N>,
+    amethyst_core::Float: std::convert::Into<N>,
+    N: alga::general::SubsetOf<amethyst_core::Float>,
+{
 
     fn create_area(
         &mut self,
         world_tag: PhysicsWorldTag,
         area_desc: &AreaDesc,
     ) -> PhysicsAreaTag {
-
-        // TODO please add transformation
-        unimplemented!();
 
         let mut worlds_storage = self.storages.worlds_w();
         let mut areas_storage = self.storages.areas_w();
@@ -52,11 +86,16 @@ impl<N: RealField> AreaPhysicsServerTrait for AreaNpServer<N> {
         let np_world = worlds_storage.get_mut(*world_tag).expect("During the area creation the world tag passed was not valid");
         let shape = shapes_storage.get_mut(*area_desc.shape).expect("During area creation was not possible to find the shape");
 
-        let np_collider = NpColliderDesc::new(shape.shape_handle().clone()).sensor(true).build(np_world);
-
-        let area_tag = PhysicsAreaTag(areas_storage.make_opaque(Box::new(Area::new(np_collider.handle(), world_tag, area_desc.shape))));
+        let area_tag = PhysicsAreaTag(areas_storage.make_opaque(Box::new(Area::new(None, world_tag, area_desc.shape))));
+        let area = areas_storage.get_mut(*area_tag).unwrap();
 
         shape.register_area(area_tag);
+
+        let np_collider_desc = NpColliderDesc::new(shape.shape_handle().clone())
+            .sensor(true)
+            .position(TransfConversor::to_physics(&area_desc.transform));
+
+        AreaNpServer::set_collider(area, np_world, &np_collider_desc);
 
         area_tag
     }
