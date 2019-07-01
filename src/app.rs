@@ -801,11 +801,13 @@ where
         mut self,
         servers: PhysicsServers<N>,
     ) -> Self {
-        self.world
-            .register::<amethyst_phythyst::objects::PhysicsWorldTag>();
-        self.world
-            .register::<amethyst_phythyst::objects::PhysicsBodyTag>();
-        
+        use amethyst_phythyst::objects::*;
+
+        self.world.register::<PhysicsWorldTag>();
+        self.world.register::<PhysicsBodyTag>();
+        self.world.register::<PhysicsAreaTag>();
+        self.world.register::<PhysicsShapeTag>();
+
         let (mut world_server, rb_server, area_server, shape_server) = servers;
 
         let physics_world = world_server.create_world();
