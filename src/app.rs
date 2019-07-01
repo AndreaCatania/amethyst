@@ -806,14 +806,14 @@ where
         self.world
             .register::<amethyst_phythyst::objects::PhysicsBodyTag>();
 
-        let mut physics = physics;
+        let mut servers = physics;
 
-        let physics_world = physics.0.create_world();
+        let physics_world = servers.0.create_world();
 
-        self.world.add_resource(physics.0);
-        self.world.add_resource(physics.1);
-        self.world.add_resource(physics.2);
-        self.world.add_resource(physics.3);
+        self.world.add_resource(servers.0);
+        self.world.add_resource(servers.1);
+        self.world.add_resource(servers.2);
+        self.world.add_resource(servers.3);
         self.world.add_resource(PhysicsTime::default());
         self.world.add_resource(physics_world);
 
