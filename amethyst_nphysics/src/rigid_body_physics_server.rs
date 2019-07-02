@@ -130,6 +130,10 @@ impl<N: RealField> RBodyNpServer<N> {
     }
 }
 
+/// ### Serial execution
+/// There are functions that are marked as serial execution.
+/// These functions doesn't have the capacity to be executed in parallel. Even if executed by different
+/// threads.
 impl<N> RBodyPhysicsServerTrait<N> for RBodyNpServer<N>
 where
     N: RealField,
@@ -187,49 +191,49 @@ where
         TransfConversor::from_physics(body.position())
     }
 
-    fn clear_forces(&mut self, body: PhysicsBodyTag){
+    fn clear_forces(&self, body: PhysicsBodyTag){
         extract_rigid_body_mut!(self, body);
 
         body.clear_forces();
     }
 
-    fn apply_force(&mut self, body: PhysicsBodyTag, force: &Vector3<N>){
+    fn apply_force(&self, body: PhysicsBodyTag, force: &Vector3<N>){
         extract_rigid_body_mut!(self, body);
 
         body.apply_force(0, &Force::linear(*force), ForceType::Force, true);
     }
 
-    fn apply_torque(&mut self, body: PhysicsBodyTag, force: &Vector3<N>){
+    fn apply_torque(&self, body: PhysicsBodyTag, force: &Vector3<N>){
         extract_rigid_body_mut!(self, body);
 
         body.apply_force(0, &Force::torque(*force), ForceType::Force, true);
     }
 
-    fn apply_force_at_position(&mut self, body: PhysicsBodyTag, force: &Vector3<N>, position: &Vector3<N>){
+    fn apply_force_at_position(& self, body: PhysicsBodyTag, force: &Vector3<N>, position: &Vector3<N>){
         extract_rigid_body_mut!(self, body);
 
         body.apply_force_at_point(0, force, &Point::from(*position), ForceType::Force, true);
     }
 
-    fn apply_impulse(&mut self, body: PhysicsBodyTag, impulse: &Vector3<N>){
+    fn apply_impulse(&self, body: PhysicsBodyTag, impulse: &Vector3<N>){
         extract_rigid_body_mut!(self, body);
 
         body.apply_force(0, &Force::linear(*impulse), ForceType::Impulse, true);
     }
 
-    fn apply_angular_impulse(&mut self, body: PhysicsBodyTag, impulse: &Vector3<N>){
+    fn apply_angular_impulse(&self, body: PhysicsBodyTag, impulse: &Vector3<N>){
         extract_rigid_body_mut!(self, body);
 
         body.apply_force(0, &Force::torque(*impulse), ForceType::Impulse, true);
     }
 
-    fn apply_impulse_at_position(&mut self, body: PhysicsBodyTag, impulse: &Vector3<N>, position: &Vector3<N>){
+    fn apply_impulse_at_position(&self, body: PhysicsBodyTag, impulse: &Vector3<N>, position: &Vector3<N>){
         extract_rigid_body_mut!(self, body);
 
         body.apply_force_at_point(0, impulse, &Point::from(*position), ForceType::Impulse, true);
     }
 
-    fn set_linear_velocity(&mut self, body: PhysicsBodyTag, velocity: &Vector3<N>){
+    fn set_linear_velocity(&self, body: PhysicsBodyTag, velocity: &Vector3<N>){
         extract_rigid_body_mut!(self, body);
 
         body.set_velocity(Velocity3::new(*velocity, body.velocity().angular));
@@ -241,7 +245,7 @@ where
         body.velocity().linear
     }
 
-    fn set_angular_velocity(&mut self, body: PhysicsBodyTag, velocity: &Vector3<N>){
+    fn set_angular_velocity(&self, body: PhysicsBodyTag, velocity: &Vector3<N>){
         extract_rigid_body_mut!(self, body);
 
         body.set_velocity(Velocity3::new(body.velocity().linear, *velocity));
