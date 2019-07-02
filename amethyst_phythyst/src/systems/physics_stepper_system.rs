@@ -25,6 +25,10 @@ impl<'a> System<'a> for PhysicsStepperSystem {
     define_setup_with_physics_assertion!();
 
     fn run(&mut self, (time, mut physics_time, physics_world, mut world_server): Self::SystemData) {
+
+        // TODO please remove this once shred allow batch processing
+        world_server.consume_events();
+
         physics_time._time_bank += time.delta_seconds();
 
         // Avoid spiral performance degradation

@@ -21,10 +21,6 @@ pub trait AreaPhysicsServerTrait {
     /// Is mandatory check this array each sub step to be sure to not miss any event.
     fn overlap_events(&self, area_tag: PhysicsAreaTag) -> Vec<OverlapEvent>;
 
-    /// IMPORTANT this function is here only because shred doesn't allow yet to re execute batch processing
-    /// soon will be removed
-    /// https://github.com/slide-rs/shred/pull/144
-    fn consume_events(&self);
 }
 
 pub struct AreaDesc {
@@ -32,7 +28,7 @@ pub struct AreaDesc {
     pub transform: Transform,
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub enum OverlapEvent{
     Enter(PhysicsBodyTag),
     Exit(PhysicsBodyTag),

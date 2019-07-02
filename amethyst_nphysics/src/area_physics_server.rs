@@ -115,12 +115,5 @@ where
         area.unwrap().overlap_events.to_vec()
     }
 
-    fn consume_events(&self) {
-
-        let mut s = self.storages.areas_w();
-        for a in s.iter_mut() {
-            a.1.overlap_events.clear();
-        }
-    }
 }
 

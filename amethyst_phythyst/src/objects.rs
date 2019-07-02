@@ -3,7 +3,7 @@ use amethyst_core::ecs::{Component, DenseVecStorage};
 macro_rules! define_opaque_object{
     ($what:ident, $doc_name:ident) => {
          /// $what is the opaque ID that identify a `$doc_name` in the physics server
-        #[derive(Copy, Clone)]
+        #[derive(Copy, Clone, Debug)]
         pub struct $what(pub std::num::NonZeroUsize);
 
         /// Panic if called
