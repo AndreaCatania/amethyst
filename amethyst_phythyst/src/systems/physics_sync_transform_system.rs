@@ -18,7 +18,7 @@ impl<'a> System<'a> for PhysicsSyncTransformSystem {
     type SystemData = (
         ReadExpect<'a, RBodyPhysicsServer<f32>>,
         WriteStorage<'a, Transform>,
-        ReadStorage<'a, PhysicsBodyTag>,
+        ReadStorage<'a, PhysicsHandle<PhysicsBodyTag>>,
     );
 
     define_setup_with_physics_assertion!();
@@ -26,7 +26,7 @@ impl<'a> System<'a> for PhysicsSyncTransformSystem {
     fn run(&mut self, (rbody_server, mut transforms, bodies): Self::SystemData) {
         for (transform, rb) in (&mut transforms, &bodies).join() {
             // TODO please avoid much copies by sending the mutable reference directly
-            *transform = rbody_server.body_transform(*rb);
+            *transform = rbody_server.body_transform(rb.get());
         }
     }
 }

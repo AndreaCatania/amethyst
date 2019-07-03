@@ -18,7 +18,7 @@ impl<'a> System<'a> for PhysicsStepperSystem {
     type SystemData = (
         ReadExpect<'a, Time>,
         WriteExpect<'a, PhysicsTime>,
-        ReadExpect<'a, PhysicsWorldTag>,
+        ReadExpect<'a, PhysicsHandle<PhysicsWorldTag>>,
         WriteExpect<'a, WorldPhysicsServer<f32>>,
     );
 
@@ -39,7 +39,7 @@ impl<'a> System<'a> for PhysicsStepperSystem {
 
             // TODO start dispatcher
 
-            world_server.step(*physics_world, physics_time.sub_step_seconds);
+            world_server.step(physics_world.get(), physics_time.sub_step_seconds);
         }
     }
 }

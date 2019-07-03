@@ -803,10 +803,10 @@ where
     ) -> Self {
         use amethyst_phythyst::objects::*;
 
-        self.world.register::<PhysicsWorldTag>();
-        self.world.register::<PhysicsBodyTag>();
-        self.world.register::<PhysicsAreaTag>();
-        self.world.register::<PhysicsShapeTag>();
+        self.world.register::<PhysicsHandle<PhysicsWorldTag>>();
+        self.world.register::<PhysicsHandle<PhysicsBodyTag>>();
+        self.world.register::<PhysicsHandle<PhysicsAreaTag>>();
+        self.world.register::<PhysicsHandle<PhysicsShapeTag>>();
 
         let (mut world_server, rb_server, area_server, shape_server) = servers;
 

@@ -18,10 +18,6 @@ macro_rules! define_opaque_object{
             }
         }
 
-        impl Component for $what {
-            type Storage = DenseVecStorage<$what>;
-        }
-
         impl std::ops::Deref for $what {
             type Target = std::num::NonZeroUsize;
             fn deref(&self) -> &std::num::NonZeroUsize {
@@ -50,7 +46,7 @@ define_opaque_object!(PhysicsAreaTag, Area, areas);
 define_opaque_object!(PhysicsShapeTag, Shape, shapes);
 
 /// This trait must be implemented for each structure that want to use the PhysicsHandle.
-pub trait PhysicsTag: Copy + std::fmt::Display{
+pub trait PhysicsTag: Copy + std::fmt::Display + Sync + Send + Sized + 'static  {
 
     fn request_resource_removal(&mut self, gc: &mut PhysicsGarbageCollector);
 }
@@ -98,6 +94,10 @@ impl<T: PhysicsTag> Clone for PhysicsHandle<T>{
             tag_container: self.tag_container.clone(),
         }
     }
+}
+
+impl<T: PhysicsTag> Component for PhysicsHandle<T> {
+    type Storage = DenseVecStorage<PhysicsHandle<T>>;
 }
 
 /// This container holds both the Tag and the garbage collector.
