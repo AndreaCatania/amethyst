@@ -7,7 +7,7 @@ use nalgebra::{RealField, Vector3};
 
 use core::borrow::BorrowMut;
 
-use crate::{utils::*, servers_storage::ServersStorageType, world::World};
+use crate::{utils::*, servers_storage::ServersStorageType, world::World, RBodyNpServer, AreaNpServer, ShapeNpServer,};
 
 use nphysics3d::{
     world::World as NpWorld,
@@ -29,6 +29,30 @@ impl<N: RealField> WorldNpServer<N> {
 }
 
 impl<N: RealField> WorldNpServer<N> {
+
+    fn garbage_collect(&self){
+        let mut gc = self.storages.gc.write().unwrap();
+        let mut shapes_storage = self.storages.shapes_w();
+
+        
+
+        // This happen after the bodies and the areas since they depend on this.
+        {
+            let mut removed_shape = Vec::<PhysicsShapeTag>::with_capacity(gc.shapes.len());
+
+            for s in gc.shapes.iter() {
+                println!("aa");
+                if ShapeNpServer::drop_shape(*s, &mut shapes_storage) {
+                    removed_shape.push(*s);
+                }
+            }
+
+            // Clear the garbage collector
+            gc.shapes.retain(|&s| !removed_shape.contains(&s) );
+        }
+
+    }
+
     fn fetch_events(&self, world: &mut NpWorld<N>) {
 
         let mut s = self.storages.areas_w();
@@ -122,6 +146,8 @@ impl<N: RealField> WorldPhysicsServerTrait<N> for WorldNpServer<N> {
         let world = w.get_mut(world.0);
         fail_cond!(world.is_none());
         let mut world = world.unwrap();
+
+        self.garbage_collect();
 
         world.set_timestep(delta_time);
         world.step();

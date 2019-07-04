@@ -12,6 +12,12 @@ pub struct RigidShape<N: RealField> {
     shape_handle: NcShapeHandle<N>,
     bodies: Vec<PhysicsBodyTag>,
     areas: Vec<PhysicsAreaTag>,
+    /// This is used to know if the shape will be soon dropped since no one own it anymore.
+    ///
+    /// When the shape is no more owned but still in use by a rigid body or an area is safer not delete it.
+    /// Rather the program mark it for removal and when nobody will use it anymore it will be safely
+    /// dropped.
+    pub marked_for_drop: bool,
 }
 
 impl<N: RealField> RigidShape<N> {
@@ -21,6 +27,7 @@ impl<N: RealField> RigidShape<N> {
             shape_handle: RigidShape::generate_handle(shape_desc),
             bodies: Vec::new(),
             areas: Vec::new(),
+            marked_for_drop: false,
         }
     }
 
