@@ -6,6 +6,9 @@ use nalgebra::{RealField, Vector3};
 /// The object that implement this interface is implemented by `ShapePhysicsServer`.
 /// It's stored as resource in the world.
 pub trait ShapePhysicsServerTrait<N: RealField> {
+    /// Create a shape and return the handle to it.
+    /// The PhysicsHandle returned can be safely cloned.
+    /// When all instances of this Handle are dropped the shape is Dropped automatically.
     fn create_shape(&mut self, shape: &ShapeDesc<N>) -> PhysicsHandle<PhysicsShapeTag>;
 
     fn update_shape(&mut self, shape_tag: PhysicsShapeTag, shape_desc: &ShapeDesc<N>);

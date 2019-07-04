@@ -11,42 +11,6 @@ use nphysics3d::object::ColliderDesc as NpColliderDesc;
 
 use nalgebra::RealField;
 
-/// Returns a valid shape reference of fail
-macro_rules! get_shape {
-    ($storage:ident, $shape_tag:ident) => {
-        {
-            let shape = $storage.get(*$shape_tag);
-            fail_cond!(shape.is_none());
-            shape.unwrap()
-        }
-    };
-    ($storage:ident, $shape_tag:ident. $fail_ret:expr) => {
-        {
-            let shape = $storage.get(*$shape_tag);
-            fail_cond!(shape.is_none(), $fail_ret);
-            shape.unwrap()
-        }
-    }
-}
-
-/// Returns a valid mutable shape reference of fail
-macro_rules! get_shape_mut {
-    ($storage:ident, $shape_tag:ident) => {
-        {
-            let shape = $storage.get_mut(*$shape_tag);
-            fail_cond!(shape.is_none());
-            shape.unwrap()
-        }
-    };
-    ($storage:ident, $shape_tag:ident, $fail_ret:expr) => {
-        {
-            let shape = $storage.get_mut(*$shape_tag);
-            fail_cond!(shape.is_none(), $fail_ret);
-            shape.unwrap()
-        }
-    }
-}
-
 pub struct ShapeNpServer<N: RealField> {
     storages: ServersStorageType<N>,
 }
@@ -57,7 +21,7 @@ impl<N: RealField> ShapeNpServer<N> {
     }
 
     pub fn has_dependency(shape_tag: PhysicsShapeTag, shapes_storage: &mut ShapeStorageWrite<N>) -> bool {
-        let shape = get_shape_mut!(shapes_storage, shape_tag, false);
+        let shape = storage_safe_get_mut!(shapes_storage, shape_tag, false);
 
         if shape.bodies().len() > 0 {
             return true;
@@ -76,7 +40,7 @@ impl<N: RealField> ShapeNpServer<N> {
         let safe_to_drop = !ShapeNpServer::has_dependency(shape_tag, shapes_storage);
 
         if !safe_to_drop {
-            let shape = get_shape_mut!(shapes_storage, shape_tag, false);
+            let shape = storage_safe_get_mut!(shapes_storage, shape_tag, false);
             if !shape.marked_for_drop {
                 shape.marked_for_drop = true;
                 fail!("A shape is marked for drop while still in use. Consider to store the PhysicsHandle<PhysicsShapeTag> to not waste resources.", false);
@@ -103,7 +67,7 @@ impl<N: RealField> ShapePhysicsServerTrait<N> for ShapeNpServer<N> {
         let mut areas_storage = self.storages.areas_w();
         let mut shapes_storage = self.storages.shapes_w();
 
-        let shape = get_shape_mut!(shapes_storage, shape_tag);
+        let shape = storage_safe_get_mut!(shapes_storage, shape_tag);
 
         shape.update(shape_desc);
 

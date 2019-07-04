@@ -40,6 +40,25 @@ impl<N: RealField> AreaNpServer<N> {
 // This is a collection of functions that can be used by other servers to perform some common
 // operation on areas.
 impl<N: RealField> AreaNpServer<N> {
+
+    pub fn drop_body(area_tag: PhysicsAreaTag, worlds_storage: &mut WorldStorageWrite<N>, areas_storage: &mut AreaStorageWrite, shapes_storage: &mut ShapeStorageWrite<N>) {
+        {
+            let area = storage_safe_get!(areas_storage, area_tag);
+
+            // Remove from world
+            let world = storage_safe_get_mut!(worlds_storage, area.world_tag);
+            if let Some(handle) = area.collider_handle {
+                world.remove_colliders(&[handle]);
+            }
+
+            // Remove from shape
+            let shape = storage_safe_get_mut!(shapes_storage, area.shape_tag);
+            shape.unregister_area(area_tag);
+        }
+
+        areas_storage.destroy(*area_tag);
+    }
+
     pub fn destroy_collider(area: &mut Area, world: &mut NpWorld<N>) {
         fail_cond!(area.collider_handle.is_none());
         world.remove_colliders(&[area.collider_handle.unwrap()]);
@@ -102,10 +121,6 @@ where
         AreaNpServer::set_collider(area, area_tag, np_world, &np_collider_desc);
 
         PhysicsHandle::new(area_tag, self.storages.gc.clone())
-    }
-
-    fn drop_area(&mut self, area_tag: PhysicsAreaTag){
-        unimplemented!();
     }
 
     fn overlap_events(&self, area_tag: PhysicsAreaTag) -> Vec<OverlapEvent> {

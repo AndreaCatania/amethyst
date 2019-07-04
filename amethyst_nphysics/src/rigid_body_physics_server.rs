@@ -34,14 +34,12 @@ pub struct RBodyNpServer<N: RealField> {
     storages: ServersStorageType<N>,
 }
 
-macro_rules! extract_rigid_body {
+macro_rules! extract_np_rigid_body {
     ($_self:ident, $body:ident) => {
         let bodies_storage = $_self.storages.rbodies_r();
         let worlds_storage = $_self.storages.worlds_r();
 
-        let $body = bodies_storage.get(*$body);
-        fail_cond!($body.is_none());
-        let $body = $body.unwrap();
+        let $body = storage_safe_get!(bodies_storage, $body);
 
         let $body =
             ServersStorage::<N>::rigid_body($body.body_handle, *$body.world_tag, &worlds_storage);
@@ -52,9 +50,7 @@ macro_rules! extract_rigid_body {
         let bodies_storage = $_self.storages.rbodies_r();
         let worlds_storage = $_self.storages.worlds_r();
 
-        let $body = bodies_storage.get(*$body);
-        fail_cond!($body.is_none(), $on_fail_ret);
-        let $body = $body.unwrap();
+        let $body = storage_safe_get!(bodies_storage, $body, $on_fail_ret);
 
         let $body =
             ServersStorage::<N>::rigid_body($body.body_handle, *$body.world_tag, &worlds_storage);
@@ -63,14 +59,12 @@ macro_rules! extract_rigid_body {
     };
 }
 
-macro_rules! extract_rigid_body_mut {
+macro_rules! extract_np_rigid_body_mut {
     ($_self:ident, $body:ident) => {
         let mut bodies_storage = $_self.storages.rbodies_w();
         let mut worlds_storage = $_self.storages.worlds_w();
 
-        let $body = bodies_storage.get_mut(*$body);
-        fail_cond!($body.is_none());
-        let $body = $body.unwrap();
+        let $body = storage_safe_get!(bodies_storage, $body);
 
         let $body =
             ServersStorage::<N>::rigid_body_mut($body.body_handle, *$body.world_tag, &mut worlds_storage);
@@ -81,9 +75,7 @@ macro_rules! extract_rigid_body_mut {
         let bodies_storage = $_self.storages.rbodies_w();
         let worlds_storage = $_self.storages.worlds_w();
 
-        let $body = bodies_storage.get(*$body);
-        fail_cond!($body.is_none(), $on_fail_ret);
-        let $body = $body.unwrap();
+        let $body = storage_safe_get!(bodies_storage, $body, $on_fail_ret);
 
         let $body =
             ServersStorage::<N>::rigid_body_mut($body.body_handle, *$body.world_tag, &mut worlds_storage);
@@ -101,6 +93,26 @@ impl<N: RealField> RBodyNpServer<N> {
 // This is a collection of function that can be used by other servers to perform some common
 // operations on areas.
 impl<N: RealField> RBodyNpServer<N> {
+
+    pub fn drop_body(body_tag: PhysicsBodyTag, worlds_storage: &mut WorldStorageWrite<N>, rbodies_storage: &mut RigidBodyStorageWrite, shapes_storage: &mut ShapeStorageWrite<N>) {
+        {
+            let body = storage_safe_get!(rbodies_storage, body_tag);
+
+            // Remove from world
+            let world = storage_safe_get_mut!(worlds_storage, body.world_tag);
+            if let Some(handle) = body.collider_handle {
+                world.remove_colliders(&[handle]);
+            }
+            world.remove_bodies(&[body.body_handle]);
+
+            // Remove from shape
+            let shape = storage_safe_get_mut!(shapes_storage, body.shape_tag.unwrap());
+            shape.unregister_body(body_tag);
+        }
+
+        rbodies_storage.destroy(*body_tag);
+    }
+
     pub fn destroy_collider(body: &mut RigidBody, world: &mut NpWorld<N>) {
         fail_cond!(body.collider_handle.is_none());
         world.remove_colliders(&[body.collider_handle.unwrap()]);
@@ -180,79 +192,74 @@ where
         PhysicsHandle::new(rb_tag, self.storages.gc.clone())
     }
 
-    fn drop_body(&mut self, body: PhysicsBodyTag) {
-        unimplemented!();
-        self.storages.rbodies_w().destroy(*body);
-    }
-
     fn body_transform(&self, body: PhysicsBodyTag) -> Transform {
-        extract_rigid_body!(self, body, Transform::default());
+        extract_np_rigid_body!(self, body, Transform::default());
 
         TransfConversor::from_physics(body.position())
     }
 
     fn clear_forces(&self, body: PhysicsBodyTag){
-        extract_rigid_body_mut!(self, body);
+        extract_np_rigid_body_mut!(self, body);
 
         body.clear_forces();
     }
 
     fn apply_force(&self, body: PhysicsBodyTag, force: &Vector3<N>){
-        extract_rigid_body_mut!(self, body);
+        extract_np_rigid_body_mut!(self, body);
 
         body.apply_force(0, &Force::linear(*force), ForceType::Force, true);
     }
 
     fn apply_torque(&self, body: PhysicsBodyTag, force: &Vector3<N>){
-        extract_rigid_body_mut!(self, body);
+        extract_np_rigid_body_mut!(self, body);
 
         body.apply_force(0, &Force::torque(*force), ForceType::Force, true);
     }
 
     fn apply_force_at_position(& self, body: PhysicsBodyTag, force: &Vector3<N>, position: &Vector3<N>){
-        extract_rigid_body_mut!(self, body);
+        extract_np_rigid_body_mut!(self, body);
 
         body.apply_force_at_point(0, force, &Point::from(*position), ForceType::Force, true);
     }
 
     fn apply_impulse(&self, body: PhysicsBodyTag, impulse: &Vector3<N>){
-        extract_rigid_body_mut!(self, body);
+        extract_np_rigid_body_mut!(self, body);
 
         body.apply_force(0, &Force::linear(*impulse), ForceType::Impulse, true);
     }
 
     fn apply_angular_impulse(&self, body: PhysicsBodyTag, impulse: &Vector3<N>){
-        extract_rigid_body_mut!(self, body);
+        extract_np_rigid_body_mut!(self, body);
 
         body.apply_force(0, &Force::torque(*impulse), ForceType::Impulse, true);
     }
 
     fn apply_impulse_at_position(&self, body: PhysicsBodyTag, impulse: &Vector3<N>, position: &Vector3<N>){
-        extract_rigid_body_mut!(self, body);
+        extract_np_rigid_body_mut!(self, body);
 
         body.apply_force_at_point(0, impulse, &Point::from(*position), ForceType::Impulse, true);
     }
 
     fn set_linear_velocity(&self, body: PhysicsBodyTag, velocity: &Vector3<N>){
-        extract_rigid_body_mut!(self, body);
+        extract_np_rigid_body_mut!(self, body);
 
         body.set_velocity(Velocity3::new(*velocity, body.velocity().angular));
     }
 
     fn linear_velocity(&self, body: PhysicsBodyTag) -> Vector3<N>{
-        extract_rigid_body!(self, body, Vector3::zeros());
+        extract_np_rigid_body!(self, body, Vector3::zeros());
 
         body.velocity().linear
     }
 
     fn set_angular_velocity(&self, body: PhysicsBodyTag, velocity: &Vector3<N>){
-        extract_rigid_body_mut!(self, body);
+        extract_np_rigid_body_mut!(self, body);
 
         body.set_velocity(Velocity3::new(body.velocity().linear, *velocity));
     }
 
     fn angular_velocity(&self, body: PhysicsBodyTag) -> Vector3<N> {
-        extract_rigid_body!(self, body, Vector3::zeros());
+        extract_np_rigid_body!(self, body, Vector3::zeros());
 
         body.velocity().angular
     }

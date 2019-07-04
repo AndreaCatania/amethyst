@@ -7,7 +7,10 @@ use nalgebra::{RealField, Vector3};
 
 use core::borrow::BorrowMut;
 
-use crate::{utils::*, servers_storage::ServersStorageType, world::World, RBodyNpServer, AreaNpServer, ShapeNpServer,};
+use crate::{utils::*, servers_storage::{
+    ServersStorageType,
+    WorldStorageWrite,
+}, world::World, RBodyNpServer, AreaNpServer, ShapeNpServer,};
 
 use nphysics3d::{
     world::World as NpWorld,
@@ -26,31 +29,69 @@ impl<N: RealField> WorldNpServer<N> {
     pub fn new(storages: ServersStorageType<N>) -> WorldNpServer<N> {
         WorldNpServer { storages }
     }
+
+    fn drop_world(world_tag: PhysicsWorldTag, worlds_storage: &mut WorldStorageWrite<N>){
+
+        // Here should be check if there are active bodies, but how?
+
+        worlds_storage.destroy(*world_tag);
+    }
 }
 
 impl<N: RealField> WorldNpServer<N> {
 
     fn garbage_collect(&self){
         let mut gc = self.storages.gc.write().unwrap();
+        let mut worlds_storage = self.storages.worlds_w();
+        let mut rbodies_storage = self.storages.rbodies_w();
+        let mut areas_storage = self.storages.areas_w();
         let mut shapes_storage = self.storages.shapes_w();
 
-        
+        {
+            for rb in gc.bodies.iter() {
+
+                RBodyNpServer::drop_body(*rb, &mut worlds_storage, &mut rbodies_storage, &mut shapes_storage);
+            }
+
+            // The body drop can never fail.
+            gc.bodies.clear();
+        }
+
+        {
+            for rb in gc.bodies.iter() {
+
+                RBodyNpServer::drop_body(*rb, &mut worlds_storage, &mut rbodies_storage, &mut shapes_storage);
+            }
+
+            // The body drop can never fail.
+            gc.bodies.clear();
+        }
 
         // This happen after the bodies and the areas since they depend on this.
         {
+            // Not all shapes can be safely removed since they could be assigned to Rigid Body and Areas.
+            // If a shape is not removed it remains in the garbage collector.
             let mut removed_shape = Vec::<PhysicsShapeTag>::with_capacity(gc.shapes.len());
 
             for s in gc.shapes.iter() {
-                println!("aa");
                 if ShapeNpServer::drop_shape(*s, &mut shapes_storage) {
                     removed_shape.push(*s);
                 }
             }
 
-            // Clear the garbage collector
-            gc.shapes.retain(|&s| !removed_shape.contains(&s) );
+            if removed_shape.len() > 0 {
+                // Clear the garbage collector
+                gc.shapes.retain(|&s| !removed_shape.contains(&s) );
+            }
         }
 
+        {
+            for w in gc.worlds.iter() {
+                WorldNpServer::drop_world(*w, &mut worlds_storage);
+            }
+
+            gc.worlds.clear();
+        }
     }
 
     fn fetch_events(&self, world: &mut NpWorld<N>) {
@@ -134,25 +175,20 @@ impl<N: RealField> WorldPhysicsServerTrait<N> for WorldNpServer<N> {
         PhysicsHandle::new(PhysicsWorldTag(self.storages.worlds_w().make_opaque(Box::new(w))), self.storages.gc.clone())
     }
 
-    fn drop_world(&mut self, world: PhysicsWorldTag) {
-        let mut w = self.storages.worlds_w();
-        fail_cond!(!w.has(world.0));
-
-        w.destroy(world.0);
-    }
-
     fn step(&self, world: PhysicsWorldTag, delta_time: N) {
-        let mut w = self.storages.worlds_w();
-        let world = w.get_mut(world.0);
-        fail_cond!(world.is_none());
-        let mut world = world.unwrap();
-
         self.garbage_collect();
 
-        world.set_timestep(delta_time);
-        world.step();
+        {
+            let mut w = self.storages.worlds_w();
+            let world = w.get_mut(world.0);
+            fail_cond!(world.is_none());
+            let mut world = world.unwrap();
 
-        self.fetch_events(world);
+            world.set_timestep(delta_time);
+            world.step();
+
+            self.fetch_events(world);
+        }
     }
 
     fn consume_events(&self) {

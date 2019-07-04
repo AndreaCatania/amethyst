@@ -14,13 +14,14 @@ use nalgebra::{
 /// It's stored as resource in the world.
 ///
 pub trait RBodyPhysicsServerTrait<N: RealField> {
+    /// Create a Rigid Body and return its handle.
+    /// The PhysicsHandle returned can be safely cloned.
+    /// When all instances of this Handle are dropped the Body is Dropped automatically.
     fn create_body(
         &mut self,
         world_tag: PhysicsWorldTag,
         body_desc: &RigidBodyDesc<N>,
     ) -> PhysicsHandle<PhysicsBodyTag>;
-
-    fn drop_body(&mut self, body_tag: PhysicsBodyTag);
 
     /// Get the actual transformation of the body
     fn body_transform(&self, body_tag: PhysicsBodyTag) -> Transform;

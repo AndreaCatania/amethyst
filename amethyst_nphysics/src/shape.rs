@@ -44,12 +44,20 @@ impl<N: RealField> RigidShape<N> {
         self.bodies.push(body);
     }
 
+    pub fn unregister_body(&mut self, body: PhysicsBodyTag) {
+        self.bodies.retain(|&b| b != body);
+    }
+
     pub fn bodies(&self) -> &Vec<PhysicsBodyTag> {
         &self.bodies
     }
 
     pub fn register_area(&mut self, area: PhysicsAreaTag) {
         self.areas.push(area);
+    }
+
+    pub fn unregister_area(&mut self, area: PhysicsAreaTag) {
+        self.areas.retain(|&a| a != area);
     }
 
     pub fn areas(&self) -> &Vec<PhysicsAreaTag> { &self.areas }

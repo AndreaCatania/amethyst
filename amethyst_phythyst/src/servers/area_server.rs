@@ -9,13 +9,14 @@ use nalgebra::{
 ///
 /// The object that implement this interface is wrapped by the `AreaServer`.
 pub trait AreaPhysicsServerTrait {
+    /// Create an Area and return its handle.
+    /// The PhysicsHandle returned can be safely cloned.
+    /// When all instances of this Handle are dropped the Area is Dropped automatically.
     fn create_area(
         &mut self,
         world_tag: PhysicsWorldTag,
         area_desc: &AreaDesc,
     ) -> PhysicsHandle<PhysicsAreaTag>;
-
-    fn drop_area(&mut self, area_tag: PhysicsAreaTag);
 
     /// Returns the list of events occurred in the last step.
     /// Is mandatory check this array each sub step to be sure to not miss any event.
