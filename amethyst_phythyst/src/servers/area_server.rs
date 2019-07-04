@@ -13,7 +13,7 @@ pub trait AreaPhysicsServerTrait {
         &mut self,
         world_tag: PhysicsWorldTag,
         area_desc: &AreaDesc,
-    ) -> PhysicsAreaTag;
+    ) -> PhysicsHandle<PhysicsAreaTag>;
 
     fn drop_area(&mut self, area_tag: PhysicsAreaTag);
 

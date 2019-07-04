@@ -81,7 +81,7 @@ where
         &mut self,
         world_tag: PhysicsWorldTag,
         area_desc: &AreaDesc,
-    ) -> PhysicsAreaTag {
+    ) -> PhysicsHandle<PhysicsAreaTag> {
 
         let mut worlds_storage = self.storages.worlds_w();
         let mut areas_storage = self.storages.areas_w();
@@ -101,7 +101,7 @@ where
 
         AreaNpServer::set_collider(area, area_tag, np_world, &np_collider_desc);
 
-        area_tag
+        PhysicsHandle::new(area_tag, self.storages.gc.clone())
     }
 
     fn drop_area(&mut self, area_tag: PhysicsAreaTag){

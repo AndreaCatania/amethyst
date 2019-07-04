@@ -145,7 +145,7 @@ where
         &mut self,
         world_tag: PhysicsWorldTag,
         body_desc: &RigidBodyDesc<N>,
-    ) -> PhysicsBodyTag {
+    ) -> PhysicsHandle<PhysicsBodyTag> {
         let mut world_storage = self.storages.worlds_w();
         let mut bodies_storage = self.storages.rbodies_w();
         let mut shape_storage = self.storages.shapes_w();
@@ -177,7 +177,7 @@ where
         shape.register_body(rb_tag);
         body.shape_tag = Some(body_desc.shape);
 
-        rb_tag
+        PhysicsHandle::new(rb_tag, self.storages.gc.clone())
     }
 
     fn drop_body(&mut self, body: PhysicsBodyTag) {

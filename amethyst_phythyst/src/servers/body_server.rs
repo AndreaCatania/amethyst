@@ -18,7 +18,7 @@ pub trait RBodyPhysicsServerTrait<N: RealField> {
         &mut self,
         world_tag: PhysicsWorldTag,
         body_desc: &RigidBodyDesc<N>,
-    ) -> PhysicsBodyTag;
+    ) -> PhysicsHandle<PhysicsBodyTag>;
 
     fn drop_body(&mut self, body_tag: PhysicsBodyTag);
 

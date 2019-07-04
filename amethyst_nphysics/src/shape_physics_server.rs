@@ -22,10 +22,10 @@ impl<N: RealField> ShapeNpServer<N> {
 }
 
 impl<N: RealField> ShapePhysicsServerTrait<N> for ShapeNpServer<N> {
-    fn create_shape(&mut self, shape_desc: &ShapeDesc<N>) -> PhysicsShapeTag {
+    fn create_shape(&mut self, shape_desc: &ShapeDesc<N>) -> PhysicsHandle<PhysicsShapeTag> {
         let shape = Box::new(RigidShape::new(shape_desc));
 
-        PhysicsShapeTag(self.storages.shapes_w().make_opaque(shape))
+        PhysicsHandle::new(PhysicsShapeTag(self.storages.shapes_w().make_opaque(shape)), self.storages.gc.clone())
     }
 
     fn drop_shape(&mut self, shape_tag: PhysicsShapeTag) {

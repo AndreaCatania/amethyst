@@ -42,6 +42,7 @@ pub type ShapeStorageRead<'a, N> = RwLockReadGuard<'a, Storage<Box<RigidShape<N>
 /// A solution to this problem would be support add multithreading support on NPhysics
 pub struct ServersStorage<N: RealField> {
     // TODO is possible to remove RealField here?
+    pub(crate) gc: Arc<RwLock<PhysicsGarbageCollector>>,
     worlds: Arc<RwLock<Storage<Box<World<N>>>>>,
     rigid_bodies: Arc<RwLock<Storage<Box<RigidBody>>>>,
     areas: Arc<RwLock<Storage<Box<Area>>>>,
@@ -51,6 +52,7 @@ pub struct ServersStorage<N: RealField> {
 impl<N: RealField> ServersStorage<N> {
     pub fn new() -> ServersStorageType<N> {
         Arc::new(ServersStorage {
+            gc: Arc::new(RwLock::new(PhysicsGarbageCollector::default())),
             worlds: Arc::new(RwLock::new(Storage::new(1, 1))),
             rigid_bodies: Arc::new(RwLock::new(Storage::new(50, 50))),
             areas: Arc::new(RwLock::new(Storage::new(50, 50))),

@@ -98,7 +98,7 @@ impl<N: RealField> WorldNpServer<N> {
 }
 
 impl<N: RealField> WorldPhysicsServerTrait<N> for WorldNpServer<N> {
-    fn create_world(&mut self) -> PhysicsWorldTag {
+    fn create_world(&mut self) -> PhysicsHandle<PhysicsWorldTag> {
         let mut w = World::<N>::new();
 
         w.set_gravity(Vector3::new(
@@ -107,7 +107,7 @@ impl<N: RealField> WorldPhysicsServerTrait<N> for WorldNpServer<N> {
             nalgebra::convert(0.0),
         ));
 
-        PhysicsWorldTag(self.storages.worlds_w().make_opaque(Box::new(w)))
+        PhysicsHandle::new(PhysicsWorldTag(self.storages.worlds_w().make_opaque(Box::new(w))), self.storages.gc.clone())
     }
 
     fn drop_world(&mut self, world: PhysicsWorldTag) {

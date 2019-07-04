@@ -46,7 +46,7 @@ pub fn assert_physics_resources(res: &mut Resources) {
     } else if !res.has_value::<PhysicsTime>() {
         error!("The resource PhysicsTime not found");
         explain_physics_server_setup();
-    } else if !res.has_value::<PhysicsWorldTag>() {
+    } else if !res.has_value::<PhysicsHandle<PhysicsWorldTag>>() {
         error!("The resource PhysicsWorld not found");
         explain_physics_server_setup();
     }

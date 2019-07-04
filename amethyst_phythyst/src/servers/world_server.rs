@@ -4,7 +4,7 @@ use crate::objects::*;
 /// The object that implement this interface is wrapped by `WorldPhysicsServer`.
 /// It's stored as resource in the world.
 pub trait WorldPhysicsServerTrait<N> {
-    fn create_world(&mut self) -> PhysicsWorldTag;
+    fn create_world(&mut self) -> PhysicsHandle<PhysicsWorldTag>;
     fn drop_world(&mut self, world: PhysicsWorldTag);
 
     /// This function is responsible to perform the stepping of the world.
