@@ -5,12 +5,15 @@ use amethyst_phythyst::{
     servers::{RBodyPhysicsServerTrait, RigidBodyDesc},
 };
 
-use amethyst_core::components::Transform;
+use amethyst_core::{
+    ecs::Entity,
+    components::Transform,
+};
 
 use nphysics3d::{
     object::{
         Body as NpBody, BodyHandle as NpBodyHandle, BodyPartHandle as NpBodyPartHandle,
-        BodyStatus as NpBodyStatus, ColliderDesc as NpColliderDesc, RigidBody as NpRigidBody,
+        BodyStatus as NpBodyStatus, Collider as NpCollider, ColliderDesc as NpColliderDesc, RigidBody as NpRigidBody,
         RigidBodyDesc as NpRigidBodyDesc,
     },
     math::{
@@ -135,10 +138,15 @@ impl<N: RealField> RBodyNpServer<N> {
     ) {
         let collider = collider_desc.build_with_parent(np_part_handle, np_world).unwrap();
 
-        collider.set_user_data(Some(Box::new(UserData::new(ObjectType::RigidBody, body_tag.0))));
+        RBodyNpServer::update_user_data(collider, body);
 
         // Collider registration
         body.collider_handle = Some(collider.handle());
+    }
+
+    pub fn update_user_data(collider: &mut NpCollider<N>, body: &RigidBody){
+
+        collider.set_user_data(Some(Box::new(UserData::new(ObjectType::RigidBody, body.self_tag.unwrap().0, body.entity))));
     }
 }
 
@@ -174,6 +182,7 @@ where
             .build(np_world);
 
         let body = bodies_storage.get_mut(*rb_tag).unwrap();
+        body.self_tag = Some(rb_tag);
         body.body_handle = np_rigid_body.handle();
 
         // Create and attach the collider
@@ -190,6 +199,29 @@ where
         body.shape_tag = Some(body_desc.shape);
 
         PhysicsHandle::new(rb_tag, self.storages.gc.clone())
+    }
+
+    fn set_entity(&self, body_tag: PhysicsBodyTag, entity: Option<Entity> ){
+
+        let mut body_storage = self.storages.rbodies_w();
+        let body = storage_safe_get_mut!(body_storage, body_tag);
+        body.entity = entity;
+
+        if body.collider_handle.is_none() {
+            return;
+        }
+        let mut world_storage = self.storages.worlds_w();
+        let world = storage_safe_get_mut!(world_storage, body.world_tag);
+        let collider = world.collider_mut(body.collider_handle.unwrap()).unwrap();
+
+        RBodyNpServer::update_user_data(collider, body);
+    }
+
+    fn entity(&self, body_tag: PhysicsBodyTag) -> Option<Entity> {
+
+        let body_storage = self.storages.rbodies_r();
+        let body = storage_safe_get!(body_storage, body_tag, None);
+        body.entity
     }
 
     fn body_transform(&self, body: PhysicsBodyTag) -> Transform {

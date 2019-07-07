@@ -1,4 +1,4 @@
-
+use amethyst_core::ecs::Entity;
 use crate::storage::StoreTag;
 
 /// Returns the valid reference or fail
@@ -49,13 +49,15 @@ pub(crate) enum ObjectType {
 pub(crate) struct UserData{
     object_type: ObjectType,
     store_tag: StoreTag,
+    entity: Option<Entity>,
 }
 
 impl UserData {
-    pub(crate) fn new(object_type: ObjectType, store_tag: StoreTag) -> Self {
+    pub(crate) fn new(object_type: ObjectType, store_tag: StoreTag, entity: Option<Entity>) -> Self {
         UserData {
             object_type,
             store_tag,
+            entity,
         }
     }
 }
@@ -63,4 +65,5 @@ impl UserData {
 impl UserData{
     pub fn object_type(&self) -> ObjectType {self.object_type}
     pub fn store_tag(&self) -> StoreTag {self.store_tag}
+    pub fn entity(&self) -> Option<Entity> {self.entity}
 }

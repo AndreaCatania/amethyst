@@ -137,15 +137,18 @@ impl<N: RealField> WorldNpServer<N> {
 
             let mut area_tag;
             let mut body_tag;
+            let mut body_entity;
 
             match body_1_ud.object_type() {
                 ObjectType::Area => {
                     area_tag = body_1_ud.store_tag();
                     body_tag = body_2_ud.store_tag();
+                    body_entity = body_2_ud.entity();
                 }
                 _ => {
                     area_tag = body_2_ud.store_tag();
                     body_tag = body_1_ud.store_tag();
+                    body_entity = body_1_ud.entity();
                 }
             }
 
@@ -153,10 +156,10 @@ impl<N: RealField> WorldNpServer<N> {
 
             if status == 0 {
                 // Enter
-                area.overlap_events.push(OverlapEvent::Enter(PhysicsBodyTag(body_tag)));
+                area.overlap_events.push(OverlapEvent::Enter(PhysicsBodyTag(body_tag), body_entity));
             }else{
                 // Exit
-                area.overlap_events.push(OverlapEvent::Exit(PhysicsBodyTag(body_tag)));
+                area.overlap_events.push(OverlapEvent::Exit(PhysicsBodyTag(body_tag), body_entity));
             }
         }
     }

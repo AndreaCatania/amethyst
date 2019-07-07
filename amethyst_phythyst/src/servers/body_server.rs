@@ -1,5 +1,8 @@
 use crate::objects::*;
-use amethyst_core::components::Transform;
+use amethyst_core::{
+    ecs::Entity,
+    components::Transform,
+};
 use nalgebra::{
     RealField,
     Vector3,
@@ -22,6 +25,16 @@ pub trait RBodyPhysicsServerTrait<N: RealField> {
         world_tag: PhysicsWorldTag,
         body_desc: &RigidBodyDesc<N>,
     ) -> PhysicsHandle<PhysicsBodyTag>;
+
+    /// Set the entity which holds this body.
+    fn set_entity(&self, body_tag: PhysicsBodyTag, index: Option<Entity>);
+
+    /// Get the entity which holds this body.
+    /// This returns Some only if the entity was associated during its creation.
+    ///
+    /// All the physical APIs events returns the PhysicalTag, using this function
+    /// is possible to retrieve the Entity index and perform some operation in SPECS style.
+    fn entity(&self, body_tag: PhysicsBodyTag ) -> Option<Entity>;
 
     /// Get the actual transformation of the body
     fn body_transform(&self, body_tag: PhysicsBodyTag) -> Transform;

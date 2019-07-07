@@ -9,9 +9,11 @@ use amethyst_phythyst::{
     servers::{
         AreaPhysicsServerTrait,
         AreaDesc,
+        OverlapEvent,
     },
     objects::*,
 };
+use amethyst_core::ecs::Entity;
 use nphysics3d::{
     object::{
         Collider as NpCollider,
@@ -23,7 +25,6 @@ use nphysics3d::{
 use nalgebra::{
     RealField,
 };
-use amethyst_phythyst::servers::OverlapEvent;
 
 pub struct AreaNpServer<N: RealField>{
     storages: ServersStorageType<N>
@@ -81,10 +82,15 @@ impl<N: RealField> AreaNpServer<N> {
         collider_desc: &NpColliderDesc<N>,
     ) {
         let collider = collider_desc.build(np_world);
-        collider.set_user_data(Some(Box::new(UserData::new(ObjectType::Area, *area_tag))));
+        AreaNpServer::update_user_data(collider, area);
 
         // Collider registration
         area.collider_handle = Some(collider.handle());
+    }
+
+    pub fn update_user_data(collider: &mut NpCollider<N>, area: &Area){
+
+        collider.set_user_data(Some(Box::new(UserData::new(ObjectType::Area, *area.self_tag.unwrap(), area.entity))));
     }
 }
 
@@ -109,8 +115,9 @@ where
         let np_world = worlds_storage.get_mut(*world_tag).expect("During the area creation the world tag passed was not valid");
         let shape = shapes_storage.get_mut(*area_desc.shape).expect("During area creation was not possible to find the shape");
 
-        let area_tag = PhysicsAreaTag(areas_storage.make_opaque(Box::new(Area::new(None, world_tag, area_desc.shape))));
+        let area_tag = PhysicsAreaTag(areas_storage.make_opaque(Box::new(Area::new( world_tag, area_desc.shape))));
         let area = areas_storage.get_mut(*area_tag).unwrap();
+        area.self_tag = Some(area_tag);
 
         shape.register_area(area_tag);
 
@@ -121,6 +128,29 @@ where
         AreaNpServer::set_collider(area, area_tag, np_world, &np_collider_desc);
 
         PhysicsHandle::new(area_tag, self.storages.gc.clone())
+    }
+
+    fn set_entity(&self, area_tag: PhysicsAreaTag, entity: Option<Entity> ){
+
+        let mut area_storage = self.storages.areas_w();
+        let area = storage_safe_get_mut!(area_storage, area_tag);
+        area.entity = entity;
+
+        if area.collider_handle.is_none() {
+            return;
+        }
+        let mut world_storage = self.storages.worlds_w();
+        let world = storage_safe_get_mut!(world_storage, area.world_tag);
+        let collider = world.collider_mut(area.collider_handle.unwrap()).unwrap();
+
+        AreaNpServer::update_user_data(collider, area);
+    }
+
+    fn entity(&self, area_tag: PhysicsAreaTag) -> Option<Entity> {
+
+        let area_storage = self.storages.areas_r();
+        let area = storage_safe_get!(area_storage, area_tag, None);
+        area.entity
     }
 
     fn overlap_events(&self, area_tag: PhysicsAreaTag) -> Vec<OverlapEvent> {

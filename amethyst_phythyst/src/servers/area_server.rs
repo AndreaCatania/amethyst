@@ -1,6 +1,9 @@
 
 use crate::objects::*;
-use amethyst_core::components::Transform;
+use amethyst_core::{
+    ecs::Entity,
+    components::Transform,
+};
 use nalgebra::{
     RealField,
 };
@@ -17,6 +20,15 @@ pub trait AreaPhysicsServerTrait {
         world_tag: PhysicsWorldTag,
         area_desc: &AreaDesc,
     ) -> PhysicsHandle<PhysicsAreaTag>;
+    /// Set the entity which holds this body.
+    fn set_entity(&self, area_tag: PhysicsAreaTag, index: Option<Entity>);
+
+    /// Get the entity which holds this body.
+    /// This returns Some only if the entity was associated during its creation.
+    ///
+    /// All the physical APIs events returns the PhysicalTag, using this function
+    /// is possible to retrieve the Entity index and perform some operation in SPECS style.
+    fn entity(&self, area_tag: PhysicsAreaTag ) -> Option<Entity>;
 
     /// Returns the list of events occurred in the last step.
     /// Is mandatory check this array each sub step to be sure to not miss any event.
@@ -31,6 +43,6 @@ pub struct AreaDesc {
 
 #[derive(Copy, Clone, Debug)]
 pub enum OverlapEvent{
-    Enter(PhysicsBodyTag),
-    Exit(PhysicsBodyTag),
+    Enter(PhysicsBodyTag, Option<Entity>),
+    Exit(PhysicsBodyTag, Option<Entity>),
 }
