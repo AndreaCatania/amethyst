@@ -59,6 +59,7 @@ impl TransfConversor {
         N: RealField,
         Float: std::convert::Into<N>,
     {
+        let gm = t.global_matrix();
         Isometry3::from_parts(
             Translation3::from(VecConversor::to_physics(t.translation())),
             UnitQuaternion::new_normalize(QuatConversor::to_physics(t.rotation())),

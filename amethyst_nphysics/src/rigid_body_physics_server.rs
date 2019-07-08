@@ -176,7 +176,6 @@ where
 
             // Create Rigid body
         let np_rigid_body = NpRigidBodyDesc::new()
-            .set_position(TransfConversor::to_physics(&body_desc.transformation))
             .set_status(body_mode_conversor::to_physics(body_desc.mode))
             .set_mass(body_desc.mass)
             .build(np_world);
@@ -222,6 +221,13 @@ where
         let body_storage = self.storages.rbodies_r();
         let body = storage_safe_get!(body_storage, body_tag, None);
         body.entity
+    }
+
+    fn set_body_transform(&self, body: PhysicsBodyTag, transf: &Transform){
+
+        extract_np_rigid_body_mut!(self, body);
+
+        body.set_position(TransfConversor::to_physics(transf));
     }
 
     fn body_transform(&self, body: PhysicsBodyTag) -> Transform {

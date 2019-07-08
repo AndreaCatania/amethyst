@@ -36,6 +36,9 @@ pub trait RBodyPhysicsServerTrait<N: RealField> {
     /// is possible to retrieve the Entity index and perform some operation in SPECS style.
     fn entity(&self, body_tag: PhysicsBodyTag ) -> Option<Entity>;
 
+    /// Set the transformation of the body
+    fn set_body_transform(&self, body: PhysicsBodyTag, transf: &Transform);
+
     /// Get the actual transformation of the body
     fn body_transform(&self, body_tag: PhysicsBodyTag) -> Transform;
 
@@ -78,7 +81,6 @@ pub trait RBodyPhysicsServerTrait<N: RealField> {
 pub struct RigidBodyDesc<N> {
     pub mode: BodyMode,
     pub shape: PhysicsShapeTag,
-    pub transformation: Transform,
     pub mass: N,
 }
 
