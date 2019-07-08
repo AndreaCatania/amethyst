@@ -1,7 +1,15 @@
 use crate::{objects::*, servers::*};
 use amethyst_core::{
     ecs::{storage::ComponentEvent, Entities, ReaderId, BitSet, SystemData, Join, ReadExpect, ReadStorage, System, WriteStorage, Resources,},
-    transform::components::Transform,
+    transform::components::{
+        Transform,
+        Parent,
+    },
+    math::{
+        Isometry3,
+        Quaternion,
+    },
+    Float,
 };
 
 pub struct PhysicsSyncTransformSystem {
@@ -16,6 +24,18 @@ impl PhysicsSyncTransformSystem {
             transf_event_reader: None,
             rigid_bodies_event_reader: None,
             areas_event_reader: None,
+        }
+    }
+
+    fn compute_transform(parent: &Parent, transforms: &WriteStorage<Transform>, parents: &ReadStorage<Parent>) -> Isometry3<Float> {
+        let i = transforms.get(parent.entity).map_or(
+            Isometry3::identity(),
+            |t| t.isometry().clone());
+
+        if let Some(parent_parent) = parents.get(parent.entity) {
+            i * Self::compute_transform(parent_parent, transforms, parents)
+        } else {
+            i
         }
     }
 
@@ -44,11 +64,12 @@ impl<'a> System<'a> for PhysicsSyncTransformSystem {
         WriteStorage<'a, Transform>,
         ReadStorage<'a, PhysicsHandle<PhysicsBodyTag>>,
         ReadStorage<'a, PhysicsHandle<PhysicsAreaTag>>,
+        ReadStorage<'a, Parent>,
     );
 
     define_setup_with_physics_assertion!(setup_step_2);
 
-    fn run(&mut self, (entities, rbody_server, area_server, mut transforms, bodies, areas): Self::SystemData) {
+    fn run(&mut self, (entities, rbody_server, area_server, mut transforms, bodies, areas, parents): Self::SystemData) {
 
         let mut edited_transforms = BitSet::new();
 
@@ -93,14 +114,24 @@ impl<'a> System<'a> for PhysicsSyncTransformSystem {
             }
         }
 
-        // Set transform to physics
+        // Set transform to physics with no parents
 
-        for (transform, rb_tag, _) in (&transforms, &bodies, &edited_transforms).join() {
+        for (transform, rb_tag, _, _,) in (&transforms, &bodies, !&parents, &edited_transforms).join() {
             rbody_server.set_body_transform(rb_tag.get(), transform);
         }
 
-        for (transform, a_tag, _) in (&transforms, &areas, &edited_transforms).join() {
+        for (transform, a_tag, _, _,) in (&transforms, &areas, !&parents, &edited_transforms).join() {
             area_server.set_body_transform(a_tag.get(), transform);
+        }
+
+        // Set transform to physics with parents
+
+        for (transform, a_tag, parent, _,) in (&transforms, &areas, &parents, &edited_transforms).join() {
+
+            let computed_trs = transform.isometry() * Self::compute_transform(parent, &transforms, &parents);
+            let mut t = Transform::default();
+            t.set_isometry(computed_trs);
+            area_server.set_body_transform(a_tag.get(), &t);
         }
 
         // Sync transform back to Amethyst.
@@ -123,3 +154,4 @@ impl<'a> System<'a> for PhysicsSyncTransformSystem {
         transforms.channel().read(self.transf_event_reader.as_mut().unwrap());
     }
 }
+
