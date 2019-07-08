@@ -1,4 +1,4 @@
-use crate::{objects::*, servers::RBodyPhysicsServer};
+use crate::{objects::*, servers::*};
 use amethyst_core::{
     ecs::{storage::ComponentEvent, Entities, ReaderId, BitSet, SystemData, Join, ReadExpect, ReadStorage, System, WriteStorage, Resources,},
     transform::components::Transform,
@@ -6,18 +6,33 @@ use amethyst_core::{
 
 pub struct PhysicsSyncTransformSystem {
     transf_event_reader: Option<ReaderId<ComponentEvent>>,
+    rigid_bodies_event_reader: Option<ReaderId<ComponentEvent>>,
+    areas_event_reader: Option<ReaderId<ComponentEvent>>,
 }
 
 impl PhysicsSyncTransformSystem {
     pub fn new() -> PhysicsSyncTransformSystem {
-        PhysicsSyncTransformSystem { transf_event_reader: None, }
+        PhysicsSyncTransformSystem {
+            transf_event_reader: None,
+            rigid_bodies_event_reader: None,
+            areas_event_reader: None,
+        }
     }
 
     fn setup_step_2(&mut self, res: &Resources) {
 
-
-        let mut transform_storage: WriteStorage<Transform> = SystemData::fetch(&res);
-        self.transf_event_reader = Some(transform_storage.register_reader());
+        {
+            let mut storage: WriteStorage<Transform> = SystemData::fetch(&res);
+            self.transf_event_reader = Some(storage.register_reader());
+        }
+        {
+            let mut storage: WriteStorage<PhysicsHandle<PhysicsBodyTag>> = SystemData::fetch(&res);
+            self.rigid_bodies_event_reader = Some(storage.register_reader());
+        }
+        {
+            let mut storage: WriteStorage<PhysicsHandle<PhysicsAreaTag>> = SystemData::fetch(&res);
+            self.areas_event_reader = Some(storage.register_reader());
+        }
     }
 }
 
@@ -25,35 +40,68 @@ impl<'a> System<'a> for PhysicsSyncTransformSystem {
     type SystemData = (
         Entities<'a>,
         ReadExpect<'a, RBodyPhysicsServer<f32>>,
+        ReadExpect<'a, AreaPhysicsServer>,
         WriteStorage<'a, Transform>,
         ReadStorage<'a, PhysicsHandle<PhysicsBodyTag>>,
+        ReadStorage<'a, PhysicsHandle<PhysicsAreaTag>>,
     );
 
     define_setup_with_physics_assertion!(setup_step_2);
 
-    fn run(&mut self, (entities, rbody_server, mut transforms, bodies): Self::SystemData) {
-
-        // Synchronize all transformation to the physics
-
-        let events = transforms.channel().read(self.transf_event_reader.as_mut().unwrap());
+    fn run(&mut self, (entities, rbody_server, area_server, mut transforms, bodies, areas): Self::SystemData) {
 
         let mut edited_transforms = BitSet::new();
 
-        for e in events {
-            match e {
-                ComponentEvent::Inserted(index) /*| ComponentEvent::Modified(index)*/ => {
-                    edited_transforms.add(*index);
+        // Collect all information about the entities that want to update the transform
+        {
+            let events = transforms.channel().read(self.transf_event_reader.as_mut().unwrap());
+            for e in events {
+                match e {
+                    // TODO
+                    // Removing the below comment allow to fully synchronize the transform
+                    // This mean that changing a transform result in an automatic update of the object
+                    // The problem with this is that due to this issue is not yet possible do it:
+                    // https://github.com/amethyst/amethyst/issues/1795
+                    //
+                    ComponentEvent::Inserted(index) /*| ComponentEvent::Modified(index)*/ => {
+                        edited_transforms.add(*index);
+                    }
+                    _ => {}
                 }
-                _ => {}
+            }
+        }
+        {
+            let events = bodies.channel().read(self.rigid_bodies_event_reader.as_mut().unwrap());
+            for e in events {
+                match e {
+                    ComponentEvent::Inserted(index) => {
+                        edited_transforms.add(*index);
+                    }
+                    _ => {}
+                }
+            }
+        }
+        {
+            let events = areas.channel().read(self.areas_event_reader.as_mut().unwrap());
+            for e in events {
+                match e {
+                    ComponentEvent::Inserted(index) => {
+                        edited_transforms.add(*index);
+                    }
+                    _ => {}
+                }
             }
         }
 
+        // Set transform to physics
+
         for (transform, rb_tag, _) in (&transforms, &bodies, &edited_transforms).join() {
             rbody_server.set_body_transform(rb_tag.get(), transform);
-            println!("Update trasnsform");
         }
 
-        // TODO Update area?
+        for (transform, a_tag, _) in (&transforms, &areas, &edited_transforms).join() {
+            area_server.set_body_transform(a_tag.get(), transform);
+        }
 
         // Sync transform back to Amethyst.
         // Note that the transformation are modified in this way to avoid to mutate the

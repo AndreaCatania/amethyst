@@ -20,6 +20,7 @@ pub trait AreaPhysicsServerTrait {
         world_tag: PhysicsWorldTag,
         area_desc: &AreaDesc,
     ) -> PhysicsHandle<PhysicsAreaTag>;
+
     /// Set the entity which holds this body.
     fn set_entity(&self, area_tag: PhysicsAreaTag, index: Option<Entity>);
 
@@ -30,15 +31,17 @@ pub trait AreaPhysicsServerTrait {
     /// is possible to retrieve the Entity index and perform some operation in SPECS style.
     fn entity(&self, area_tag: PhysicsAreaTag ) -> Option<Entity>;
 
+    /// Set the transformation of the area
+    fn set_body_transform(&self, area: PhysicsAreaTag, transf: &Transform);
+
+    // TODO pelase return an iterator and avoid to copy vectors around
     /// Returns the list of events occurred in the last step.
     /// Is mandatory check this array each sub step to be sure to not miss any event.
     fn overlap_events(&self, area_tag: PhysicsAreaTag) -> Vec<OverlapEvent>;
-
 }
 
 pub struct AreaDesc {
     pub shape: PhysicsShapeTag,
-    pub transform: Transform,
 }
 
 #[derive(Copy, Clone, Debug)]

@@ -13,7 +13,10 @@ use amethyst_phythyst::{
     },
     objects::*,
 };
-use amethyst_core::ecs::Entity;
+use amethyst_core::{
+    components::Transform,
+    ecs::Entity,
+};
 use nphysics3d::{
     object::{
         Collider as NpCollider,
@@ -122,8 +125,7 @@ where
         shape.register_area(area_tag);
 
         let np_collider_desc = NpColliderDesc::new(shape.shape_handle().clone())
-            .sensor(true)
-            .position(TransfConversor::to_physics(&area_desc.transform));
+            .sensor(true);
 
         AreaNpServer::set_collider(area, area_tag, np_world, &np_collider_desc);
 
@@ -151,6 +153,24 @@ where
         let area_storage = self.storages.areas_r();
         let area = storage_safe_get!(area_storage, area_tag, None);
         area.entity
+    }
+
+    fn set_body_transform(&self, area_tag: PhysicsAreaTag, transf: &Transform){
+
+        let mut areas_storage = self.storages.areas_w();
+        let mut worlds_storage = self.storages.worlds_w();
+
+        let area = storage_safe_get!(areas_storage, area_tag);
+        let world = storage_safe_get_mut!(worlds_storage, area.world_tag);
+
+        let transf = TransfConversor::to_physics(transf);
+
+        // Set the position of the collider, this is necessary for static objects
+        let np_collider = world.collider_mut(area.collider_handle.unwrap());
+        fail_cond!(np_collider.is_none());
+        let np_collider = np_collider.unwrap();
+        np_collider.set_position(transf.clone());
+
     }
 
     fn overlap_events(&self, area_tag: PhysicsAreaTag) -> Vec<OverlapEvent> {

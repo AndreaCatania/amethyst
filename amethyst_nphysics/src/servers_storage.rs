@@ -60,6 +60,7 @@ impl<N: RealField> ServersStorage<N> {
         })
     }
 
+    // TODO why use this?
     pub fn rigid_body<'s>(
         body_handle: NpBodyHandle,
         world_tag: StoreTag,
@@ -73,6 +74,7 @@ impl<N: RealField> ServersStorage<N> {
         }
     }
 
+    // TODO why use this?
     pub fn rigid_body_mut<'s>(
         body_handle: NpBodyHandle,
         world_tag: StoreTag,

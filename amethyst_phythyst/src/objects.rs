@@ -2,7 +2,7 @@ use std::sync::{
     Arc, RwLock,
 };
 
-use amethyst_core::ecs::{Component, DenseVecStorage};
+use amethyst_core::ecs::{Component, FlaggedStorage, DenseVecStorage};
 
 macro_rules! define_opaque_object{
     ($what:ident, $doc_name:ident, $gc_name:ident) => {
@@ -97,7 +97,7 @@ impl<T: PhysicsTag> Clone for PhysicsHandle<T>{
 }
 
 impl<T: PhysicsTag> Component for PhysicsHandle<T> {
-    type Storage = DenseVecStorage<PhysicsHandle<T>>;
+    type Storage = FlaggedStorage<PhysicsHandle<T>, DenseVecStorage<PhysicsHandle<T>>>;
 }
 
 /// This container holds both the Tag and the garbage collector.

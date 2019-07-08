@@ -7,10 +7,14 @@ use nphysics3d::object::{
 
 use amethyst_core::ecs::Entity;
 
-use amethyst_phythyst::objects::*;
+use amethyst_phythyst::{
+    objects::*,
+    servers::BodyMode,
+};
 
 pub struct RigidBody {
     pub self_tag: Option<PhysicsBodyTag>,
+    pub body_mode: BodyMode,
     pub body_handle: NpBodyHandle,
     pub collider_handle: Option<NpColliderHandle>,
     pub world_tag: PhysicsWorldTag,
@@ -19,10 +23,11 @@ pub struct RigidBody {
 }
 
 impl RigidBody {
-    pub(crate) fn new(world_tag: PhysicsWorldTag) -> Box<Self> {
+    pub(crate) fn new(world_tag: PhysicsWorldTag, body_mode: BodyMode) -> Box<Self> {
 
         Box::new(RigidBody {
             self_tag: None,
+            body_mode,
             body_handle: NpBodyHandle::ground(),
             collider_handle: None,
             world_tag,

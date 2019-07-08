@@ -2,12 +2,12 @@ use crate::{utils::*, conversors::*, rigid_body::RigidBody, servers_storage::*};
 
 use amethyst_phythyst::{
     objects::*,
-    servers::{RBodyPhysicsServerTrait, RigidBodyDesc},
+    servers::*,
 };
 
 use amethyst_core::{
     ecs::Entity,
-    components::Transform,
+    Transform,
 };
 
 use nphysics3d::{
@@ -172,7 +172,7 @@ where
 
         let np_world = world_storage.get_mut(*world_tag).expect("During the rigid body creation the world tag passed was not valid");
 
-        let rb_tag = PhysicsBodyTag(bodies_storage.make_opaque(RigidBody::new(world_tag)));
+        let rb_tag = PhysicsBodyTag(bodies_storage.make_opaque(RigidBody::new(world_tag, body_desc.mode)));
 
             // Create Rigid body
         let np_rigid_body = NpRigidBodyDesc::new()
@@ -223,11 +223,33 @@ where
         body.entity
     }
 
-    fn set_body_transform(&self, body: PhysicsBodyTag, transf: &Transform){
+    fn set_body_transform(&self, body_tag: PhysicsBodyTag, transf: &Transform){
 
-        extract_np_rigid_body_mut!(self, body);
+        let mut bodies_storage = self.storages.rbodies_w();
+        let mut worlds_storage = self.storages.worlds_w();
 
-        body.set_position(TransfConversor::to_physics(transf));
+        let body = storage_safe_get!(bodies_storage, body_tag);
+        let world = storage_safe_get_mut!(worlds_storage, body.world_tag);
+
+        let transf = TransfConversor::to_physics(transf);
+
+        if body.body_mode != BodyMode::Dynamic {
+            // Set the position of the collider, this is necessary for static objects
+            let np_collider = world.collider_mut(body.collider_handle.unwrap());
+            fail_cond!(np_collider.is_none());
+            let np_collider = np_collider.unwrap();
+            np_collider.set_position(transf.clone());
+        }
+
+        {
+            // Set the position of the rigid body
+            let np_body = world.rigid_body_mut(body.body_handle);
+            fail_cond!(np_body.is_none());
+            let np_body = np_body.unwrap();
+
+            np_body.set_position(transf);
+        }
+
     }
 
     fn body_transform(&self, body: PhysicsBodyTag) -> Transform {
