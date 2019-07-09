@@ -14,8 +14,8 @@ use amethyst_phythyst::{
     objects::*,
 };
 use amethyst_core::{
-    components::Transform,
     ecs::Entity,
+    Float,
 };
 use nphysics3d::{
     object::{
@@ -27,6 +27,7 @@ use nphysics3d::{
 };
 use nalgebra::{
     RealField,
+    Isometry3,
 };
 
 pub struct AreaNpServer<N: RealField>{
@@ -155,7 +156,7 @@ where
         area.entity
     }
 
-    fn set_body_transform(&self, area_tag: PhysicsAreaTag, transf: &Transform){
+    fn set_body_transform(&self, area_tag: PhysicsAreaTag, transf: &Isometry3<Float>){
 
         let mut areas_storage = self.storages.areas_w();
         let mut worlds_storage = self.storages.worlds_w();
@@ -169,7 +170,7 @@ where
         let np_collider = world.collider_mut(area.collider_handle.unwrap());
         fail_cond!(np_collider.is_none());
         let np_collider = np_collider.unwrap();
-        np_collider.set_position(transf.clone());
+        np_collider.set_position(transf);
 
     }
 

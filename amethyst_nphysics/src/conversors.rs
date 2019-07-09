@@ -54,28 +54,26 @@ impl QuatConversor {
 pub(crate) struct TransfConversor;
 
 impl TransfConversor {
-    pub fn to_physics<N>(t: &Transform) -> Isometry3<N>
+    pub fn to_physics<N>(t: &Isometry3<Float>) -> Isometry3<N>
     where
         N: RealField,
         Float: std::convert::Into<N>,
     {
-        let gm = t.global_matrix();
         Isometry3::from_parts(
-            Translation3::from(VecConversor::to_physics(t.translation())),
-            UnitQuaternion::new_normalize(QuatConversor::to_physics(t.rotation())),
+            Translation3::from(VecConversor::to_physics(&t.translation.vector)),
+            UnitQuaternion::new_normalize(QuatConversor::to_physics(&t.rotation)),
         )
     }
 
-    pub fn from_physics<N>(t: &Isometry3<N>) -> Transform
+    pub fn from_physics<N>(t: &Isometry3<N>) -> Isometry3<Float>
     where
         N: RealField,
         Float: std::convert::From<N>,
         N: alga::general::SubsetOf<Float>,
     {
-        Transform::new(
-            t.translation,
-            t.rotation,
-            Vector3::from_element(nalgebra::convert(1.0)),
+        Isometry3::from_parts(
+            Translation3::from(VecConversor::from_physics(&t.translation.vector)),
+            UnitQuaternion::new_normalize(QuatConversor::from_physics(&t.rotation)),
         )
     }
 }

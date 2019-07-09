@@ -27,6 +27,10 @@ impl PhysicsSyncTransformSystem {
         }
     }
 
+    /// This method resolve the transformation of an object that is attached to a parent
+    /// TODO each time an object of this type receive an edit this compute the entire chain
+    /// of parents. Is mandatory find a way to optimize this process.
+    /// Is it possible to directly use Global matrix?
     fn compute_transform(parent: &Parent, transforms: &WriteStorage<Transform>, parents: &ReadStorage<Parent>) -> Isometry3<Float> {
         let i = transforms.get(parent.entity).map_or(
             Isometry3::identity(),
@@ -117,11 +121,11 @@ impl<'a> System<'a> for PhysicsSyncTransformSystem {
         // Set transform to physics with no parents
 
         for (transform, rb_tag, _, _,) in (&transforms, &bodies, !&parents, &edited_transforms).join() {
-            rbody_server.set_body_transform(rb_tag.get(), transform);
+            rbody_server.set_body_transform(rb_tag.get(), transform.isometry());
         }
 
         for (transform, a_tag, _, _,) in (&transforms, &areas, !&parents, &edited_transforms).join() {
-            area_server.set_body_transform(a_tag.get(), transform);
+            area_server.set_body_transform(a_tag.get(), transform.isometry());
         }
 
         // Set transform to physics with parents
@@ -129,33 +133,32 @@ impl<'a> System<'a> for PhysicsSyncTransformSystem {
         for (transform, rb_tag, parent, _,) in (&transforms, &bodies, &parents, &edited_transforms).join() {
 
             let computed_trs = transform.isometry() * Self::compute_transform(parent, &transforms, &parents);
-            let mut t = Transform::default();
-            t.set_isometry(computed_trs);
-            rbody_server.set_body_transform(rb_tag.get(), &t);
+            rbody_server.set_body_transform(rb_tag.get(), &computed_trs);
         }
 
         for (transform, a_tag, parent, _,) in (&transforms, &areas, &parents, &edited_transforms).join() {
 
             let computed_trs = transform.isometry() * Self::compute_transform(parent, &transforms, &parents);
-            let mut t = Transform::default();
-            t.set_isometry(computed_trs);
-            area_server.set_body_transform(a_tag.get(), &t);
+            area_server.set_body_transform(a_tag.get(), &computed_trs);
         }
 
         // Sync transform back to Amethyst.
         // Note that the transformation are modified in this way to avoid to mutate the
         // Transform component entirely.
+        // TODO find a way to update only moving things and not always all
         let transf_mask = transforms.mask().clone();
         for (entity, rb, _ ) in (&entities, &bodies, &transf_mask & ! &edited_transforms).join() {
             match transforms.get_mut(entity) {
                 Some(transform) => {
 
                     // TODO please avoid much copies by sending the mutable reference directly
-                    *transform = rbody_server.body_transform(rb.get());
+                    transform.set_isometry(rbody_server.body_transform(rb.get()));
                 }
                 _ => {}
             }
         }
+
+        // TODO update Area is missing here
 
         // Now the transformation get changed by the synchronization and we don't need such events,
         // So consume them now.

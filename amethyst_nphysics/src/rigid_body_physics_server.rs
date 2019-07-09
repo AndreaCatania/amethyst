@@ -1,4 +1,3 @@
-use crate::{utils::*, conversors::*, rigid_body::RigidBody, servers_storage::*};
 
 use amethyst_phythyst::{
     objects::*,
@@ -7,7 +6,7 @@ use amethyst_phythyst::{
 
 use amethyst_core::{
     ecs::Entity,
-    Transform,
+    Float,
 };
 
 use nphysics3d::{
@@ -20,6 +19,7 @@ use nphysics3d::{
         Force, ForceType, Velocity,
     },
     world::World as NpWorld,
+    algebra::Velocity3,
 };
 
 use ncollide3d::shape::{Ball as NcBall, ShapeHandle as NcShapeHandle};
@@ -28,10 +28,11 @@ use nalgebra::{
     RealField,
     Vector,
     Vector3,
+    Isometry3,
     Point,
 };
 
-use nphysics3d::algebra::Velocity3;
+use crate::{utils::*, conversors::*, rigid_body::RigidBody, servers_storage::*};
 
 pub struct RBodyNpServer<N: RealField> {
     storages: ServersStorageType<N>,
@@ -223,7 +224,7 @@ where
         body.entity
     }
 
-    fn set_body_transform(&self, body_tag: PhysicsBodyTag, transf: &Transform){
+    fn set_body_transform(&self, body_tag: PhysicsBodyTag, transf: &Isometry3<Float>){
 
         let mut bodies_storage = self.storages.rbodies_w();
         let mut worlds_storage = self.storages.worlds_w();
@@ -252,8 +253,8 @@ where
 
     }
 
-    fn body_transform(&self, body: PhysicsBodyTag) -> Transform {
-        extract_np_rigid_body!(self, body, Transform::default());
+    fn body_transform(&self, body: PhysicsBodyTag) -> Isometry3<Float> {
+        extract_np_rigid_body!(self, body, Isometry3::identity());
 
         TransfConversor::from_physics(body.position())
     }
