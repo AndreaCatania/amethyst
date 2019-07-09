@@ -84,7 +84,7 @@ impl<'a> System<'a> for PhysicsSyncTransformSystem {
                     // The problem with this is that due to this issue is not yet possible do it:
                     // https://github.com/amethyst/amethyst/issues/1795
                     //
-                    ComponentEvent::Inserted(index) /*| ComponentEvent::Modified(index)*/ => {
+                    ComponentEvent::Inserted(index) | ComponentEvent::Modified(index) => {
                         edited_transforms.add(*index);
                     }
                     _ => {}
@@ -125,6 +125,14 @@ impl<'a> System<'a> for PhysicsSyncTransformSystem {
         }
 
         // Set transform to physics with parents
+
+        for (transform, rb_tag, parent, _,) in (&transforms, &bodies, &parents, &edited_transforms).join() {
+
+            let computed_trs = transform.isometry() * Self::compute_transform(parent, &transforms, &parents);
+            let mut t = Transform::default();
+            t.set_isometry(computed_trs);
+            rbody_server.set_body_transform(rb_tag.get(), &t);
+        }
 
         for (transform, a_tag, parent, _,) in (&transforms, &areas, &parents, &edited_transforms).join() {
 
