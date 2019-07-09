@@ -166,6 +166,11 @@ where
 
         let transf = TransfConversor::to_physics(transf);
 
+        {
+            // TODO remove this if the actual NPHysics got updated since actualy there' a bug (v0.11.1)
+            world.collider_world_mut().set_position(area.collider_handle.unwrap(), transf.clone());
+        }
+
         // Set the position of the collider, this is necessary for static objects
         let np_collider = world.collider_mut(area.collider_handle.unwrap());
         fail_cond!(np_collider.is_none());

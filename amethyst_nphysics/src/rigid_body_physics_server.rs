@@ -234,6 +234,12 @@ where
 
         let transf = TransfConversor::to_physics(transf);
 
+        {
+            // TODO remove this if the actual NPhysics got updated since actually there' a bug (v0.11.1)
+            world.collider_world_mut().set_position(body.collider_handle.unwrap(), transf.clone());
+        }
+
+        // TODO this should be not required check when the above bug is fixed
         if body.body_mode != BodyMode::Dynamic {
             // Set the position of the collider, this is necessary for static objects
             let np_collider = world.collider_mut(body.collider_handle.unwrap());
