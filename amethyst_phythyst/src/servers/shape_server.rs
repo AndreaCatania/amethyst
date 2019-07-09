@@ -14,7 +14,7 @@ pub trait ShapePhysicsServerTrait<N: RealField> {
     fn update_shape(&mut self, shape_tag: PhysicsShapeTag, shape_desc: &ShapeDesc<N>);
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum ShapeDesc<N: RealField> {
     Sphere {
         radius: N,
