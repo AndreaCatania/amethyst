@@ -75,12 +75,16 @@ impl<'a> System<'a> for PhysicsSyncTransformSystem {
 
     fn run(&mut self, (entities, rbody_server, area_server, mut transforms, bodies, areas, parents): Self::SystemData) {
 
-        let mut edited_transforms = BitSet::new();
-
-        // Collect all information about the entities that want to update the transform
+        let mut edited_transforms;
         {
-            let events = transforms.channel().read(self.transf_event_reader.as_mut().unwrap());
-            for e in events {
+            let trs_events = transforms.channel().read(self.transf_event_reader.as_mut().unwrap());
+            let bodies_events = bodies.channel().read(self.rigid_bodies_event_reader.as_mut().unwrap());
+            let area_events = areas.channel().read(self.areas_event_reader.as_mut().unwrap());
+
+            edited_transforms = BitSet::with_capacity((trs_events.len() + bodies_events.len() + area_events.len()) as u32);
+
+            // Collect all information about the entities that want to update the transform
+            for e in trs_events {
                 match e {
                     // TODO
                     // Removing the below comment allow to fully synchronize the transform
@@ -94,10 +98,7 @@ impl<'a> System<'a> for PhysicsSyncTransformSystem {
                     _ => {}
                 }
             }
-        }
-        {
-            let events = bodies.channel().read(self.rigid_bodies_event_reader.as_mut().unwrap());
-            for e in events {
+            for e in bodies_events {
                 match e {
                     ComponentEvent::Inserted(index) => {
                         edited_transforms.add(*index);
@@ -105,10 +106,7 @@ impl<'a> System<'a> for PhysicsSyncTransformSystem {
                     _ => {}
                 }
             }
-        }
-        {
-            let events = areas.channel().read(self.areas_event_reader.as_mut().unwrap());
-            for e in events {
+            for e in area_events {
                 match e {
                     ComponentEvent::Inserted(index) => {
                         edited_transforms.add(*index);
