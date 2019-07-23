@@ -53,9 +53,8 @@ use shape_physics_server::*;
 pub fn create_physics<N>() -> PhysicsServers<N>
 where
     N: RealField,
-    amethyst_core::Float: std::convert::From<N>,
-    amethyst_core::Float: std::convert::Into<N>,
-    N: alga::general::SubsetOf<amethyst_core::Float>,
+    N: From<f32>,
+    f32: From<N>,
 {
     let storages = servers_storage::ServersStorage::new();
 

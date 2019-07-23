@@ -2,7 +2,6 @@
 use crate::objects::*;
 use amethyst_core::{
     ecs::Entity,
-    Float,
 };
 use nalgebra::{
     RealField,
@@ -33,7 +32,7 @@ pub trait AreaPhysicsServerTrait {
     fn entity(&self, area_tag: PhysicsAreaTag ) -> Option<Entity>;
 
     /// Set the transformation of the area
-    fn set_body_transform(&self, area: PhysicsAreaTag, transf: &Isometry3<Float>);
+    fn set_body_transform(&self, area: PhysicsAreaTag, transf: &Isometry3<f32>);
 
     // TODO pelase return an iterator and avoid to copy vectors around
     /// Returns the list of events occurred in the last step.

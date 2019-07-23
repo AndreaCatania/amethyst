@@ -6,7 +6,6 @@ use amethyst_phythyst::{
 
 use amethyst_core::{
     ecs::Entity,
-    Float,
 };
 
 use nphysics3d::{
@@ -158,9 +157,8 @@ impl<N: RealField> RBodyNpServer<N> {
 impl<N> RBodyPhysicsServerTrait<N> for RBodyNpServer<N>
 where
     N: RealField,
-    amethyst_core::Float: std::convert::From<N>,
-    amethyst_core::Float: std::convert::Into<N>,
-    N: alga::general::SubsetOf<amethyst_core::Float>,
+    N: std::convert::From<f32>,
+    f32: From<N>,
 {
     fn create_body(
         &mut self,
@@ -224,7 +222,7 @@ where
         body.entity
     }
 
-    fn set_body_transform(&self, body_tag: PhysicsBodyTag, transf: &Isometry3<Float>){
+    fn set_body_transform(&self, body_tag: PhysicsBodyTag, transf: &Isometry3<f32>){
 
         let mut bodies_storage = self.storages.rbodies_w();
         let mut worlds_storage = self.storages.worlds_w();
@@ -259,7 +257,7 @@ where
 
     }
 
-    fn body_transform(&self, body: PhysicsBodyTag) -> Isometry3<Float> {
+    fn body_transform(&self, body: PhysicsBodyTag) -> Isometry3<f32> {
         extract_np_rigid_body!(self, body, Isometry3::identity());
 
         TransfConversor::from_physics(body.position())

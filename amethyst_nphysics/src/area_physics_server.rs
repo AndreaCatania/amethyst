@@ -15,7 +15,6 @@ use amethyst_phythyst::{
 };
 use amethyst_core::{
     ecs::Entity,
-    Float,
 };
 use nphysics3d::{
     object::{
@@ -101,9 +100,8 @@ impl<N: RealField> AreaNpServer<N> {
 impl<N> AreaPhysicsServerTrait for AreaNpServer<N>
 where
     N: RealField,
-    amethyst_core::Float: std::convert::From<N>,
-    amethyst_core::Float: std::convert::Into<N>,
-    N: alga::general::SubsetOf<amethyst_core::Float>,
+    N: From<f32>,
+    f32: From<N>,
 {
 
     fn create_area(
@@ -156,7 +154,7 @@ where
         area.entity
     }
 
-    fn set_body_transform(&self, area_tag: PhysicsAreaTag, transf: &Isometry3<Float>){
+    fn set_body_transform(&self, area_tag: PhysicsAreaTag, transf: &Isometry3<f32>){
 
         let mut areas_storage = self.storages.areas_w();
         let mut worlds_storage = self.storages.worlds_w();

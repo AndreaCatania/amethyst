@@ -1,7 +1,6 @@
 use crate::objects::*;
 use amethyst_core::{
     ecs::Entity,
-    Float,
 };
 use nalgebra::{
     RealField,
@@ -38,10 +37,10 @@ pub trait RBodyPhysicsServerTrait<N: RealField> {
     fn entity(&self, body_tag: PhysicsBodyTag ) -> Option<Entity>;
 
     /// Set the transformation of the body
-    fn set_body_transform(&self, body: PhysicsBodyTag, transf: &Isometry3<Float>);
+    fn set_body_transform(&self, body: PhysicsBodyTag, transf: &Isometry3<f32>);
 
     /// Get the actual transformation of the body
-    fn body_transform(&self, body_tag: PhysicsBodyTag) -> Isometry3<Float>;
+    fn body_transform(&self, body_tag: PhysicsBodyTag) -> Isometry3<f32>;
 
     /// Clear forces
     fn clear_forces(&self, body: PhysicsBodyTag);

@@ -1,52 +1,52 @@
 use amethyst_core::{
     components::Transform,
     math::{Quaternion, Translation3, UnitQuaternion, Vector3, Vector4},
-    Float,
 };
 
 use nalgebra::{Isometry3, RealField, Transform3};
 
 pub(crate) struct VecConversor;
 
+// TODO this may be removed. Check this please
+
 impl VecConversor {
-    pub fn to_physics<N>(v: &Vector3<Float>) -> Vector3<N>
+    pub fn to_physics<N>(v: &Vector3<f32>) -> Vector3<N>
     where
-        N: RealField,
-        Float: std::convert::Into<N>,
+        N: RealField + From<f32>,
     {
         Vector3::new(v.x.into(), v.y.into(), v.z.into())
     }
 
-    pub fn from_physics<N>(v: &Vector3<N>) -> Vector3<Float>
+    pub fn from_physics<N>(v: &Vector3<N>) -> Vector3<f32>
     where
         N: RealField,
-        Float: std::convert::From<N>,
+        f32: From<N>,
     {
-        Vector3::new(Float::from(v.x), Float::from(v.y), Float::from(v.z))
+        Vector3::new(v.x.into(), v.y.into(), v.z.into())
     }
 }
 
 pub(crate) struct QuatConversor;
 
 impl QuatConversor {
-    pub fn to_physics<N>(r: &Quaternion<Float>) -> Quaternion<N>
+    pub fn to_physics<N>(r: &Quaternion<f32>) -> Quaternion<N>
     where
         N: RealField,
-        Float: std::convert::Into<N>,
+        f32: std::convert::Into<N>,
     {
         Quaternion::from(Vector4::new(r.i.into(), r.j.into(), r.k.into(), r.w.into()))
     }
 
-    pub fn from_physics<N>(r: &Quaternion<N>) -> Quaternion<Float>
+    pub fn from_physics<N>(r: &Quaternion<N>) -> Quaternion<f32>
     where
         N: RealField,
-        Float: std::convert::From<N>,
+        f32: std::convert::From<N>,
     {
         Quaternion::from(Vector4::new(
-            Float::from(r.i),
-            Float::from(r.j),
-            Float::from(r.k),
-            Float::from(r.w),
+            f32::from(r.i),
+            f32::from(r.j),
+            f32::from(r.k),
+            f32::from(r.w),
         ))
     }
 }
@@ -54,10 +54,9 @@ impl QuatConversor {
 pub(crate) struct TransfConversor;
 
 impl TransfConversor {
-    pub fn to_physics<N>(t: &Isometry3<Float>) -> Isometry3<N>
+    pub fn to_physics<N>(t: &Isometry3<f32>) -> Isometry3<N>
     where
-        N: RealField,
-        Float: std::convert::Into<N>,
+        N: RealField + std::convert::From<f32>,
     {
         Isometry3::from_parts(
             Translation3::from(VecConversor::to_physics(&t.translation.vector)),
@@ -65,11 +64,10 @@ impl TransfConversor {
         )
     }
 
-    pub fn from_physics<N>(t: &Isometry3<N>) -> Isometry3<Float>
+    pub fn from_physics<N>(t: &Isometry3<N>) -> Isometry3<f32>
     where
         N: RealField,
-        Float: std::convert::From<N>,
-        N: alga::general::SubsetOf<Float>,
+        f32: std::convert::From<N>,
     {
         Isometry3::from_parts(
             Translation3::from(VecConversor::from_physics(&t.translation.vector)),

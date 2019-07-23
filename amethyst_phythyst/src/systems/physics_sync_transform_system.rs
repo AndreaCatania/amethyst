@@ -9,7 +9,6 @@ use amethyst_core::{
         Isometry3,
         Quaternion,
     },
-    Float,
 };
 
 pub struct PhysicsSyncTransformSystem {
@@ -31,7 +30,7 @@ impl PhysicsSyncTransformSystem {
     /// TODO each time an object of this type receive an edit this compute the entire chain
     /// of parents. Is mandatory find a way to optimize this process.
     /// Is it possible to directly use Global matrix?
-    fn compute_transform(parent: &Parent, transforms: &WriteStorage<Transform>, parents: &ReadStorage<Parent>) -> Isometry3<Float> {
+    fn compute_transform(parent: &Parent, transforms: &WriteStorage<Transform>, parents: &ReadStorage<Parent>) -> Isometry3<f32> {
         let i = transforms.get(parent.entity).map_or(
             Isometry3::identity(),
             |t| t.isometry().clone());
