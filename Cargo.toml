@@ -119,6 +119,7 @@ amethyst_rendy = { path = "amethyst_rendy", version = "0.2.0", features = ["wind
 amethyst_input = { path = "amethyst_input", version = "0.8.0" }
 amethyst_ui = { path = "amethyst_ui", version = "0.7.0" }
 amethyst_utils = { path = "amethyst_utils", version = "0.7.0" }
+amethyst_nphysics = { path = "amethyst_nphysics", version = "0.1.0" }
 amethyst_phythyst = { path = "amethyst_phythyst", version = "0.0.1" }
 amethyst_window = { path = "amethyst_window", version = "0.2.0" }
 crossbeam-channel = "0.3.9"

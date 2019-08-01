@@ -6,7 +6,7 @@ edition = "2018"
 description = "The Amethyst NPhysics engine backend"
 
 [dependencies]
-amethyst_core = { path = "../amethyst_core", version = "0.6" }
+amethyst_core = { path = "../amethyst_core", version = "0.7" }
 amethyst_phythyst = {path = "../amethyst_phythyst", version = "0.0.1"}
 log = "0.4.6"
 nalgebra = "0.18.0"
