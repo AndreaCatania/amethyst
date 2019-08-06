@@ -796,7 +796,9 @@ where
         self
     }
 
-    /// Sets all
+    /// Register the physics servers backend.
+    ///
+    /// TODO improve this by implementing a mechanism similar to rendy.
     pub fn with_physics<N: crate::core::math::RealField>(
         mut self,
         servers: PhysicsServers<N>,
