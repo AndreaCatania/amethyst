@@ -30,6 +30,15 @@ pub trait RBodyPhysicsServerTrait<N: RealField> {
     /// is possible to retrieve the Entity index and perform some operation in SPECS style.
     fn entity(&self, body_tag: PhysicsBodyTag) -> Option<Entity>;
 
+    /// Set the rigid shape of the body.
+    /// Passing None, will leave the RigidBody without any shape.
+    ///
+    /// You can create a shape, using the function `ShapeServer::create_shape`.
+    fn set_shape(&self, body_tag: PhysicsBodyTag, shape_tag: Option<PhysicsShapeTag>);
+
+    /// Get the shape of the body
+    fn shape(&self, body_tag: PhysicsBodyTag) -> Option<PhysicsShapeTag>;
+
     /// Set the transformation of the body
     fn set_body_transform(&self, body: PhysicsBodyTag, transf: &Isometry3<f32>);
 
