@@ -1,12 +1,6 @@
 use crate::objects::*;
-use amethyst_core::{
-    ecs::Entity,
-};
-use nalgebra::{
-    RealField,
-    Vector3,
-    Isometry3,
-};
+use amethyst_core::ecs::Entity;
+use nalgebra::{Isometry3, RealField, Vector3};
 
 /// This is the interface that contains all functionalities to manipulate
 /// - RigidBody
@@ -34,7 +28,7 @@ pub trait RBodyPhysicsServerTrait<N: RealField> {
     ///
     /// All the physical APIs events returns the PhysicalTag, using this function
     /// is possible to retrieve the Entity index and perform some operation in SPECS style.
-    fn entity(&self, body_tag: PhysicsBodyTag ) -> Option<Entity>;
+    fn entity(&self, body_tag: PhysicsBodyTag) -> Option<Entity>;
 
     /// Set the transformation of the body
     fn set_body_transform(&self, body: PhysicsBodyTag, transf: &Isometry3<f32>);
@@ -52,7 +46,12 @@ pub trait RBodyPhysicsServerTrait<N: RealField> {
     fn apply_torque(&self, body: PhysicsBodyTag, force: &Vector3<N>);
 
     /// Apply force at position to the body
-    fn apply_force_at_position(&self, body: PhysicsBodyTag, force: &Vector3<N>, position: &Vector3<N>);
+    fn apply_force_at_position(
+        &self,
+        body: PhysicsBodyTag,
+        force: &Vector3<N>,
+        position: &Vector3<N>,
+    );
 
     /// Apply central impulse to the body
     fn apply_impulse(&self, body: PhysicsBodyTag, impulse: &Vector3<N>);
@@ -61,7 +60,12 @@ pub trait RBodyPhysicsServerTrait<N: RealField> {
     fn apply_angular_impulse(&self, body: PhysicsBodyTag, impulse: &Vector3<N>);
 
     /// Apply impulse at position to the body
-    fn apply_impulse_at_position(&self, body: PhysicsBodyTag, impulse: &Vector3<N>, position: &Vector3<N>);
+    fn apply_impulse_at_position(
+        &self,
+        body: PhysicsBodyTag,
+        impulse: &Vector3<N>,
+        position: &Vector3<N>,
+    );
 
     /// Set the velocity of the body
     fn set_linear_velocity(&self, body: PhysicsBodyTag, velocity: &Vector3<N>);

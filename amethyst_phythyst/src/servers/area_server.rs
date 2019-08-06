@@ -1,12 +1,6 @@
-
 use crate::objects::*;
-use amethyst_core::{
-    ecs::Entity,
-};
-use nalgebra::{
-    RealField,
-    Isometry3,
-};
+use amethyst_core::ecs::Entity;
+use nalgebra::{Isometry3, RealField};
 
 /// This is the interface that contains all the functionalities that an area have.
 ///
@@ -29,7 +23,7 @@ pub trait AreaPhysicsServerTrait {
     ///
     /// All the physical APIs events returns the PhysicalTag, using this function
     /// is possible to retrieve the Entity index and perform some operation in SPECS style.
-    fn entity(&self, area_tag: PhysicsAreaTag ) -> Option<Entity>;
+    fn entity(&self, area_tag: PhysicsAreaTag) -> Option<Entity>;
 
     /// Set the transformation of the area
     fn set_body_transform(&self, area: PhysicsAreaTag, transf: &Isometry3<f32>);
@@ -45,7 +39,7 @@ pub struct AreaDesc {
 }
 
 #[derive(Copy, Clone, Debug)]
-pub enum OverlapEvent{
+pub enum OverlapEvent {
     Enter(PhysicsBodyTag, Option<Entity>),
     Exit(PhysicsBodyTag, Option<Entity>),
 }

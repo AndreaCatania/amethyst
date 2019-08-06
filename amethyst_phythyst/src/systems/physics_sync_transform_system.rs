@@ -1,14 +1,11 @@
 use crate::{objects::*, servers::*};
 use amethyst_core::{
-    ecs::{storage::ComponentEvent, Entities, ReaderId, BitSet, SystemData, Join, ReadExpect, ReadStorage, System, WriteStorage, Resources,},
-    transform::components::{
-        Transform,
-        Parent,
+    ecs::{
+        storage::ComponentEvent, BitSet, Entities, Join, ReadExpect, ReadStorage, ReaderId,
+        Resources, System, SystemData, WriteStorage,
     },
-    math::{
-        Isometry3,
-        Quaternion,
-    },
+    math::{Isometry3, Quaternion},
+    transform::components::{Parent, Transform},
 };
 
 pub struct PhysicsSyncTransformSystem {
@@ -30,10 +27,14 @@ impl PhysicsSyncTransformSystem {
     /// TODO each time an object of this type receive an edit this compute the entire chain
     /// of parents. Is mandatory find a way to optimize this process.
     /// Is it possible to directly use Global matrix?
-    fn compute_transform(parent: &Parent, transforms: &WriteStorage<Transform>, parents: &ReadStorage<Parent>) -> Isometry3<f32> {
-        let i = transforms.get(parent.entity).map_or(
-            Isometry3::identity(),
-            |t| t.isometry().clone());
+    fn compute_transform(
+        parent: &Parent,
+        transforms: &WriteStorage<Transform>,
+        parents: &ReadStorage<Parent>,
+    ) -> Isometry3<f32> {
+        let i = transforms
+            .get(parent.entity)
+            .map_or(Isometry3::identity(), |t| t.isometry().clone());
 
         if let Some(parent_parent) = parents.get(parent.entity) {
             i * Self::compute_transform(parent_parent, transforms, parents)
@@ -43,7 +44,6 @@ impl PhysicsSyncTransformSystem {
     }
 
     fn setup_step_2(&mut self, res: &Resources) {
-
         {
             let mut storage: WriteStorage<Transform> = SystemData::fetch(&res);
             self.transf_event_reader = Some(storage.register_reader());
@@ -72,15 +72,25 @@ impl<'a> System<'a> for PhysicsSyncTransformSystem {
 
     define_setup_with_physics_assertion!(setup_step_2);
 
-    fn run(&mut self, (entities, rbody_server, area_server, mut transforms, bodies, areas, parents): Self::SystemData) {
-
+    fn run(
+        &mut self,
+        (entities, rbody_server, area_server, mut transforms, bodies, areas, parents): Self::SystemData,
+    ) {
         let mut edited_transforms;
         {
-            let trs_events = transforms.channel().read(self.transf_event_reader.as_mut().unwrap());
-            let bodies_events = bodies.channel().read(self.rigid_bodies_event_reader.as_mut().unwrap());
-            let area_events = areas.channel().read(self.areas_event_reader.as_mut().unwrap());
+            let trs_events = transforms
+                .channel()
+                .read(self.transf_event_reader.as_mut().unwrap());
+            let bodies_events = bodies
+                .channel()
+                .read(self.rigid_bodies_event_reader.as_mut().unwrap());
+            let area_events = areas
+                .channel()
+                .read(self.areas_event_reader.as_mut().unwrap());
 
-            edited_transforms = BitSet::with_capacity((trs_events.len() + bodies_events.len() + area_events.len()) as u32);
+            edited_transforms = BitSet::with_capacity(
+                (trs_events.len() + bodies_events.len() + area_events.len()) as u32,
+            );
 
             // Collect all information about the entities that want to update the transform
             for e in trs_events {
@@ -117,25 +127,32 @@ impl<'a> System<'a> for PhysicsSyncTransformSystem {
 
         // Set transform to physics with no parents
 
-        for (transform, rb_tag, _, _,) in (&transforms, &bodies, !&parents, &edited_transforms).join() {
+        for (transform, rb_tag, _, _) in
+            (&transforms, &bodies, !&parents, &edited_transforms).join()
+        {
             rbody_server.set_body_transform(rb_tag.get(), transform.isometry());
         }
 
-        for (transform, a_tag, _, _,) in (&transforms, &areas, !&parents, &edited_transforms).join() {
+        for (transform, a_tag, _, _) in (&transforms, &areas, !&parents, &edited_transforms).join()
+        {
             area_server.set_body_transform(a_tag.get(), transform.isometry());
         }
 
         // Set transform to physics with parents
 
-        for (transform, rb_tag, parent, _,) in (&transforms, &bodies, &parents, &edited_transforms).join() {
-
-            let computed_trs = transform.isometry() * Self::compute_transform(parent, &transforms, &parents);
+        for (transform, rb_tag, parent, _) in
+            (&transforms, &bodies, &parents, &edited_transforms).join()
+        {
+            let computed_trs =
+                transform.isometry() * Self::compute_transform(parent, &transforms, &parents);
             rbody_server.set_body_transform(rb_tag.get(), &computed_trs);
         }
 
-        for (transform, a_tag, parent, _,) in (&transforms, &areas, &parents, &edited_transforms).join() {
-
-            let computed_trs = transform.isometry() * Self::compute_transform(parent, &transforms, &parents);
+        for (transform, a_tag, parent, _) in
+            (&transforms, &areas, &parents, &edited_transforms).join()
+        {
+            let computed_trs =
+                transform.isometry() * Self::compute_transform(parent, &transforms, &parents);
             area_server.set_body_transform(a_tag.get(), &computed_trs);
         }
 
@@ -144,10 +161,9 @@ impl<'a> System<'a> for PhysicsSyncTransformSystem {
         // Transform component entirely.
         // TODO find a way to update only moving things and not always all
         let transf_mask = transforms.mask().clone();
-        for (entity, rb, _ ) in (&entities, &bodies, &transf_mask & ! &edited_transforms).join() {
+        for (entity, rb, _) in (&entities, &bodies, &transf_mask & !&edited_transforms).join() {
             match transforms.get_mut(entity) {
                 Some(transform) => {
-
                     // TODO please avoid much copies by sending the mutable reference directly
                     transform.set_isometry(rbody_server.body_transform(rb.get()));
                 }
@@ -159,7 +175,8 @@ impl<'a> System<'a> for PhysicsSyncTransformSystem {
 
         // Now the transformation get changed by the synchronization and we don't need such events,
         // So consume them now.
-        transforms.channel().read(self.transf_event_reader.as_mut().unwrap());
+        transforms
+            .channel()
+            .read(self.transf_event_reader.as_mut().unwrap());
     }
 }
-

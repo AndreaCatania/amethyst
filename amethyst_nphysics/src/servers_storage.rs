@@ -1,9 +1,9 @@
 use crate::{
-    world::World,
-    rigid_body::RigidBody,
     area::Area,
+    rigid_body::RigidBody,
     shape::RigidShape,
     storage::{Storage, StoreTag},
+    world::World,
 };
 
 use amethyst_phythyst::objects::*;
@@ -106,9 +106,13 @@ impl<N: RealField> ServersStorage<N> {
         self.rigid_bodies.read().unwrap()
     }
 
-    pub fn areas_w(&self) -> AreaStorageWrite { self.areas.write().unwrap() }
+    pub fn areas_w(&self) -> AreaStorageWrite {
+        self.areas.write().unwrap()
+    }
 
-    pub fn areas_r(&self) -> AreaStorageRead { self.areas.read().unwrap() }
+    pub fn areas_r(&self) -> AreaStorageRead {
+        self.areas.read().unwrap()
+    }
 
     pub fn shapes_w(&self) -> ShapeStorageWrite<N> {
         self.shapes.write().unwrap()

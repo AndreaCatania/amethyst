@@ -1,25 +1,22 @@
-use amethyst_phythyst::{objects::*, servers::{
-    WorldPhysicsServerTrait,
-    OverlapEvent,
-}};
+use amethyst_phythyst::{
+    objects::*,
+    servers::{OverlapEvent, WorldPhysicsServerTrait},
+};
 
 use nalgebra::{RealField, Vector3};
 
 use core::borrow::BorrowMut;
 
-use crate::{utils::*, servers_storage::{
-    ServersStorageType,
-    WorldStorageWrite,
-}, world::World, RBodyNpServer, AreaNpServer, ShapeNpServer,};
-
-use nphysics3d::{
-    world::World as NpWorld,
-    utils::UserData as NpUserData,
+use crate::{
+    servers_storage::{ServersStorageType, WorldStorageWrite},
+    utils::*,
+    world::World,
+    AreaNpServer, RBodyNpServer, ShapeNpServer,
 };
 
-use ncollide3d::{
-    query::Proximity,
-};
+use nphysics3d::{utils::UserData as NpUserData, world::World as NpWorld};
+
+use ncollide3d::query::Proximity;
 
 pub struct WorldNpServer<N: RealField> {
     storages: ServersStorageType<N>,
@@ -30,8 +27,7 @@ impl<N: RealField> WorldNpServer<N> {
         WorldNpServer { storages }
     }
 
-    fn drop_world(world_tag: PhysicsWorldTag, worlds_storage: &mut WorldStorageWrite<N>){
-
+    fn drop_world(world_tag: PhysicsWorldTag, worlds_storage: &mut WorldStorageWrite<N>) {
         // Here should be check if there are active bodies, but how?
 
         worlds_storage.destroy(*world_tag);
@@ -39,8 +35,7 @@ impl<N: RealField> WorldNpServer<N> {
 }
 
 impl<N: RealField> WorldNpServer<N> {
-
-    fn garbage_collect(&self){
+    fn garbage_collect(&self) {
         let mut gc = self.storages.gc.write().unwrap();
         let mut worlds_storage = self.storages.worlds_w();
         let mut rbodies_storage = self.storages.rbodies_w();
@@ -49,8 +44,12 @@ impl<N: RealField> WorldNpServer<N> {
 
         {
             for rb in gc.bodies.iter() {
-
-                RBodyNpServer::drop_body(*rb, &mut worlds_storage, &mut rbodies_storage, &mut shapes_storage);
+                RBodyNpServer::drop_body(
+                    *rb,
+                    &mut worlds_storage,
+                    &mut rbodies_storage,
+                    &mut shapes_storage,
+                );
             }
 
             // The body drop can never fail.
@@ -59,8 +58,12 @@ impl<N: RealField> WorldNpServer<N> {
 
         {
             for rb in gc.bodies.iter() {
-
-                RBodyNpServer::drop_body(*rb, &mut worlds_storage, &mut rbodies_storage, &mut shapes_storage);
+                RBodyNpServer::drop_body(
+                    *rb,
+                    &mut worlds_storage,
+                    &mut rbodies_storage,
+                    &mut shapes_storage,
+                );
             }
 
             // The body drop can never fail.
@@ -81,7 +84,7 @@ impl<N: RealField> WorldNpServer<N> {
 
             if removed_shape.len() > 0 {
                 // Clear the garbage collector
-                gc.shapes.retain(|&s| !removed_shape.contains(&s) );
+                gc.shapes.retain(|&s| !removed_shape.contains(&s));
             }
         }
 
@@ -95,12 +98,10 @@ impl<N: RealField> WorldNpServer<N> {
     }
 
     fn fetch_events(&self, world: &mut NpWorld<N>) {
-
         let mut s = self.storages.areas_w();
 
         let events = world.proximity_events();
         for e in events {
-
             if e.prev_status == e.new_status {
                 continue;
             }
@@ -108,7 +109,7 @@ impl<N: RealField> WorldNpServer<N> {
             // 0 Enter, 1 Exit
             let status = match e.new_status {
                 Proximity::Intersecting => {
-                    match e.prev_status{
+                    match e.prev_status {
                         Proximity::Intersecting => {
                             continue;
                         }
@@ -118,7 +119,7 @@ impl<N: RealField> WorldNpServer<N> {
                     }
                 }
                 _ => {
-                    match e.prev_status{
+                    match e.prev_status {
                         Proximity::Intersecting => {
                             1 // Exit
                         }
@@ -132,8 +133,16 @@ impl<N: RealField> WorldNpServer<N> {
             let collider1 = world.collider(e.collider1).unwrap();
             let collider2 = world.collider(e.collider2).unwrap();
 
-            let body_1_ud = collider1.user_data().unwrap().downcast_ref::<UserData>().unwrap();
-            let body_2_ud = collider2.user_data().unwrap().downcast_ref::<UserData>().unwrap();
+            let body_1_ud = collider1
+                .user_data()
+                .unwrap()
+                .downcast_ref::<UserData>()
+                .unwrap();
+            let body_2_ud = collider2
+                .user_data()
+                .unwrap()
+                .downcast_ref::<UserData>()
+                .unwrap();
 
             let mut area_tag;
             let mut body_tag;
@@ -156,10 +165,12 @@ impl<N: RealField> WorldNpServer<N> {
 
             if status == 0 {
                 // Enter
-                area.overlap_events.push(OverlapEvent::Enter(PhysicsBodyTag(body_tag), body_entity));
-            }else{
+                area.overlap_events
+                    .push(OverlapEvent::Enter(PhysicsBodyTag(body_tag), body_entity));
+            } else {
                 // Exit
-                area.overlap_events.push(OverlapEvent::Exit(PhysicsBodyTag(body_tag), body_entity));
+                area.overlap_events
+                    .push(OverlapEvent::Exit(PhysicsBodyTag(body_tag), body_entity));
             }
         }
     }
@@ -175,7 +186,10 @@ impl<N: RealField> WorldPhysicsServerTrait<N> for WorldNpServer<N> {
             nalgebra::convert(0.0),
         ));
 
-        PhysicsHandle::new(PhysicsWorldTag(self.storages.worlds_w().make_opaque(Box::new(w))), self.storages.gc.clone())
+        PhysicsHandle::new(
+            PhysicsWorldTag(self.storages.worlds_w().make_opaque(Box::new(w))),
+            self.storages.gc.clone(),
+        )
     }
 
     fn step(&self, world: PhysicsWorldTag, delta_time: N) {
@@ -195,7 +209,6 @@ impl<N: RealField> WorldPhysicsServerTrait<N> for WorldNpServer<N> {
     }
 
     fn consume_events(&self) {
-
         // READ BEFORE REMOVE
         //
         // Is important to perform this operation inside the stepping once this is removed

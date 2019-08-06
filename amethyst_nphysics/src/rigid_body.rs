@@ -1,16 +1,10 @@
 use crate::storage::StoreTag;
 
-use nphysics3d::object::{
-    BodyHandle as NpBodyHandle,
-    ColliderHandle as NpColliderHandle,
-};
+use nphysics3d::object::{BodyHandle as NpBodyHandle, ColliderHandle as NpColliderHandle};
 
 use amethyst_core::ecs::Entity;
 
-use amethyst_phythyst::{
-    objects::*,
-    servers::BodyMode,
-};
+use amethyst_phythyst::{objects::*, servers::BodyMode};
 
 pub struct RigidBody {
     pub self_tag: Option<PhysicsBodyTag>,
@@ -24,7 +18,6 @@ pub struct RigidBody {
 
 impl RigidBody {
     pub(crate) fn new(world_tag: PhysicsWorldTag, body_mode: BodyMode) -> Box<Self> {
-
         Box::new(RigidBody {
             self_tag: None,
             body_mode,

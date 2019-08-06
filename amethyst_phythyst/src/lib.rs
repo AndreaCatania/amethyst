@@ -48,6 +48,7 @@ mod physics_time;
 mod systems;
 
 pub mod objects;
+pub mod prelude;
 pub mod servers;
 
 pub use physics_bundle::PhysicsBundle;

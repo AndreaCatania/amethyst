@@ -4,7 +4,8 @@ use amethyst_phythyst::{
 };
 
 use crate::{
-    conversors::*, rigid_body_physics_server::RBodyNpServer, area_physics_server::AreaNpServer, servers_storage::*, shape::RigidShape,
+    area_physics_server::AreaNpServer, conversors::*, rigid_body_physics_server::RBodyNpServer,
+    servers_storage::*, shape::RigidShape,
 };
 
 use nphysics3d::object::ColliderDesc as NpColliderDesc;
@@ -20,7 +21,10 @@ impl<N: RealField> ShapeNpServer<N> {
         ShapeNpServer { storages }
     }
 
-    pub fn has_dependency(shape_tag: PhysicsShapeTag, shapes_storage: &mut ShapeStorageWrite<N>) -> bool {
+    pub fn has_dependency(
+        shape_tag: PhysicsShapeTag,
+        shapes_storage: &mut ShapeStorageWrite<N>,
+    ) -> bool {
         let shape = storage_safe_get_mut!(shapes_storage, shape_tag, false);
 
         if shape.bodies().len() > 0 {
@@ -35,8 +39,10 @@ impl<N: RealField> ShapeNpServer<N> {
     }
 
     /// Drop a shape, return false if it can't be removed right now or it something failed.
-    pub fn drop_shape(shape_tag: PhysicsShapeTag, shapes_storage: &mut ShapeStorageWrite<N>) -> bool{
-
+    pub fn drop_shape(
+        shape_tag: PhysicsShapeTag,
+        shapes_storage: &mut ShapeStorageWrite<N>,
+    ) -> bool {
         let safe_to_drop = !ShapeNpServer::has_dependency(shape_tag, shapes_storage);
 
         if !safe_to_drop {
@@ -58,7 +64,10 @@ impl<N: RealField> ShapePhysicsServerTrait<N> for ShapeNpServer<N> {
     fn create_shape(&mut self, shape_desc: &ShapeDesc<N>) -> PhysicsHandle<PhysicsShapeTag> {
         let shape = Box::new(RigidShape::new(shape_desc));
 
-        PhysicsHandle::new(PhysicsShapeTag(self.storages.shapes_w().make_opaque(shape)), self.storages.gc.clone())
+        PhysicsHandle::new(
+            PhysicsShapeTag(self.storages.shapes_w().make_opaque(shape)),
+            self.storages.gc.clone(),
+        )
     }
 
     fn update_shape(&mut self, shape_tag: PhysicsShapeTag, shape_desc: &ShapeDesc<N>) {
@@ -82,7 +91,8 @@ impl<N: RealField> ShapePhysicsServerTrait<N> for ShapeNpServer<N> {
                         RBodyNpServer::destroy_collider(body, np_world);
 
                         if let Some(np_body) = np_world.rigid_body_mut(body.body_handle) {
-                            let mut collider_desc = NpColliderDesc::new(shape.shape_handle().clone());
+                            let mut collider_desc =
+                                NpColliderDesc::new(shape.shape_handle().clone());
                             RBodyNpServer::copy_collider_desc(np_body, &mut collider_desc);
 
                             RBodyNpServer::set_collider(
@@ -106,24 +116,19 @@ impl<N: RealField> ShapePhysicsServerTrait<N> for ShapeNpServer<N> {
                 if let Some(area) = area {
                     let np_world = worlds_storage.get_mut(*area.world_tag);
                     if let Some(np_world) = np_world {
-
                         let mut collider_desc = NpColliderDesc::new(shape.shape_handle().clone());
 
-                        if let Some(np_collider) = np_world.collider_mut(area.collider_handle.unwrap()) {
-
+                        if let Some(np_collider) =
+                            np_world.collider_mut(area.collider_handle.unwrap())
+                        {
                             AreaNpServer::copy_collider_desc(np_collider, &mut collider_desc);
-                        }else {
+                        } else {
                             panic!("Just found an area without collider. This must never happen. Please report this.");
                         }
 
                         AreaNpServer::destroy_collider(area, np_world);
 
-                        AreaNpServer::set_collider(
-                            area,
-                            *area_tag,
-                            np_world,
-                            &collider_desc
-                        );
+                        AreaNpServer::set_collider(area, *area_tag, np_world, &collider_desc);
                     }
                 }
             }

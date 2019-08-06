@@ -1,51 +1,36 @@
-
-use crate::{
-    utils::*,
-    servers_storage::*,
-    area::Area,
-    conversors::*,
-};
+use crate::{area::Area, conversors::*, servers_storage::*, utils::*};
+use amethyst_core::ecs::Entity;
 use amethyst_phythyst::{
-    servers::{
-        AreaPhysicsServerTrait,
-        AreaDesc,
-        OverlapEvent,
-    },
     objects::*,
+    servers::{AreaDesc, AreaPhysicsServerTrait, OverlapEvent},
 };
-use amethyst_core::{
-    ecs::Entity,
-};
+use nalgebra::{Isometry3, RealField};
 use nphysics3d::{
     object::{
-        Collider as NpCollider,
-        ColliderHandle as NpColliderHandle,
-        ColliderDesc as NpColliderDesc,
+        Collider as NpCollider, ColliderDesc as NpColliderDesc, ColliderHandle as NpColliderHandle,
     },
     world::World as NpWorld,
 };
-use nalgebra::{
-    RealField,
-    Isometry3,
-};
 
-pub struct AreaNpServer<N: RealField>{
-    storages: ServersStorageType<N>
+pub struct AreaNpServer<N: RealField> {
+    storages: ServersStorageType<N>,
 }
 
 impl<N: RealField> AreaNpServer<N> {
-    pub fn new(storages: ServersStorageType<N>) -> Self{
-        AreaNpServer{
-            storages,
-        }
+    pub fn new(storages: ServersStorageType<N>) -> Self {
+        AreaNpServer { storages }
     }
 }
 
 // This is a collection of functions that can be used by other servers to perform some common
 // operation on areas.
 impl<N: RealField> AreaNpServer<N> {
-
-    pub fn drop_body(area_tag: PhysicsAreaTag, worlds_storage: &mut WorldStorageWrite<N>, areas_storage: &mut AreaStorageWrite, shapes_storage: &mut ShapeStorageWrite<N>) {
+    pub fn drop_body(
+        area_tag: PhysicsAreaTag,
+        worlds_storage: &mut WorldStorageWrite<N>,
+        areas_storage: &mut AreaStorageWrite,
+        shapes_storage: &mut ShapeStorageWrite<N>,
+    ) {
         {
             let area = storage_safe_get!(areas_storage, area_tag);
 
@@ -91,9 +76,12 @@ impl<N: RealField> AreaNpServer<N> {
         area.collider_handle = Some(collider.handle());
     }
 
-    pub fn update_user_data(collider: &mut NpCollider<N>, area: &Area){
-
-        collider.set_user_data(Some(Box::new(UserData::new(ObjectType::Area, *area.self_tag.unwrap(), area.entity))));
+    pub fn update_user_data(collider: &mut NpCollider<N>, area: &Area) {
+        collider.set_user_data(Some(Box::new(UserData::new(
+            ObjectType::Area,
+            *area.self_tag.unwrap(),
+            area.entity,
+        ))));
     }
 }
 
@@ -103,36 +91,38 @@ where
     N: From<f32>,
     f32: From<N>,
 {
-
     fn create_area(
         &mut self,
         world_tag: PhysicsWorldTag,
         area_desc: &AreaDesc,
     ) -> PhysicsHandle<PhysicsAreaTag> {
-
         let mut worlds_storage = self.storages.worlds_w();
         let mut areas_storage = self.storages.areas_w();
         let mut shapes_storage = self.storages.shapes_w();
 
-        let np_world = worlds_storage.get_mut(*world_tag).expect("During the area creation the world tag passed was not valid");
-        let shape = shapes_storage.get_mut(*area_desc.shape).expect("During area creation was not possible to find the shape");
+        let np_world = worlds_storage
+            .get_mut(*world_tag)
+            .expect("During the area creation the world tag passed was not valid");
+        let shape = shapes_storage
+            .get_mut(*area_desc.shape)
+            .expect("During area creation was not possible to find the shape");
 
-        let area_tag = PhysicsAreaTag(areas_storage.make_opaque(Box::new(Area::new( world_tag, area_desc.shape))));
+        let area_tag = PhysicsAreaTag(
+            areas_storage.make_opaque(Box::new(Area::new(world_tag, area_desc.shape))),
+        );
         let area = areas_storage.get_mut(*area_tag).unwrap();
         area.self_tag = Some(area_tag);
 
         shape.register_area(area_tag);
 
-        let np_collider_desc = NpColliderDesc::new(shape.shape_handle().clone())
-            .sensor(true);
+        let np_collider_desc = NpColliderDesc::new(shape.shape_handle().clone()).sensor(true);
 
         AreaNpServer::set_collider(area, area_tag, np_world, &np_collider_desc);
 
         PhysicsHandle::new(area_tag, self.storages.gc.clone())
     }
 
-    fn set_entity(&self, area_tag: PhysicsAreaTag, entity: Option<Entity> ){
-
+    fn set_entity(&self, area_tag: PhysicsAreaTag, entity: Option<Entity>) {
         let mut area_storage = self.storages.areas_w();
         let area = storage_safe_get_mut!(area_storage, area_tag);
         area.entity = entity;
@@ -148,14 +138,12 @@ where
     }
 
     fn entity(&self, area_tag: PhysicsAreaTag) -> Option<Entity> {
-
         let area_storage = self.storages.areas_r();
         let area = storage_safe_get!(area_storage, area_tag, None);
         area.entity
     }
 
-    fn set_body_transform(&self, area_tag: PhysicsAreaTag, transf: &Isometry3<f32>){
-
+    fn set_body_transform(&self, area_tag: PhysicsAreaTag, transf: &Isometry3<f32>) {
         let mut areas_storage = self.storages.areas_w();
         let mut worlds_storage = self.storages.worlds_w();
 
@@ -166,7 +154,9 @@ where
 
         {
             // TODO remove this if the actual NPHysics got updated since actualy there' a bug (v0.11.1)
-            world.collider_world_mut().set_position(area.collider_handle.unwrap(), transf.clone());
+            world
+                .collider_world_mut()
+                .set_position(area.collider_handle.unwrap(), transf.clone());
         }
 
         // Set the position of the collider, this is necessary for static objects
@@ -174,7 +164,6 @@ where
         fail_cond!(np_collider.is_none());
         let np_collider = np_collider.unwrap();
         np_collider.set_position(transf);
-
     }
 
     fn overlap_events(&self, area_tag: PhysicsAreaTag) -> Vec<OverlapEvent> {
@@ -183,6 +172,4 @@ where
         fail_cond!(area.is_none(), Vec::new());
         area.unwrap().overlap_events.to_vec()
     }
-
 }
-

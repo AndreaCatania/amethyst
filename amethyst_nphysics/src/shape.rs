@@ -60,7 +60,9 @@ impl<N: RealField> RigidShape<N> {
         self.areas.retain(|&a| a != area);
     }
 
-    pub fn areas(&self) -> &Vec<PhysicsAreaTag> { &self.areas }
+    pub fn areas(&self) -> &Vec<PhysicsAreaTag> {
+        &self.areas
+    }
 }
 
 impl<N: RealField> RigidShape<N> {

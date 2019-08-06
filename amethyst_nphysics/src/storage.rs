@@ -52,11 +52,11 @@ impl<T> Storage<T> {
         drop(object);
     }
 
-    pub fn iter(&self) -> slab::Iter<'_, T>{
+    pub fn iter(&self) -> slab::Iter<'_, T> {
         self.memory.iter()
     }
 
-    pub fn iter_mut(&mut self) -> slab::IterMut<'_, T>{
+    pub fn iter_mut(&mut self) -> slab::IterMut<'_, T> {
         self.memory.iter_mut()
     }
 }

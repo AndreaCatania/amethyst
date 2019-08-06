@@ -1,12 +1,10 @@
-use std::sync::{
-    Arc, RwLock,
-};
+use std::sync::{Arc, RwLock};
 
-use amethyst_core::ecs::{Component, FlaggedStorage, DenseVecStorage};
+use amethyst_core::ecs::{Component, DenseVecStorage, FlaggedStorage};
 
-macro_rules! define_opaque_object{
+macro_rules! define_opaque_object {
     ($what:ident, $doc_name:ident, $gc_name:ident) => {
-         /// $what is the opaque ID that identify a `$doc_name` in the physics server
+        /// $what is the opaque ID that identify a `$doc_name` in the physics server
         #[derive(Copy, Clone, Debug, PartialEq)]
         pub struct $what(pub std::num::NonZeroUsize);
 
@@ -25,19 +23,18 @@ macro_rules! define_opaque_object{
             }
         }
 
-        impl PhysicsTag for $what{
-            fn request_resource_removal(&mut self, gc: &mut PhysicsGarbageCollector ){
-
+        impl PhysicsTag for $what {
+            fn request_resource_removal(&mut self, gc: &mut PhysicsGarbageCollector) {
                 gc.$gc_name.push(*self);
             }
         }
 
-        impl std::fmt::Display for $what{
+        impl std::fmt::Display for $what {
             fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
                 write!(f, "$what({})", self.0)
             }
         }
-    }
+    };
 }
 
 define_opaque_object!(PhysicsWorldTag, World, worlds);
@@ -46,11 +43,9 @@ define_opaque_object!(PhysicsAreaTag, Area, areas);
 define_opaque_object!(PhysicsShapeTag, Shape, shapes);
 
 /// This trait must be implemented for each structure that want to use the PhysicsHandle.
-pub trait PhysicsTag: Copy + std::fmt::Display + Sync + Send + Sized + 'static  {
-
+pub trait PhysicsTag: Copy + std::fmt::Display + Sync + Send + Sized + 'static {
     fn request_resource_removal(&mut self, gc: &mut PhysicsGarbageCollector);
 }
-
 
 /// The physics handle is used to track the physics resource lifetime.
 /// Indeed you don't have to care about dropping resources (life a RigidBody or a Shape) because
@@ -64,14 +59,17 @@ pub trait PhysicsTag: Copy + std::fmt::Display + Sync + Send + Sized + 'static  
 /// All Physics Servers APIs want to deal directly with the PhysicsTag.
 /// Use the method `get()` to retrieve it.
 /// Keep in mind that it's lifetime is not tracked by the GC, thus is not a replacement of the PhysicsHandle.
-pub struct PhysicsHandle<T: PhysicsTag>{
+pub struct PhysicsHandle<T: PhysicsTag> {
     tag_container: Arc<PhysicsTagContainer<T>>,
 }
 
 impl<T: PhysicsTag> PhysicsHandle<T> {
     pub fn new(tag: T, garbage_collector: Arc<RwLock<PhysicsGarbageCollector>>) -> Self {
         PhysicsHandle {
-            tag_container: Arc::new(PhysicsTagContainer{tag, garbage_collector}),
+            tag_container: Arc::new(PhysicsTagContainer {
+                tag,
+                garbage_collector,
+            }),
         }
     }
 
@@ -82,13 +80,19 @@ impl<T: PhysicsTag> PhysicsHandle<T> {
     }
 }
 
-impl<T: PhysicsTag> std::fmt::Debug for PhysicsHandle<T>{
+impl<T: PhysicsTag> std::fmt::Debug for PhysicsHandle<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "PhysicsHandle{{\n   tag = {}\n   owner = {}\n   weak = {}\n}};", self.get(), Arc::strong_count(&self.tag_container), Arc::weak_count(&self.tag_container))
+        write!(
+            f,
+            "PhysicsHandle{{\n   tag = {}\n   owner = {}\n   weak = {}\n}};",
+            self.get(),
+            Arc::strong_count(&self.tag_container),
+            Arc::weak_count(&self.tag_container)
+        )
     }
 }
 
-impl<T: PhysicsTag> Clone for PhysicsHandle<T>{
+impl<T: PhysicsTag> Clone for PhysicsHandle<T> {
     fn clone(&self) -> Self {
         PhysicsHandle {
             tag_container: self.tag_container.clone(),
@@ -109,13 +113,13 @@ impl<T: PhysicsTag> Component for PhysicsHandle<T> {
 ///
 /// The code that execute the signaling operation is implemented per PhysicsTag to allow custom
 /// signaling depending on the tag.
-struct PhysicsTagContainer<T: PhysicsTag>{
+struct PhysicsTagContainer<T: PhysicsTag> {
     tag: T,
     garbage_collector: Arc<RwLock<PhysicsGarbageCollector>>,
 }
 
-impl<T: PhysicsTag> std::ops::Drop for PhysicsTagContainer<T>{
-    fn drop(&mut self){
+impl<T: PhysicsTag> std::ops::Drop for PhysicsTagContainer<T> {
+    fn drop(&mut self) {
         let mut gc = self.garbage_collector.write().unwrap();
         self.tag.request_resource_removal(&mut gc);
     }
@@ -138,16 +142,16 @@ impl<T: PhysicsTag> std::ops::Drop for PhysicsTagContainer<T>{
 /// Also the destruction pipeline is dictated by phythyst to each physics backend.
 ///
 /// Considering the above the GC seems a better way.
-pub struct PhysicsGarbageCollector{
+pub struct PhysicsGarbageCollector {
     pub worlds: Vec<PhysicsWorldTag>,
     pub bodies: Vec<PhysicsBodyTag>,
     pub areas: Vec<PhysicsAreaTag>,
     pub shapes: Vec<PhysicsShapeTag>,
 }
 
-impl Default for PhysicsGarbageCollector{
+impl Default for PhysicsGarbageCollector {
     fn default() -> Self {
-        PhysicsGarbageCollector{
+        PhysicsGarbageCollector {
             worlds: Vec::new(),
             bodies: Vec::new(),
             areas: Vec::new(),

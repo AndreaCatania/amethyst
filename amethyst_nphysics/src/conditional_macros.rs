@@ -32,25 +32,15 @@ macro_rules! fail_cond {
 }
 
 #[macro_export]
-macro_rules! fail{
+macro_rules! fail {
     ($x:tt) => {
         use log::error;
-        error!(
-            "[{}::{}] {}",
-            file!(),
-            line!(),
-            stringify!($x),
-        );
+        error!("[{}::{}] {}", file!(), line!(), stringify!($x),);
         return;
     };
     ($x:tt, $ret:expr) => {
         use log::error;
-        error!(
-            "[{}::{}] {}",
-            file!(),
-            line!(),
-            stringify!($x),
-        );
+        error!("[{}::{}] {}", file!(), line!(), stringify!($x),);
         return $ret;
-    }
+    };
 }
