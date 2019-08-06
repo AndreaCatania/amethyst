@@ -187,24 +187,26 @@ where
         body.self_tag = Some(rb_tag);
         body.body_handle = np_rigid_body.handle();
 
-        // Create and attach the collider
-        let mut shape = shape_storage
-            .get_mut(*body_desc.shape)
-            .expect("During rigid body creation was not possible to find the shape");
-        let mut collider_desc =
-            NpColliderDesc::new(shape.shape_handle().clone()).density(nalgebra::convert(1.0));
+        /*
+                // Create and attach the collider
+                let mut shape = shape_storage
+                    .get_mut(*body_desc.shape)
+                    .expect("During rigid body creation was not possible to find the shape");
+                let mut collider_desc =
+                    NpColliderDesc::new(shape.shape_handle().clone()).density(nalgebra::convert(1.0));
 
-        RBodyNpServer::set_collider(
-            body,
-            rb_tag,
-            np_rigid_body.part_handle(),
-            np_world,
-            &collider_desc,
-        );
+                RBodyNpServer::set_collider(
+                    body,
+                    rb_tag,
+                    np_rigid_body.part_handle(),
+                    np_world,
+                    &collider_desc,
+                );
 
-        // Collider registration
-        shape.register_body(rb_tag);
-        body.shape_tag = Some(body_desc.shape);
+                // Collider registration
+                shape.register_body(rb_tag);
+                body.shape_tag = Some(body_desc.shape);
+        */
 
         PhysicsHandle::new(rb_tag, self.storages.gc.clone())
     }
@@ -230,6 +232,14 @@ where
         body.entity
     }
 
+    fn set_shape(&self, body_tag: PhysicsBodyTag, shape_tag: Option<PhysicsShapeTag>) {
+        println!("Please set the shape now");
+    }
+
+    fn shape(&self, body_tag: PhysicsBodyTag) -> Option<PhysicsShapeTag> {
+        unimplemented!();
+    }
+
     fn set_body_transform(&self, body_tag: PhysicsBodyTag, transf: &Isometry3<f32>) {
         let mut bodies_storage = self.storages.rbodies_w();
         let mut worlds_storage = self.storages.worlds_w();
@@ -239,20 +249,26 @@ where
 
         let transf = TransfConversor::to_physics(transf);
 
-        {
-            // TODO remove this if the actual NPhysics got updated since actually there' a bug (v0.11.1)
-            world
-                .collider_world_mut()
-                .set_position(body.collider_handle.unwrap(), transf.clone());
-        }
+        if body.collider_handle.is_some() {
+            // TODO, There is a bug that affect the version 0.11.1, that doesn't update the transform
+            // on the colliders when the position of the RigidBody is changed.
+            // So I'm doing it manually.
+            // But please remove it, once this bug is fixed.
+            {
+                // TODO remove this if the actual NPhysics got updated since actually there' a bug (v0.11.1)
+                world
+                    .collider_world_mut()
+                    .set_position(body.collider_handle.unwrap(), transf.clone());
+            }
 
-        // TODO this should be not required check when the above bug is fixed
-        if body.body_mode != BodyMode::Dynamic {
-            // Set the position of the collider, this is necessary for static objects
-            let np_collider = world.collider_mut(body.collider_handle.unwrap());
-            fail_cond!(np_collider.is_none());
-            let np_collider = np_collider.unwrap();
-            np_collider.set_position(transf.clone());
+            // TODO this si not required when the bug
+            if body.body_mode != BodyMode::Dynamic {
+                // Set the position of the collider, this is necessary for static objects
+                let np_collider = world.collider_mut(body.collider_handle.unwrap());
+                fail_cond!(np_collider.is_none());
+                let np_collider = np_collider.unwrap();
+                np_collider.set_position(transf.clone());
+            }
         }
 
         {
