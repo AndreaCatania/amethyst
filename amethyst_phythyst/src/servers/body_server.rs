@@ -93,7 +93,6 @@ pub trait RBodyPhysicsServerTrait<N: RealField> {
 #[derive(Default)]
 pub struct RigidBodyDesc<N> {
     pub mode: BodyMode,
-    pub shape: PhysicsShapeTag,
     pub mass: N,
 }
 

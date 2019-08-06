@@ -12,7 +12,6 @@ macro_rules! define_opaque_object {
         impl Default for $what {
             fn default() -> Self {
                 panic!();
-                $what(std::num::NonZeroUsize::new(1).unwrap())
             }
         }
 

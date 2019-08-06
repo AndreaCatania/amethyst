@@ -2,7 +2,7 @@ use amethyst_core::{bundle::SystemBundle, ecs::DispatcherBuilder};
 use amethyst_error::Error;
 use log::debug;
 
-use crate::systems::{PhysicsStepperSystem, PhysicsSyncTransformSystem};
+use crate::systems::{PhysicsStepperSystem, PhysicsSyncShapeSystem, PhysicsSyncTransformSystem};
 
 /// This bundle will register all required systems to handle the physics in your game.
 ///
@@ -27,15 +27,20 @@ impl PhysicsBundle {
 impl<'a, 'b> SystemBundle<'a, 'b> for PhysicsBundle {
     fn build(self, builder: &mut DispatcherBuilder<'a, 'b>) -> Result<(), Error> {
         builder.add(
+            PhysicsSyncShapeSystem::default(),
+            "physics_sync_entity",
+            &[],
+        );
+        builder.add(
             PhysicsSyncTransformSystem::new(),
-            "physics_sync_transform_system",
+            "physics_sync_transform",
             &[],
         );
         builder.add_barrier();
         builder.add(
             PhysicsStepperSystem::new(),
             "",
-            &["physics_sync_transform_system"],
+            &["physics_sync_transform"], // TODO Useless since I'm using the barrier
         );
 
         debug!("Physics bundle registered.");
