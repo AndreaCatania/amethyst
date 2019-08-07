@@ -64,10 +64,13 @@ impl<N: RealField> ShapePhysicsServerTrait<N> for ShapeNpServer<N> {
     fn create_shape(&mut self, shape_desc: &ShapeDesc<N>) -> PhysicsHandle<PhysicsShapeTag> {
         let shape = Box::new(RigidShape::new(shape_desc));
 
-        PhysicsHandle::new(
-            PhysicsShapeTag(self.storages.shapes_w().make_opaque(shape)),
-            self.storages.gc.clone(),
-        )
+        let mut shapes_storage = self.storages.shapes_w();
+        let mut shape_tag = PhysicsShapeTag(shapes_storage.make_opaque(shape));
+
+        let shape = shapes_storage.get_mut(*shape_tag).unwrap();
+        shape.self_tag = Some(shape_tag);
+
+        PhysicsHandle::new(shape_tag, self.storages.gc.clone())
     }
 
     fn update_shape(&mut self, shape_tag: PhysicsShapeTag, shape_desc: &ShapeDesc<N>) {
@@ -88,16 +91,15 @@ impl<N: RealField> ShapePhysicsServerTrait<N> for ShapeNpServer<N> {
                 if let Some(body) = body {
                     let np_world = worlds_storage.get_mut(*body.world_tag);
                     if let Some(np_world) = np_world {
-                        RBodyNpServer::destroy_collider(body, np_world);
+                        RBodyNpServer::drop_collider(body, np_world);
 
                         if let Some(np_body) = np_world.rigid_body_mut(body.body_handle) {
                             let mut collider_desc =
                                 NpColliderDesc::new(shape.shape_handle().clone());
-                            RBodyNpServer::copy_collider_desc(np_body, &mut collider_desc);
+                            RBodyNpServer::extract_collider_desc(np_body, &mut collider_desc);
 
                             RBodyNpServer::set_collider(
                                 body,
-                                *body_tag,
                                 np_body.part_handle(),
                                 np_world,
                                 &collider_desc,

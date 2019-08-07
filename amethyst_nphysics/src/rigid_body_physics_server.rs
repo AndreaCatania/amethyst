@@ -1,7 +1,3 @@
-use amethyst_phythyst::{objects::*, servers::*};
-
-use amethyst_core::ecs::Entity;
-
 use nphysics3d::{
     algebra::Velocity3,
     math::{Force, ForceType, Velocity},
@@ -17,7 +13,13 @@ use ncollide3d::shape::{Ball as NcBall, ShapeHandle as NcShapeHandle};
 
 use nalgebra::{Isometry3, Point, RealField, Vector, Vector3};
 
-use crate::{conversors::*, rigid_body::RigidBody, servers_storage::*, utils::*};
+use amethyst_phythyst::{objects::*, servers::*};
+
+use amethyst_core::ecs::Entity;
+
+use crate::{
+    conversors::*, rigid_body::RigidBody, servers_storage::*, shape::RigidShape, utils::*,
+};
 
 pub struct RBodyNpServer<N: RealField> {
     storages: ServersStorageType<N>,
@@ -95,39 +97,46 @@ impl<N: RealField> RBodyNpServer<N> {
         shapes_storage: &mut ShapeStorageWrite<N>,
     ) {
         {
-            let body = storage_safe_get!(rbodies_storage, body_tag);
-
-            // Remove from world
-            let world = storage_safe_get_mut!(worlds_storage, body.world_tag);
-            if let Some(handle) = body.collider_handle {
-                world.remove_colliders(&[handle]);
-            }
-            world.remove_bodies(&[body.body_handle]);
+            let body = storage_safe_get_mut!(rbodies_storage, body_tag);
 
             // Remove from shape
             let shape = storage_safe_get_mut!(shapes_storage, body.shape_tag.unwrap());
-            shape.unregister_body(body_tag);
+
+            // Remove from world
+            let world = storage_safe_get_mut!(worlds_storage, body.world_tag);
+            RBodyNpServer::remove_shape(shape, body, world);
+            world.remove_bodies(&[body.body_handle]);
         }
 
         rbodies_storage.destroy(*body_tag);
     }
 
-    pub fn destroy_collider(body: &mut RigidBody, world: &mut NpWorld<N>) {
-        fail_cond!(body.collider_handle.is_none());
-        world.remove_colliders(&[body.collider_handle.unwrap()]);
-        body.collider_handle = None;
-    }
-
-    pub fn copy_collider_desc(
-        np_rigid_body: &mut NpRigidBody<N>,
-        collider_desc: &mut NpColliderDesc<N>,
+    /// Set shape.
+    /// Take care to register the shape and set the collider to the body.
+    pub fn set_shape<'w>(
+        body: &mut RigidBody,
+        np_part_handle: NpBodyPartHandle,
+        np_world: &'w mut NpWorld<N>,
+        shape: &mut RigidShape<N>,
+        collider_desc: &NpColliderDesc<N>,
     ) {
-        collider_desc.set_density(nalgebra::convert(1.0));
+        Self::set_collider(body, np_part_handle, np_world, collider_desc);
+
+        // Collider registration
+        shape.register_body(body.self_tag.unwrap());
+        body.shape_tag = shape.self_tag;
     }
 
+    /// Remove shape.
+    /// Take care to unregister the shape and then drop the internal collider.
+    pub fn remove_shape(shape: &mut RigidShape<N>, body: &mut RigidBody, world: &mut NpWorld<N>) {
+        Self::drop_collider(body, world);
+        shape.unregister_body(body.self_tag.unwrap());
+    }
+
+    /// Set collider to the body
     pub fn set_collider<'w>(
         body: &mut RigidBody,
-        body_tag: PhysicsBodyTag,
         np_part_handle: NpBodyPartHandle,
         np_world: &'w mut NpWorld<N>,
         collider_desc: &NpColliderDesc<N>,
@@ -142,12 +151,29 @@ impl<N: RealField> RBodyNpServer<N> {
         body.collider_handle = Some(collider.handle());
     }
 
+    /// Just drop the internal collider of the passed body.
+    pub fn drop_collider(body: &mut RigidBody, world: &mut NpWorld<N>) {
+        if body.collider_handle.is_none() {
+            return;
+        }
+        world.remove_colliders(&[body.collider_handle.unwrap()]);
+        body.collider_handle = None;
+    }
+
     pub fn update_user_data(collider: &mut NpCollider<N>, body: &RigidBody) {
         collider.set_user_data(Some(Box::new(UserData::new(
             ObjectType::RigidBody,
             body.self_tag.unwrap().0,
             body.entity,
         ))));
+    }
+
+    /// Extract collider description from a rigid body
+    pub fn extract_collider_desc(
+        np_rigid_body: &mut NpRigidBody<N>,
+        collider_desc: &mut NpColliderDesc<N>,
+    ) {
+        collider_desc.set_density(nalgebra::convert(1.0));
     }
 }
 
@@ -187,27 +213,6 @@ where
         body.self_tag = Some(rb_tag);
         body.body_handle = np_rigid_body.handle();
 
-        /*
-                // Create and attach the collider
-                let mut shape = shape_storage
-                    .get_mut(*body_desc.shape)
-                    .expect("During rigid body creation was not possible to find the shape");
-                let mut collider_desc =
-                    NpColliderDesc::new(shape.shape_handle().clone()).density(nalgebra::convert(1.0));
-
-                RBodyNpServer::set_collider(
-                    body,
-                    rb_tag,
-                    np_rigid_body.part_handle(),
-                    np_world,
-                    &collider_desc,
-                );
-
-                // Collider registration
-                shape.register_body(rb_tag);
-                body.shape_tag = Some(body_desc.shape);
-        */
-
         PhysicsHandle::new(rb_tag, self.storages.gc.clone())
     }
 
@@ -233,11 +238,45 @@ where
     }
 
     fn set_shape(&self, body_tag: PhysicsBodyTag, shape_tag: Option<PhysicsShapeTag>) {
-        println!("Please set the shape now");
+        let mut body_storage = self.storages.rbodies_w();
+        let body = storage_safe_get_mut!(body_storage, body_tag);
+
+        if body.shape_tag == shape_tag {
+            return;
+        }
+
+        let mut world_storage = self.storages.worlds_w();
+        let np_world = storage_safe_get_mut!(world_storage, body.world_tag);
+
+        let mut shape_storage = self.storages.shapes_w();
+
+        if body.shape_tag.is_some() {
+            let shape = shape_storage.get_mut(*body.shape_tag.unwrap()).unwrap();
+            RBodyNpServer::remove_shape(shape, body, np_world);
+        }
+
+        if let Some(shape_tag) = shape_tag {
+            // Create and attach the collider
+            let mut shape = shape_storage
+                .get_mut(*shape_tag)
+                .expect("During rigid body creation was not possible to find the shape");
+
+            let mut collider_desc =
+                NpColliderDesc::new(shape.shape_handle().clone()).density(nalgebra::convert(1.0));
+
+            let body_part_handle = {
+                let np_rigid_body = np_world.rigid_body_mut(body.body_handle).unwrap();
+                np_rigid_body.part_handle()
+            };
+
+            RBodyNpServer::set_shape(body, body_part_handle, np_world, shape, &collider_desc);
+        }
     }
 
     fn shape(&self, body_tag: PhysicsBodyTag) -> Option<PhysicsShapeTag> {
-        unimplemented!();
+        let mut body_storage = self.storages.rbodies_r();
+        let body = storage_safe_get!(body_storage, body_tag, None);
+        body.shape_tag
     }
 
     fn set_body_transform(&self, body_tag: PhysicsBodyTag, transf: &Isometry3<f32>) {

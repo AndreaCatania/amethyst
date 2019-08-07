@@ -8,6 +8,7 @@ use ncollide3d::shape::{
 use nalgebra::{convert, RealField, Unit, Vector3};
 
 pub struct RigidShape<N: RealField> {
+    pub self_tag: Option<PhysicsShapeTag>,
     shape_desc: ShapeDesc<N>,
     shape_handle: NcShapeHandle<N>,
     bodies: Vec<PhysicsBodyTag>,
@@ -23,6 +24,7 @@ pub struct RigidShape<N: RealField> {
 impl<N: RealField> RigidShape<N> {
     pub fn new(shape_desc: &ShapeDesc<N>) -> Self {
         RigidShape {
+            self_tag: None,
             shape_desc: shape_desc.clone(),
             shape_handle: RigidShape::generate_handle(shape_desc),
             bodies: Vec::new(),

@@ -42,22 +42,17 @@ pub struct PhysicsTime {
 
 impl Default for PhysicsTime {
     fn default() -> Self {
-        PhysicsTime {
-            sub_step_seconds: 1.0 / 60.0,
-            max_sub_steps: 8,
-            _max_bank_size: (1.0 / 60.0) * 8.0,
+        let t = PhysicsTime {
+            sub_step_seconds: 0.0,
+            max_sub_steps: 0,
+            _max_bank_size: 0.0,
             _time_bank: 0.0,
-        }
+        };
+        t.set_frames_per_second(60).set_max_sub_steps(8)
     }
 }
 
 impl PhysicsTime {
-    pub fn set_sub_step_seconds(mut self, sub_step_seconds: f32) -> Self {
-        self.sub_step_seconds = sub_step_seconds;
-        self.update_max_bank_size();
-        self
-    }
-
     pub fn set_frames_per_second(mut self, frames_per_second: u32) -> Self {
         self.set_sub_step_seconds(1.0 / frames_per_second as f32)
     }
@@ -74,6 +69,12 @@ impl PhysicsTime {
 
     pub fn sub_max_sub_steps(&self) -> u32 {
         self.max_sub_steps
+    }
+
+    fn set_sub_step_seconds(mut self, sub_step_seconds: f32) -> Self {
+        self.sub_step_seconds = sub_step_seconds;
+        self.update_max_bank_size();
+        self
     }
 
     fn update_max_bank_size(&mut self) {
