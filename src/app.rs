@@ -796,34 +796,6 @@ where
         self
     }
 
-    /// Register the physics servers backend.
-    ///
-    /// TODO improve this by implementing a mechanism similar to rendy.
-    pub fn with_physics<N: crate::core::math::RealField>(
-        mut self,
-        servers: PhysicsServers<N>,
-    ) -> Self {
-        use amethyst_phythyst::objects::*;
-
-        self.world.register::<PhysicsHandle<PhysicsWorldTag>>();
-        self.world.register::<PhysicsHandle<PhysicsBodyTag>>();
-        self.world.register::<PhysicsHandle<PhysicsAreaTag>>();
-        self.world.register::<PhysicsHandle<PhysicsShapeTag>>();
-
-        let (mut world_server, rb_server, area_server, shape_server) = servers;
-
-        let physics_world = world_server.create_world();
-
-        self.world.add_resource(world_server);
-        self.world.add_resource(rb_server);
-        self.world.add_resource(area_server);
-        self.world.add_resource(shape_server);
-        self.world.add_resource(PhysicsTime::default());
-        self.world.add_resource(physics_world);
-
-        self
-    }
-
     /// Sets the maximum frames per second of this game.
     ///
     /// # Parameters

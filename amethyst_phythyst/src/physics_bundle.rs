@@ -2,7 +2,12 @@ use amethyst_core::{bundle::SystemBundle, ecs::DispatcherBuilder};
 use amethyst_error::Error;
 use log::debug;
 
-use crate::systems::{PhysicsStepperSystem, PhysicsSyncShapeSystem, PhysicsSyncTransformSystem};
+use crate::{
+    servers::PhysicsServers,
+    systems::{
+        PhysicsStepperSystem, PhysicsSyncShapeSystem, PhysicsSyncTransformSystem, PhysicsSystem,
+    },
+};
 
 /// This bundle will register all required systems to handle the physics in your game.
 ///
@@ -16,16 +21,21 @@ use crate::systems::{PhysicsStepperSystem, PhysicsSyncShapeSystem, PhysicsSyncTr
 ///  PrePhysics: These Systems are executed always before the physics step.
 ///  InPhysics: These Systems are executed in parallel with the physics step.
 ///  PostPhysics: These Systems are executed always after the physics step.
-pub struct PhysicsBundle;
+pub struct PhysicsBundle<N: amethyst_core::math::RealField> {
+    servers: Option<PhysicsServers<N>>,
+}
 
-impl PhysicsBundle {
-    pub fn new() -> Self {
-        Self {}
+impl<N: amethyst_core::math::RealField> PhysicsBundle<N> {
+    pub fn new(servers: PhysicsServers<N>) -> Self {
+        Self {
+            servers: Some(servers),
+        }
     }
 }
 
-impl<'a, 'b> SystemBundle<'a, 'b> for PhysicsBundle {
-    fn build(self, builder: &mut DispatcherBuilder<'a, 'b>) -> Result<(), Error> {
+impl<'a, 'b, N: amethyst_core::math::RealField> SystemBundle<'a, 'b> for PhysicsBundle<N> {
+    fn build(mut self, builder: &mut DispatcherBuilder<'a, 'b>) -> Result<(), Error> {
+        builder.add(PhysicsSystem::new(self.servers.take().unwrap()), "", &[]);
         builder.add(
             PhysicsSyncShapeSystem::default(),
             "physics_sync_entity",
