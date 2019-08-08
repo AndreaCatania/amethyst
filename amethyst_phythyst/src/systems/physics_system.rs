@@ -1,21 +1,26 @@
-use amethyst_core::ecs::{prelude::*, storage::ComponentEvent, ReaderId};
+use amethyst_core::{
+    ecs::{prelude::*, storage::ComponentEvent, ReaderId},
+    math::RealField,
+};
 
 use crate::{prelude::*, PhysicsTime};
 
 /// Used only to initialize the physics resources.
-pub struct PhysicsSystem<N: amethyst_core::math::RealField> {
-    servers: Option<PhysicsServers<N>>,
+pub struct PhysicsSystem<N: RealField, B: crate::PhysicsBackend<N>> {
+    phantom_data_float: std::marker::PhantomData<N>,
+    phantom_data_backend: std::marker::PhantomData<B>,
 }
 
-impl<N: amethyst_core::math::RealField> PhysicsSystem<N> {
-    pub fn new(servers: PhysicsServers<N>) -> Self {
+impl<N: RealField, B: crate::PhysicsBackend<N>> PhysicsSystem<N, B> {
+    pub fn new() -> Self {
         PhysicsSystem {
-            servers: Some(servers),
+            phantom_data_float: std::marker::PhantomData,
+            phantom_data_backend: std::marker::PhantomData,
         }
     }
 }
 
-impl<'a, N: amethyst_core::math::RealField> System<'a> for PhysicsSystem<N> {
+impl<'a, N: RealField, B: crate::PhysicsBackend<N>> System<'a> for PhysicsSystem<N, B> {
     // Used only to register the storages.
     type SystemData = (
         ReadStorage<'a, PhysicsHandle<PhysicsWorldTag>>,
@@ -29,7 +34,7 @@ impl<'a, N: amethyst_core::math::RealField> System<'a> for PhysicsSystem<N> {
     fn setup(&mut self, res: &mut Resources) {
         Self::SystemData::setup(res);
 
-        let (mut world_server, rb_server, area_server, shape_server) = self.servers.take().unwrap();
+        let (mut world_server, rb_server, area_server, shape_server) = B::create_servers();
 
         let physics_world = world_server.create_world();
 

@@ -1,4 +1,4 @@
-use amethyst_core::{bundle::SystemBundle, ecs::DispatcherBuilder};
+use amethyst_core::{bundle::SystemBundle, ecs::DispatcherBuilder, math::RealField};
 use amethyst_error::Error;
 use log::debug;
 
@@ -21,21 +21,27 @@ use crate::{
 ///  PrePhysics: These Systems are executed always before the physics step.
 ///  InPhysics: These Systems are executed in parallel with the physics step.
 ///  PostPhysics: These Systems are executed always after the physics step.
-pub struct PhysicsBundle<N: amethyst_core::math::RealField> {
-    servers: Option<PhysicsServers<N>>,
+pub struct PhysicsBundle<N: RealField, B: crate::PhysicsBackend<N>> {
+    phantom_data_float: std::marker::PhantomData<N>,
+    phantom_data_backend: std::marker::PhantomData<B>,
 }
 
-impl<N: amethyst_core::math::RealField> PhysicsBundle<N> {
-    pub fn new(servers: PhysicsServers<N>) -> Self {
+impl<N: RealField, B: crate::PhysicsBackend<N>> PhysicsBundle<N, B> {
+    pub fn new() -> Self {
         Self {
-            servers: Some(servers),
+            phantom_data_float: std::marker::PhantomData,
+            phantom_data_backend: std::marker::PhantomData,
         }
     }
 }
 
-impl<'a, 'b, N: amethyst_core::math::RealField> SystemBundle<'a, 'b> for PhysicsBundle<N> {
+impl<'a, 'b, N, B> SystemBundle<'a, 'b> for PhysicsBundle<N, B>
+where
+    N: RealField,
+    B: crate::PhysicsBackend<N> + Send + 'a,
+{
     fn build(mut self, builder: &mut DispatcherBuilder<'a, 'b>) -> Result<(), Error> {
-        builder.add(PhysicsSystem::new(self.servers.take().unwrap()), "", &[]);
+        builder.add(PhysicsSystem::<N, B>::new(), "", &[]);
         builder.add(
             PhysicsSyncShapeSystem::default(),
             "physics_sync_entity",

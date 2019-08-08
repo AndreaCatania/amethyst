@@ -46,22 +46,23 @@ use rigid_body_physics_server::RBodyNpServer;
 use shape_physics_server::*;
 use world_physics_server::WorldNpServer;
 
-/// This function returns an object that wrap all the functionalities required
-/// by Phythyst.
-///
-/// Register this object as resource to allow Amethyst to use NPhysics.
-pub fn create_physics<N>() -> PhysicsServers<N>
+pub struct NPhysicsBackend;
+
+/// NPhysics Backend
+impl<N> amethyst_phythyst::PhysicsBackend<N> for NPhysicsBackend
 where
     N: RealField,
     N: From<f32>,
     f32: From<N>,
 {
-    let storages = servers_storage::ServersStorage::new();
+    fn create_servers() -> PhysicsServers<N> {
+        let storages = servers_storage::ServersStorage::new();
 
-    (
-        WorldPhysicsServer(Box::new(WorldNpServer::new(storages.clone()))),
-        RBodyPhysicsServer(Box::new(RBodyNpServer::new(storages.clone()))),
-        AreaPhysicsServer(Box::new(AreaNpServer::new(storages.clone()))),
-        ShapePhysicsServer(Box::new(ShapeNpServer::new(storages.clone()))),
-    )
+        (
+            WorldPhysicsServer(Box::new(WorldNpServer::new(storages.clone()))),
+            RBodyPhysicsServer(Box::new(RBodyNpServer::new(storages.clone()))),
+            AreaPhysicsServer(Box::new(AreaNpServer::new(storages.clone()))),
+            ShapePhysicsServer(Box::new(ShapeNpServer::new(storages.clone()))),
+        )
+    }
 }
