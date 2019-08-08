@@ -38,7 +38,7 @@ mod world;
 mod world_physics_server;
 
 use amethyst_phythyst::{
-    PhysicsReal,
+    PtReal,
     servers::{
         AreaPhysicsServer, PhysicsServers, RBodyPhysicsServer, ShapePhysicsServer, WorldPhysicsServer,
     }
@@ -54,7 +54,7 @@ pub struct NPhysicsBackend;
 /// NPhysics Backend
 impl<N> amethyst_phythyst::PhysicsBackend<N> for NPhysicsBackend
 where
-    N: PhysicsReal,
+    N: PtReal,
 {
     fn create_servers() -> PhysicsServers<N> {
         let storages = servers_storage::ServersStorage::new();

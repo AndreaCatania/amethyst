@@ -8,14 +8,14 @@ use amethyst_core::{
     transform::components::{Parent, Transform},
 };
 
-pub struct PhysicsSyncTransformSystem<N: crate::PhysicsReal> {
+pub struct PhysicsSyncTransformSystem<N: crate::PtReal> {
     phantom_data: std::marker::PhantomData<N>,
     transf_event_reader: Option<ReaderId<ComponentEvent>>,
     rigid_bodies_event_reader: Option<ReaderId<ComponentEvent>>,
     areas_event_reader: Option<ReaderId<ComponentEvent>>,
 }
 
-impl<N: crate::PhysicsReal> PhysicsSyncTransformSystem<N> {
+impl<N: crate::PtReal> PhysicsSyncTransformSystem<N> {
     pub fn new() -> PhysicsSyncTransformSystem<N> {
         PhysicsSyncTransformSystem {
             phantom_data: std::marker::PhantomData,
@@ -61,7 +61,7 @@ impl<N: crate::PhysicsReal> PhysicsSyncTransformSystem<N> {
     }
 }
 
-impl<'a, N: crate::PhysicsReal> System<'a> for PhysicsSyncTransformSystem<N> {
+impl<'a, N: crate::PtReal> System<'a> for PhysicsSyncTransformSystem<N> {
     type SystemData = (
         Entities<'a>,
         ReadExpect<'a, RBodyPhysicsServer<N>>,

@@ -46,8 +46,11 @@ pub mod servers;
 pub use physics_bundle::PhysicsBundle;
 pub use physics_time::PhysicsTime;
 
-pub trait PhysicsReal: amethyst_core::math::RealField + From<f32> + Into<f32> {}
-impl PhysicsReal for f32 {}
+/// Phythyst real
+// TODO Add f64?
+// TODO Is it possible to remove RealField? Worth it?
+pub trait PtReal: amethyst_core::math::RealField + From<f32> + Into<f32> {}
+impl PtReal for f32 {}
 
 /// This trait is used to initialize the physics servers.
 ///
@@ -56,7 +59,7 @@ impl PhysicsReal for f32 {}
 /// Check the available servers [here](./servers/index.html).
 ///
 /// A physical backed, is where the actual servers functionality is implemented.
-pub trait PhysicsBackend<N: crate::PhysicsReal> {
+pub trait PhysicsBackend<N: crate::PtReal> {
     /// Returns the Backend servers.
     fn create_servers() -> servers::PhysicsServers<N>;
 }

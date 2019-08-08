@@ -1,7 +1,7 @@
 use amethyst_phythyst::{
     objects::*,
     servers::{ShapeDesc, ShapePhysicsServerTrait},
-    PhysicsReal,
+    PtReal,
 };
 
 use crate::{
@@ -11,11 +11,11 @@ use crate::{
 
 use nphysics3d::object::ColliderDesc as NpColliderDesc;
 
-pub struct ShapeNpServer<N: PhysicsReal> {
+pub struct ShapeNpServer<N: PtReal> {
     storages: ServersStorageType<N>,
 }
 
-impl<N: PhysicsReal> ShapeNpServer<N> {
+impl<N: PtReal> ShapeNpServer<N> {
     pub fn new(storages: ServersStorageType<N>) -> Self {
         ShapeNpServer { storages }
     }
@@ -59,7 +59,7 @@ impl<N: PhysicsReal> ShapeNpServer<N> {
     }
 }
 
-impl<N: PhysicsReal> ShapePhysicsServerTrait<N> for ShapeNpServer<N> {
+impl<N: PtReal> ShapePhysicsServerTrait<N> for ShapeNpServer<N> {
     fn create_shape(&mut self, shape_desc: &ShapeDesc<N>) -> PhysicsHandle<PhysicsShapeTag> {
         let shape = Box::new(RigidShape::new(shape_desc));
 

@@ -10,7 +10,7 @@ use nalgebra::{Isometry3, RealField, Vector3};
 /// The object that implement this interface is wrapped by `RBodyPhysicsServer`.
 /// It's stored as resource in the world.
 ///
-pub trait RBodyPhysicsServerTrait<N: crate::PhysicsReal> {
+pub trait RBodyPhysicsServerTrait<N: crate::PtReal> {
     /// Create a Rigid Body and return its handle.
     /// The PhysicsHandle returned can be safely cloned.
     /// When all instances of this Handle are dropped the Body is Dropped automatically.

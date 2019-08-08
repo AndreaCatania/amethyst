@@ -6,11 +6,11 @@ use amethyst_core::{
 
 use crate::{objects::*, servers::WorldPhysicsServer, PhysicsTime};
 
-pub struct PhysicsStepperSystem<N: crate::PhysicsReal> {
+pub struct PhysicsStepperSystem<N: crate::PtReal> {
     phantom_data: std::marker::PhantomData<N>,
 }
 
-impl<N: crate::PhysicsReal> PhysicsStepperSystem<N> {
+impl<N: crate::PtReal> PhysicsStepperSystem<N> {
     pub fn new() -> PhysicsStepperSystem<N> {
         PhysicsStepperSystem {
             phantom_data: std::marker::PhantomData,
@@ -18,7 +18,7 @@ impl<N: crate::PhysicsReal> PhysicsStepperSystem<N> {
     }
 }
 
-impl<'a, N: crate::PhysicsReal> System<'a> for PhysicsStepperSystem<N> {
+impl<'a, N: crate::PtReal> System<'a> for PhysicsStepperSystem<N> {
     type SystemData = (
         ReadExpect<'a, Time>,
         WriteExpect<'a, PhysicsTime>,

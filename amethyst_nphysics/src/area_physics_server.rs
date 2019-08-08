@@ -1,7 +1,7 @@
 use crate::{area::Area, conversors::*, servers_storage::*, utils::*};
 use amethyst_core::ecs::Entity;
 use amethyst_phythyst::{
-    objects::*,PhysicsReal,
+    objects::*, PtReal,
     servers::{AreaDesc, AreaPhysicsServerTrait, OverlapEvent},
 };
 use nalgebra::{Isometry3};
@@ -12,11 +12,11 @@ use nphysics3d::{
     world::World as NpWorld,
 };
 
-pub struct AreaNpServer<N: PhysicsReal> {
+pub struct AreaNpServer<N: PtReal> {
     storages: ServersStorageType<N>,
 }
 
-impl<N: PhysicsReal> AreaNpServer<N> {
+impl<N: PtReal> AreaNpServer<N> {
     pub fn new(storages: ServersStorageType<N>) -> Self {
         AreaNpServer { storages }
     }
@@ -24,7 +24,7 @@ impl<N: PhysicsReal> AreaNpServer<N> {
 
 // This is a collection of functions that can be used by other servers to perform some common
 // operation on areas.
-impl<N: PhysicsReal> AreaNpServer<N> {
+impl<N: PtReal> AreaNpServer<N> {
     pub fn drop_body(
         area_tag: PhysicsAreaTag,
         worlds_storage: &mut WorldStorageWrite<N>,
@@ -87,7 +87,7 @@ impl<N: PhysicsReal> AreaNpServer<N> {
 
 impl<N> AreaPhysicsServerTrait for AreaNpServer<N>
 where
-    N: PhysicsReal,
+    N: PtReal,
 {
     fn create_area(
         &mut self,

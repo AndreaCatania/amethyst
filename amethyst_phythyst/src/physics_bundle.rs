@@ -29,12 +29,12 @@ use crate::{
 //  PrePhysics: These Systems are executed always before the physics step.
 //  InPhysics: These Systems are executed in parallel with the physics step.
 //  PostPhysics: These Systems are executed always after the physics step.
-pub struct PhysicsBundle<N: crate::PhysicsReal, B: crate::PhysicsBackend<N>> {
+pub struct PhysicsBundle<N: crate::PtReal, B: crate::PhysicsBackend<N>> {
     phantom_data_float: std::marker::PhantomData<N>,
     phantom_data_backend: std::marker::PhantomData<B>,
 }
 
-impl<N: crate::PhysicsReal, B: crate::PhysicsBackend<N>> PhysicsBundle<N, B> {
+impl<N: crate::PtReal, B: crate::PhysicsBackend<N>> PhysicsBundle<N, B> {
     pub fn new() -> Self {
         Self {
             phantom_data_float: std::marker::PhantomData,
@@ -45,7 +45,7 @@ impl<N: crate::PhysicsReal, B: crate::PhysicsBackend<N>> PhysicsBundle<N, B> {
 
 impl<'a, 'b, N, B> SystemBundle<'a, 'b> for PhysicsBundle<N, B>
 where
-    N: crate::PhysicsReal,
+    N: crate::PtReal,
     B: crate::PhysicsBackend<N> + Send + 'a,
 {
     fn build(mut self, builder: &mut DispatcherBuilder<'a, 'b>) -> Result<(), Error> {

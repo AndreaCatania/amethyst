@@ -13,7 +13,7 @@ use ncollide3d::shape::{Ball as NcBall, ShapeHandle as NcShapeHandle};
 
 use nalgebra::{Isometry3, Point, Vector, Vector3};
 
-use amethyst_phythyst::{PhysicsReal, objects::*, servers::*};
+use amethyst_phythyst::{PtReal, objects::*, servers::*};
 
 use amethyst_core::ecs::Entity;
 
@@ -21,7 +21,7 @@ use crate::{
     conversors::*, rigid_body::RigidBody, servers_storage::*, shape::RigidShape, utils::*,
 };
 
-pub struct RBodyNpServer<N: PhysicsReal> {
+pub struct RBodyNpServer<N: PtReal> {
     storages: ServersStorageType<N>,
 }
 
@@ -81,7 +81,7 @@ macro_rules! extract_np_rigid_body_mut {
     };
 }
 
-impl<N: PhysicsReal> RBodyNpServer<N> {
+impl<N: PtReal> RBodyNpServer<N> {
     pub fn new(storages: ServersStorageType<N>) -> Self {
         RBodyNpServer { storages }
     }
@@ -89,7 +89,7 @@ impl<N: PhysicsReal> RBodyNpServer<N> {
 
 // This is a collection of function that can be used by other servers to perform some common
 // operations on areas.
-impl<N: PhysicsReal> RBodyNpServer<N> {
+impl<N: PtReal> RBodyNpServer<N> {
     pub fn drop_body(
         body_tag: PhysicsBodyTag,
         worlds_storage: &mut WorldStorageWrite<N>,
@@ -183,7 +183,7 @@ impl<N: PhysicsReal> RBodyNpServer<N> {
 /// threads.
 impl<N> RBodyPhysicsServerTrait<N> for RBodyNpServer<N>
 where
-    N: PhysicsReal,
+    N: PtReal,
 {
     fn create_body(
         &mut self,
