@@ -9,18 +9,15 @@ use crate::{
     },
 };
 
-/// This bundle will register all required systems to handle the physics in your game.
+/// This bundle registers the `Phythyst` `System`s that will handle the most tricky and redundant
+/// part of the physics engine for you.
 ///
-/// This bundle will automatically place a barrier in the dispatcher, in this way
-/// allow you to control the systems that you want to execute before and after the
-/// synchronization phase just by registering them before or after this bundle.
-/// Usually this is the first bundle that you want to register.
-///
-/// TODO, this must be converted in PhysicsDispatcherBuilder that accept systems and bundles.
-/// It will have three stages where i possible register Systems and Bundles.
-///  PrePhysics: These Systems are executed always before the physics step.
-///  InPhysics: These Systems are executed in parallel with the physics step.
-///  PostPhysics: These Systems are executed always after the physics step.
+/// TODO please continue dispathcer pipeline description once implemented
+// TODO, this must be converted in PhysicsDispatcherBuilder that accept systems and bundles.
+// It will have three stages where i possible register Systems and Bundles.
+//  PrePhysics: These Systems are executed always before the physics step.
+//  InPhysics: These Systems are executed in parallel with the physics step.
+//  PostPhysics: These Systems are executed always after the physics step.
 pub struct PhysicsBundle<N: RealField, B: crate::PhysicsBackend<N>> {
     phantom_data_float: std::marker::PhantomData<N>,
     phantom_data_backend: std::marker::PhantomData<B>,

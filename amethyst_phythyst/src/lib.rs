@@ -1,47 +1,39 @@
 //! # Phythyst
-//! Phythyst is responsible to control a Physics Engine and make it easily
-//! usable in Amethyst.
+//! The `Phythyst` crate, provides an easy to use, interface to control any physics engine; as long as
+//! they implement the [PhysicsBackend].
 //!
-//! It defines the actions that a physics engine can do, like `create_world`
-//! or `set_gravity` and so on.
-//! But doesn't implement any of these, infact it leaves this task to the
-//! physics engine.
+//! Doesn't exist the perfect physics engine that is good in all situations, and may be necessary try
+//! more engines in order to use the one that perform better depending on the game needs. Even worst,
+//! sometimes is not obvious from the start that a physics engine is not meant to do a specific task,
+//! (which unfortunately is even the main feature of the game), and when it get realized is too late.
+//! To avoid this unpredictable, and not cute, surprises; `Phythyst` allow to change at any stage of
+//! the game development, the physics engine without changing any part of the game.
+//! At the same time, `Phythyst` doesn't force to use the physics engine through its interfaces.
+//! In this way, when a physics engine provides a __special__ functionality, that doesn't fit the
+//! `Phythyst` concept, it is still possible to use.
 //!
-//! In this way is possible to integrate any kind of physics engine in Amethyst,
-//! by simply implementing the actions that this crate define.
-//! This mean that you can easily swap Physics Engine at any point of your game
-//! development allowing you to choose the more stable depending on your Game!
+//! The interface is broken in servers ([available servers](./servers/index.html)), and each of them
+//! provides access to a specific part part of the engine.
+//! For example, is possible to create a new world using the function [create_world](./servers/trait.WorldPhysicsServerTrait.html#tymethod.create_world).
 //!
-//! But let's start.
+//! # How to initialize Phythyst?
+//! Initialize `Phythyst` is really simple, and the only thing that you need to do is to register
+//! the [PhysicsBundle].
 //!
-//! # How to use Phythyst?
-//! Use Phythyst is really simple. You just need to initialize it.
-//!
-//! The first thing to do is register the PhysicsBundle:
-//! ```
+//! ```rust
 //! use amethyst::phythyst::PhysicsBundle;
+//! use amethyst::amethyst_nphysics::NPhysicsBackend;
 //!
 //! let game_data = GameDataBuilder::default()
-//!     .with_bundle(PhysicsBundle::default()).unwrap()
+//!     .with_bundle(PhysicsBundle::<f32, NPhysicsBackend>::new()).unwrap()
 //!
-//! ```
-//!
-//! Now you need to splicify the Physics Engine that you want to use.
-//! The default physics engine in Amethyst is NPhysics, and to use it you have
-//! to register as resource the object returned by the function `create_physics`
-//! under the amethyst_nphysics crate.
-//! ```
-//! let mut game = Application::build("./", GameState)?
-//!     .with_resource(amethyst_nphysics::create_physics())
 //! ```
 //!
 //! That's it!
-//! From now on you are able to use physics in Amethyst.
-//! And remember, to change the physics engine you **just** need to simply register
-//! another Physics resource.
+//! **Enjoy! Physicsing**
 //!
-//! **Enjoy!**
-//!
+//! [PhysicsBackend]: ./trait.PhysicsBackend.html
+//! [PhysicsBundle]: ./struct.PhysicsBundle.html
 
 mod physics_bundle;
 mod physics_time;
@@ -57,7 +49,7 @@ pub use physics_time::PhysicsTime;
 /// This trait is used to initialize the physics servers.
 ///
 /// The physics servers are easy to use interfaces, that allow to control a physic backend using a
-/// unified set of commands.
+/// unified set of APIs.
 /// Check the available servers [here](./servers/index.html).
 ///
 /// A physical backed, is where the actual servers functionality is implemented.
