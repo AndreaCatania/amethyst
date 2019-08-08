@@ -1,17 +1,16 @@
 use amethyst_core::{
     ecs::{prelude::*, storage::ComponentEvent, ReaderId},
-    math::RealField,
 };
 
 use crate::{prelude::*, PhysicsTime};
 
 /// Used only to initialize the physics resources.
-pub struct PhysicsSystem<N: RealField, B: crate::PhysicsBackend<N>> {
+pub struct PhysicsSystem<N: crate::PhysicsReal, B: crate::PhysicsBackend<N>> {
     phantom_data_float: std::marker::PhantomData<N>,
     phantom_data_backend: std::marker::PhantomData<B>,
 }
 
-impl<N: RealField, B: crate::PhysicsBackend<N>> PhysicsSystem<N, B> {
+impl<N: crate::PhysicsReal, B: crate::PhysicsBackend<N>> PhysicsSystem<N, B> {
     pub fn new() -> Self {
         PhysicsSystem {
             phantom_data_float: std::marker::PhantomData,
@@ -20,7 +19,7 @@ impl<N: RealField, B: crate::PhysicsBackend<N>> PhysicsSystem<N, B> {
     }
 }
 
-impl<'a, N: RealField, B: crate::PhysicsBackend<N>> System<'a> for PhysicsSystem<N, B> {
+impl<'a, N: crate::PhysicsReal, B: crate::PhysicsBackend<N>> System<'a> for PhysicsSystem<N, B> {
     // Used only to register the storages.
     type SystemData = (
         ReadStorage<'a, PhysicsHandle<PhysicsWorldTag>>,

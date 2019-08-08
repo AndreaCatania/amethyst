@@ -1,9 +1,10 @@
 use amethyst_phythyst::{
     objects::*,
     servers::{OverlapEvent, WorldPhysicsServerTrait},
+    PhysicsReal,
 };
 
-use nalgebra::{RealField, Vector3};
+use nalgebra::{Vector3};
 
 use core::borrow::BorrowMut;
 
@@ -18,11 +19,11 @@ use nphysics3d::{utils::UserData as NpUserData, world::World as NpWorld};
 
 use ncollide3d::query::Proximity;
 
-pub struct WorldNpServer<N: RealField> {
+pub struct WorldNpServer<N: PhysicsReal> {
     storages: ServersStorageType<N>,
 }
 
-impl<N: RealField> WorldNpServer<N> {
+impl<N: PhysicsReal> WorldNpServer<N> {
     pub fn new(storages: ServersStorageType<N>) -> WorldNpServer<N> {
         WorldNpServer { storages }
     }
@@ -34,7 +35,7 @@ impl<N: RealField> WorldNpServer<N> {
     }
 }
 
-impl<N: RealField> WorldNpServer<N> {
+impl<N: PhysicsReal> WorldNpServer<N> {
     fn garbage_collect(&self) {
         let mut gc = self.storages.gc.write().unwrap();
         let mut worlds_storage = self.storages.worlds_w();
@@ -176,7 +177,7 @@ impl<N: RealField> WorldNpServer<N> {
     }
 }
 
-impl<N: RealField> WorldPhysicsServerTrait<N> for WorldNpServer<N> {
+impl<N: PhysicsReal> WorldPhysicsServerTrait<N> for WorldNpServer<N> {
     fn create_world(&mut self) -> PhysicsHandle<PhysicsWorldTag> {
         let mut w = World::<N>::new();
 

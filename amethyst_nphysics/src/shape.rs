@@ -1,4 +1,4 @@
-use amethyst_phythyst::{objects::*, servers::ShapeDesc};
+use amethyst_phythyst::{PhysicsReal, objects::*, servers::ShapeDesc};
 
 use ncollide3d::shape::{
     Ball as NcBall, Cuboid as NcCuboid, Cylinder as NcCylinder, Plane as NcPlane,
@@ -7,7 +7,7 @@ use ncollide3d::shape::{
 
 use nalgebra::{convert, RealField, Unit, Vector3};
 
-pub struct RigidShape<N: RealField> {
+pub struct RigidShape<N: PhysicsReal> {
     pub self_tag: Option<PhysicsShapeTag>,
     shape_desc: ShapeDesc<N>,
     shape_handle: NcShapeHandle<N>,
@@ -21,7 +21,7 @@ pub struct RigidShape<N: RealField> {
     pub marked_for_drop: bool,
 }
 
-impl<N: RealField> RigidShape<N> {
+impl<N: PhysicsReal> RigidShape<N> {
     pub fn new(shape_desc: &ShapeDesc<N>) -> Self {
         RigidShape {
             self_tag: None,
@@ -67,7 +67,7 @@ impl<N: RealField> RigidShape<N> {
     }
 }
 
-impl<N: RealField> RigidShape<N> {
+impl<N: PhysicsReal> RigidShape<N> {
     fn generate_handle(shape_desc: &ShapeDesc<N>) -> NcShapeHandle<N> {
         match shape_desc {
             ShapeDesc::Sphere { radius } => NcShapeHandle::new(NcBall::new(*radius)),

@@ -37,8 +37,11 @@ mod storage;
 mod world;
 mod world_physics_server;
 
-use amethyst_phythyst::servers::{
-    AreaPhysicsServer, PhysicsServers, RBodyPhysicsServer, ShapePhysicsServer, WorldPhysicsServer,
+use amethyst_phythyst::{
+    PhysicsReal,
+    servers::{
+        AreaPhysicsServer, PhysicsServers, RBodyPhysicsServer, ShapePhysicsServer, WorldPhysicsServer,
+    }
 };
 use area_physics_server::*;
 use nalgebra::RealField;
@@ -51,9 +54,7 @@ pub struct NPhysicsBackend;
 /// NPhysics Backend
 impl<N> amethyst_phythyst::PhysicsBackend<N> for NPhysicsBackend
 where
-    N: RealField,
-    N: From<f32>,
-    f32: From<N>,
+    N: PhysicsReal,
 {
     fn create_servers() -> PhysicsServers<N> {
         let storages = servers_storage::ServersStorage::new();

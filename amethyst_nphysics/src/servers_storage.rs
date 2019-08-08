@@ -4,6 +4,7 @@ use crate::{
     shape::RigidShape,
     storage::{Storage, StoreTag},
     world::World,
+    PhysicsReal,
 };
 
 use amethyst_phythyst::objects::*;
@@ -40,7 +41,7 @@ pub type ShapeStorageRead<'a, N> = RwLockReadGuard<'a, Storage<Box<RigidShape<N>
 /// Again to take the World mutable I have to use `RwLock::write()` that synchronize the execution.
 ///
 /// A solution to this problem would be support add multithreading support on NPhysics
-pub struct ServersStorage<N: RealField> {
+pub struct ServersStorage<N: PhysicsReal> {
     // TODO is possible to remove RealField here?
     pub(crate) gc: Arc<RwLock<PhysicsGarbageCollector>>,
     worlds: Arc<RwLock<Storage<Box<World<N>>>>>,
@@ -49,7 +50,7 @@ pub struct ServersStorage<N: RealField> {
     shapes: Arc<RwLock<Storage<Box<RigidShape<N>>>>>,
 }
 
-impl<N: RealField> ServersStorage<N> {
+impl<N: PhysicsReal> ServersStorage<N> {
     pub fn new() -> ServersStorageType<N> {
         Arc::new(ServersStorage {
             gc: Arc::new(RwLock::new(PhysicsGarbageCollector::default())),
@@ -89,7 +90,7 @@ impl<N: RealField> ServersStorage<N> {
     }
 }
 
-impl<N: RealField> ServersStorage<N> {
+impl<N: PhysicsReal> ServersStorage<N> {
     pub fn worlds_w(&self) -> WorldStorageWrite<N> {
         self.worlds.write().unwrap()
     }

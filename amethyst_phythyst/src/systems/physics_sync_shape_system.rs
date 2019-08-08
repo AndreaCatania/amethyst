@@ -1,16 +1,19 @@
-use amethyst_core::ecs::{prelude::*, storage::ComponentEvent, ReaderId};
+use amethyst_core::{
+    ecs::{prelude::*, storage::ComponentEvent, ReaderId},
+};
 
 use crate::prelude::*;
 
 /// Thanks to this `System`, it is enough to set a shape as a `Component` of an `Entity`, to use it
 /// as a rigid body shape.
 /// Here, the automatic association of the `Shape` to the `RigidBody` is managed.
-pub struct PhysicsSyncShapeSystem {
+pub struct PhysicsSyncShapeSystem<N: crate::PhysicsReal> {
+    phantom_data: std::marker::PhantomData<N>,
     bodies_event_reader: Option<ReaderId<ComponentEvent>>,
     shapes_event_reader: Option<ReaderId<ComponentEvent>>,
 }
 
-impl PhysicsSyncShapeSystem {
+impl<N: crate::PhysicsReal> PhysicsSyncShapeSystem<N> {
     fn setup_step_2(&mut self, res: &Resources) {
         {
             let mut storage: WriteStorage<PhysicsHandle<PhysicsBodyTag>> = SystemData::fetch(&res);
@@ -23,18 +26,19 @@ impl PhysicsSyncShapeSystem {
     }
 }
 
-impl Default for PhysicsSyncShapeSystem {
+impl<N: crate::PhysicsReal> Default for PhysicsSyncShapeSystem<N> {
     fn default() -> Self {
         PhysicsSyncShapeSystem {
+            phantom_data: std::marker::PhantomData,
             bodies_event_reader: None,
             shapes_event_reader: None,
         }
     }
 }
 
-impl<'a> System<'a> for PhysicsSyncShapeSystem {
+impl<'a, N: crate::PhysicsReal> System<'a> for PhysicsSyncShapeSystem<N> {
     type SystemData = (
-        ReadExpect<'a, RBodyPhysicsServer<f32>>,
+        ReadExpect<'a, RBodyPhysicsServer<N>>,
         ReadStorage<'a, PhysicsHandle<PhysicsBodyTag>>,
         ReadStorage<'a, PhysicsHandle<PhysicsShapeTag>>,
     );

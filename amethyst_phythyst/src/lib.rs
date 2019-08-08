@@ -46,6 +46,9 @@ pub mod servers;
 pub use physics_bundle::PhysicsBundle;
 pub use physics_time::PhysicsTime;
 
+pub trait PhysicsReal: amethyst_core::math::RealField + From<f32> + Into<f32> {}
+impl PhysicsReal for f32 {}
+
 /// This trait is used to initialize the physics servers.
 ///
 /// The physics servers are easy to use interfaces, that allow to control a physic backend using a
@@ -53,7 +56,7 @@ pub use physics_time::PhysicsTime;
 /// Check the available servers [here](./servers/index.html).
 ///
 /// A physical backed, is where the actual servers functionality is implemented.
-pub trait PhysicsBackend<N: amethyst_core::math::RealField> {
+pub trait PhysicsBackend<N: crate::PhysicsReal> {
     /// Returns the Backend servers.
     fn create_servers() -> servers::PhysicsServers<N>;
 }

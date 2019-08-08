@@ -3,7 +3,7 @@ use amethyst_core::{
     math::{Quaternion, Translation3, UnitQuaternion, Vector3, Vector4},
 };
 
-use nalgebra::{Isometry3, RealField, Transform3};
+use nalgebra::{Isometry3, Transform3};
 
 pub(crate) struct VecConversor;
 
@@ -12,15 +12,14 @@ pub(crate) struct VecConversor;
 impl VecConversor {
     pub fn to_physics<N>(v: &Vector3<f32>) -> Vector3<N>
     where
-        N: RealField + From<f32>,
+        N: amethyst_phythyst::PhysicsReal,
     {
         Vector3::new(v.x.into(), v.y.into(), v.z.into())
     }
 
     pub fn from_physics<N>(v: &Vector3<N>) -> Vector3<f32>
     where
-        N: RealField,
-        f32: From<N>,
+        N: amethyst_phythyst::PhysicsReal,
     {
         Vector3::new(v.x.into(), v.y.into(), v.z.into())
     }
@@ -31,22 +30,20 @@ pub(crate) struct QuatConversor;
 impl QuatConversor {
     pub fn to_physics<N>(r: &Quaternion<f32>) -> Quaternion<N>
     where
-        N: RealField,
-        f32: std::convert::Into<N>,
+        N: amethyst_phythyst::PhysicsReal,
     {
         Quaternion::from(Vector4::new(r.i.into(), r.j.into(), r.k.into(), r.w.into()))
     }
 
     pub fn from_physics<N>(r: &Quaternion<N>) -> Quaternion<f32>
-    where
-        N: RealField,
-        f32: std::convert::From<N>,
+        where
+            N: amethyst_phythyst::PhysicsReal,
     {
         Quaternion::from(Vector4::new(
-            f32::from(r.i),
-            f32::from(r.j),
-            f32::from(r.k),
-            f32::from(r.w),
+            N::into(r.i),
+            N::into(r.j),
+            N::into(r.k),
+            N::into(r.w),
         ))
     }
 }
@@ -56,7 +53,7 @@ pub(crate) struct TransfConversor;
 impl TransfConversor {
     pub fn to_physics<N>(t: &Isometry3<f32>) -> Isometry3<N>
     where
-        N: RealField + std::convert::From<f32>,
+        N: amethyst_phythyst::PhysicsReal,
     {
         Isometry3::from_parts(
             Translation3::from(VecConversor::to_physics(&t.translation.vector)),
@@ -66,8 +63,7 @@ impl TransfConversor {
 
     pub fn from_physics<N>(t: &Isometry3<N>) -> Isometry3<f32>
     where
-        N: RealField,
-        f32: std::convert::From<N>,
+        N: amethyst_phythyst::PhysicsReal,
     {
         Isometry3::from_parts(
             Translation3::from(VecConversor::from_physics(&t.translation.vector)),

@@ -5,7 +5,7 @@ use nalgebra::{RealField, Vector3};
 /// This is the interface used to manipulate the shapes
 /// The object that implement this interface is implemented by `ShapePhysicsServer`.
 /// It's stored as resource in the world.
-pub trait ShapePhysicsServerTrait<N: RealField> {
+pub trait ShapePhysicsServerTrait<N: crate::PhysicsReal> {
     /// Create a shape and return the handle to it.
     /// The PhysicsHandle returned can be safely cloned.
     /// When all instances of this Handle are dropped the shape is Dropped automatically.
@@ -15,7 +15,7 @@ pub trait ShapePhysicsServerTrait<N: RealField> {
 }
 
 #[derive(Clone, Debug)]
-pub enum ShapeDesc<N: RealField> {
+pub enum ShapeDesc<N: crate::PhysicsReal> {
     Sphere {
         radius: N,
     },

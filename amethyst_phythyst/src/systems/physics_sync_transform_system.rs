@@ -4,19 +4,21 @@ use amethyst_core::{
         storage::ComponentEvent, BitSet, Entities, Join, ReadExpect, ReadStorage, ReaderId,
         Resources, System, SystemData, WriteStorage,
     },
-    math::{Isometry3, Quaternion},
+    math::{Isometry3, Quaternion, RealField},
     transform::components::{Parent, Transform},
 };
 
-pub struct PhysicsSyncTransformSystem {
+pub struct PhysicsSyncTransformSystem<N: crate::PhysicsReal> {
+    phantom_data: std::marker::PhantomData<N>,
     transf_event_reader: Option<ReaderId<ComponentEvent>>,
     rigid_bodies_event_reader: Option<ReaderId<ComponentEvent>>,
     areas_event_reader: Option<ReaderId<ComponentEvent>>,
 }
 
-impl PhysicsSyncTransformSystem {
-    pub fn new() -> PhysicsSyncTransformSystem {
+impl<N: crate::PhysicsReal> PhysicsSyncTransformSystem<N> {
+    pub fn new() -> PhysicsSyncTransformSystem<N> {
         PhysicsSyncTransformSystem {
+            phantom_data: std::marker::PhantomData,
             transf_event_reader: None,
             rigid_bodies_event_reader: None,
             areas_event_reader: None,
@@ -59,10 +61,10 @@ impl PhysicsSyncTransformSystem {
     }
 }
 
-impl<'a> System<'a> for PhysicsSyncTransformSystem {
+impl<'a, N: crate::PhysicsReal> System<'a> for PhysicsSyncTransformSystem<N> {
     type SystemData = (
         Entities<'a>,
-        ReadExpect<'a, RBodyPhysicsServer<f32>>,
+        ReadExpect<'a, RBodyPhysicsServer<N>>,
         ReadExpect<'a, AreaPhysicsServer>,
         WriteStorage<'a, Transform>,
         ReadStorage<'a, PhysicsHandle<PhysicsBodyTag>>,

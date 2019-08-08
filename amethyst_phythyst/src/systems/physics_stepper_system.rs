@@ -6,20 +6,24 @@ use amethyst_core::{
 
 use crate::{objects::*, servers::WorldPhysicsServer, PhysicsTime};
 
-pub struct PhysicsStepperSystem;
+pub struct PhysicsStepperSystem<N: crate::PhysicsReal> {
+    phantom_data: std::marker::PhantomData<N>,
+}
 
-impl PhysicsStepperSystem {
-    pub fn new() -> PhysicsStepperSystem {
-        PhysicsStepperSystem {}
+impl<N: crate::PhysicsReal> PhysicsStepperSystem<N> {
+    pub fn new() -> PhysicsStepperSystem<N> {
+        PhysicsStepperSystem {
+            phantom_data: std::marker::PhantomData,
+        }
     }
 }
 
-impl<'a> System<'a> for PhysicsStepperSystem {
+impl<'a, N: crate::PhysicsReal> System<'a> for PhysicsStepperSystem<N> {
     type SystemData = (
         ReadExpect<'a, Time>,
         WriteExpect<'a, PhysicsTime>,
         ReadExpect<'a, PhysicsHandle<PhysicsWorldTag>>,
-        WriteExpect<'a, WorldPhysicsServer<f32>>,
+        WriteExpect<'a, WorldPhysicsServer<N>>,
     );
 
     define_setup_with_physics_assertion!();
@@ -38,7 +42,7 @@ impl<'a> System<'a> for PhysicsStepperSystem {
 
             // TODO start dispatcher
 
-            world_server.step(physics_world.get(), physics_time.sub_step_seconds);
+            world_server.step(physics_world.get(), physics_time.sub_step_seconds.into());
         }
     }
 }
