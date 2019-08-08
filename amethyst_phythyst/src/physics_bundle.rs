@@ -12,6 +12,17 @@ use crate::{
 /// This bundle registers the `Phythyst` `System`s that will handle the most tricky and redundant
 /// part of the physics engine for you.
 ///
+/// ```rust
+/// use amethyst::phythyst::PhysicsBundle;
+/// use amethyst::amethyst_nphysics::NPhysicsBackend;
+///
+/// let game_data = GameDataBuilder::default()
+///     .with_bundle(PhysicsBundle::<f32, NPhysicsBackend>::new()).unwrap()
+///
+/// ```
+/// During the creation of the `PhysicsBundle` (as show above), is possible to define the floating
+/// point precision and the [PhysicsBackend](./trait.PhysicsBackend.html).
+///
 /// TODO please continue dispathcer pipeline description once implemented
 // TODO, this must be converted in PhysicsDispatcherBuilder that accept systems and bundles.
 // It will have three stages where i possible register Systems and Bundles.

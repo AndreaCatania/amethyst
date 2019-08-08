@@ -1,3 +1,12 @@
+//! The servers are the `Phythyst` interface, that is possible to use in order to control a physics
+//! engine.
+//!
+//! Each server controls a specific part of the physics engine, and they are:
+//! - [World Server](trait.WorldPhysicsServerTrait.html)
+//! - [RBody Server](trait.RBodyPhysicsServerTrait.html)
+//! - [Area Server](trait.AreaPhysicsServerTrait.html)
+//! - [Shape Server](trait.ShapePhysicsServerTrait.html)
+
 macro_rules! define_server {
     ($x:ident, $y:ident) => {
         /// This is a wrapper to the object that provide access to the $y functionalities.
