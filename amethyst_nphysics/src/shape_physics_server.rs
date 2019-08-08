@@ -97,7 +97,7 @@ impl<N: PtReal> ShapePhysicsServerTrait<N> for ShapeNpServer<N> {
                                 NpColliderDesc::new(shape.shape_handle().clone());
                             RBodyNpServer::extract_collider_desc(np_body, &mut collider_desc);
 
-                            RBodyNpServer::set_collider(
+                            RBodyNpServer::install_collider(
                                 body,
                                 np_body.part_handle(),
                                 np_world,

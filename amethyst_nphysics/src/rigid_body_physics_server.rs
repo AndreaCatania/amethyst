@@ -113,14 +113,14 @@ impl<N: PtReal> RBodyNpServer<N> {
 
     /// Set shape.
     /// Take care to register the shape and set the collider to the body.
-    pub fn set_shape<'w>(
+    pub fn install_shape<'w>(
         body: &mut RigidBody,
         np_part_handle: NpBodyPartHandle,
         np_world: &'w mut NpWorld<N>,
         shape: &mut RigidShape<N>,
         collider_desc: &NpColliderDesc<N>,
     ) {
-        Self::set_collider(body, np_part_handle, np_world, collider_desc);
+        Self::install_collider(body, np_part_handle, np_world, collider_desc);
 
         // Collider registration
         shape.register_body(body.self_tag.unwrap());
@@ -135,7 +135,7 @@ impl<N: PtReal> RBodyNpServer<N> {
     }
 
     /// Set collider to the body
-    pub fn set_collider<'w>(
+    pub fn install_collider<'w>(
         body: &mut RigidBody,
         np_part_handle: NpBodyPartHandle,
         np_world: &'w mut NpWorld<N>,
@@ -267,7 +267,7 @@ where
                 np_rigid_body.part_handle()
             };
 
-            RBodyNpServer::set_shape(body, body_part_handle, np_world, shape, &collider_desc);
+            RBodyNpServer::install_shape(body, body_part_handle, np_world, shape, &collider_desc);
         }
     }
 
