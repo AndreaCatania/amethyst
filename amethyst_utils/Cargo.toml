@@ -25,7 +25,8 @@ amethyst_window = { path = "../amethyst_window", version = "0.2.0" }
 log = "0.4.6"
 serde = { version = "1.0", features = ["derive"] }
 specs-derive = "0.4.0"
-specs-hierarchy = "0.5.1"
+#specs-hierarchy = "0.5.1"
+specs-hierarchy = { git = "https://github.com/AndreaCatania/specs-hierarchy", branch = "batch"}
 
 thread_profiler = { version = "0.3", optional = true }
 
