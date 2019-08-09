@@ -13,7 +13,7 @@ use ncollide3d::shape::{Ball as NcBall, ShapeHandle as NcShapeHandle};
 
 use nalgebra::{Isometry3, Point, Vector, Vector3};
 
-use amethyst_phythyst::{PtReal, objects::*, servers::*};
+use amethyst_phythyst::{objects::*, servers::*, PtReal};
 
 use amethyst_core::ecs::Entity;
 

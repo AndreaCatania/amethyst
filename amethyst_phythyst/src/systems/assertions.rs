@@ -1,4 +1,4 @@
-use amethyst_core::ecs::prelude::Resources;
+use amethyst_core::ecs::prelude::World;
 use log::error;
 use log::warn;
 
@@ -15,14 +15,14 @@ use crate::{
 #[macro_export]
 macro_rules! define_setup_with_physics_assertion{
     () => {
-        fn setup(&mut self, res: &mut amethyst_core::ecs::Resources){
+        fn setup(&mut self, res: &mut amethyst_core::ecs::World){
             use amethyst_core::ecs::prelude::SystemData;
             Self::SystemData::setup(res);
             crate::systems::assertions::assert_physics_resources(res);
         }
     };
     ($x:ident) => {
-        fn setup(&mut self, res: &mut amethyst_core::ecs::Resources){
+        fn setup(&mut self, res: &mut amethyst_core::ecs::World){
             use amethyst_core::ecs::prelude::SystemData;
             Self::SystemData::setup(res);
             crate::systems::assertions::assert_physics_resources(res);
@@ -36,7 +36,7 @@ macro_rules! define_setup_with_physics_assertion{
 ///
 /// This function is used by the Systems during its setup to assert the
 /// correctness of physics server status.
-pub fn assert_physics_resources(res: &mut Resources) {
+pub fn assert_physics_resources(res: &mut World) {
     if !res.has_value::<WorldPhysicsServer<f32>>() {
         error!("The resource WorldPhysicsServer not found");
         explain_physics_server_setup();

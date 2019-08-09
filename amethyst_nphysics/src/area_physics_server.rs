@@ -1,10 +1,11 @@
 use crate::{area::Area, conversors::*, servers_storage::*, utils::*};
 use amethyst_core::ecs::Entity;
 use amethyst_phythyst::{
-    objects::*, PtReal,
+    objects::*,
     servers::{AreaDesc, AreaPhysicsServerTrait, OverlapEvent},
+    PtReal,
 };
-use nalgebra::{Isometry3};
+use nalgebra::Isometry3;
 use nphysics3d::{
     object::{
         Collider as NpCollider, ColliderDesc as NpColliderDesc, ColliderHandle as NpColliderHandle,

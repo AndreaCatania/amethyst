@@ -38,10 +38,11 @@ mod world;
 mod world_physics_server;
 
 use amethyst_phythyst::{
-    PtReal,
     servers::{
-        AreaPhysicsServer, PhysicsServers, RBodyPhysicsServer, ShapePhysicsServer, WorldPhysicsServer,
-    }
+        AreaPhysicsServer, PhysicsServers, RBodyPhysicsServer, ShapePhysicsServer,
+        WorldPhysicsServer,
+    },
+    PtReal,
 };
 use area_physics_server::*;
 use nalgebra::RealField;

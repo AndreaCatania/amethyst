@@ -1,12 +1,17 @@
-use amethyst_core::{bundle::SystemBundle, ecs::DispatcherBuilder, };
+use amethyst_core::{
+    bundle::SystemBundle,
+    ecs::{DispatcherBuilder, ReadStorage, SystemData, World},
+};
 use amethyst_error::Error;
 use log::info;
 
 use crate::{
+    prelude::*,
     servers::PhysicsServers,
     systems::{
-        PhysicsStepperSystem, PhysicsSyncShapeSystem, PhysicsSyncTransformSystem, PhysicsSystem,
+        PhysicsStepperSystem, PhysicsSyncShapeSystem, PhysicsSyncTransformSystem,
     },
+    PhysicsTime,
 };
 
 /// This bundle registers the `Phythyst` `System`s that will handle the most tricky and redundant
@@ -48,8 +53,27 @@ where
     N: crate::PtReal,
     B: crate::PhysicsBackend<N> + Send + 'a,
 {
-    fn build(mut self, builder: &mut DispatcherBuilder<'a, 'b>) -> Result<(), Error> {
-        builder.add(PhysicsSystem::<N, B>::new(), "", &[]);
+    fn build(
+        mut self,
+        world: &mut World,
+        builder: &mut DispatcherBuilder<'a, 'b>,
+    ) -> Result<(), Error> {
+        {
+            ReadStorage::<'a, PhysicsHandle<PhysicsWorldTag>>::setup(world);
+            ReadStorage::<'a, PhysicsHandle<PhysicsBodyTag>>::setup(world);
+            ReadStorage::<'a, PhysicsHandle<PhysicsAreaTag>>::setup(world);
+            ReadStorage::<'a, PhysicsHandle<PhysicsShapeTag>>::setup(world);
+
+            let (mut world_server, rb_server, area_server, shape_server) = B::create_servers();
+            let physics_world = world_server.create_world();
+            world.insert(world_server);
+            world.insert(rb_server);
+            world.insert(area_server);
+            world.insert(shape_server);
+            world.insert(PhysicsTime::default());
+            world.insert(physics_world);
+        }
+
         builder.add(
             PhysicsSyncShapeSystem::<N>::default(),
             "physics_sync_entity",

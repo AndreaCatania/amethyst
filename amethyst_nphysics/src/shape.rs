@@ -1,4 +1,4 @@
-use amethyst_phythyst::{PtReal, objects::*, servers::ShapeDesc};
+use amethyst_phythyst::{objects::*, servers::ShapeDesc, PtReal};
 
 use ncollide3d::shape::{
     Ball as NcBall, Cuboid as NcCuboid, Cylinder as NcCylinder, Plane as NcPlane,

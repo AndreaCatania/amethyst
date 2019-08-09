@@ -1,8 +1,8 @@
 use crate::{objects::*, servers::*};
 use amethyst_core::{
     ecs::{
-        storage::ComponentEvent, BitSet, Entities, Join, ReadExpect, ReadStorage, ReaderId,
-        Resources, System, SystemData, WriteStorage,
+        storage::ComponentEvent, BitSet, Entities, Join, ReadExpect, ReadStorage, ReaderId, System,
+        SystemData, World, WriteStorage,
     },
     math::{Isometry3, Quaternion, RealField},
     transform::components::{Parent, Transform},
@@ -45,7 +45,7 @@ impl<N: crate::PtReal> PhysicsSyncTransformSystem<N> {
         }
     }
 
-    fn setup_step_2(&mut self, res: &Resources) {
+    fn setup_step_2(&mut self, res: &World) {
         {
             let mut storage: WriteStorage<Transform> = SystemData::fetch(&res);
             self.transf_event_reader = Some(storage.register_reader());

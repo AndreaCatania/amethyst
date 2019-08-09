@@ -1,6 +1,4 @@
-use amethyst_core::{
-    ecs::{prelude::*, storage::ComponentEvent, ReaderId},
-};
+use amethyst_core::ecs::{prelude::*, storage::ComponentEvent, ReaderId};
 
 use crate::prelude::*;
 
@@ -14,7 +12,7 @@ pub struct PhysicsSyncShapeSystem<N: crate::PtReal> {
 }
 
 impl<N: crate::PtReal> PhysicsSyncShapeSystem<N> {
-    fn setup_step_2(&mut self, res: &Resources) {
+    fn setup_step_2(&mut self, res: &World) {
         {
             let mut storage: WriteStorage<PhysicsHandle<PhysicsBodyTag>> = SystemData::fetch(&res);
             self.bodies_event_reader = Some(storage.register_reader());

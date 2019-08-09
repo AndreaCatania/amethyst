@@ -36,8 +36,8 @@ impl QuatConversor {
     }
 
     pub fn from_physics<N>(r: &Quaternion<N>) -> Quaternion<f32>
-        where
-            N: amethyst_phythyst::PtReal,
+    where
+        N: amethyst_phythyst::PtReal,
     {
         Quaternion::from(Vector4::new(
             N::into(r.i),

@@ -4,7 +4,7 @@ use amethyst_phythyst::{
     PtReal,
 };
 
-use nalgebra::{Vector3};
+use nalgebra::Vector3;
 
 use core::borrow::BorrowMut;
 
