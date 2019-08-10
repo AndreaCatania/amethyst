@@ -12,6 +12,7 @@ use crate::{
 /// has all the required physics resources.
 ///
 /// Before to panics, it carefully tell how to properly initialize the physics.
+// TODO these are no more needed!
 #[macro_export]
 macro_rules! define_setup_with_physics_assertion{
     () => {

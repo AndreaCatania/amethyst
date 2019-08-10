@@ -1,6 +1,7 @@
 use amethyst_core::{
     bundle::SystemBundle,
-    ecs::{DispatcherBuilder, ReadStorage, SystemData, World},
+    deferred_dispatcher_operation::*,
+    ecs::{DispatcherBuilder, ReadStorage, System, SystemData, World},
 };
 use amethyst_error::Error;
 use log::info;
@@ -8,9 +9,7 @@ use log::info;
 use crate::{
     prelude::*,
     servers::PhysicsServers,
-    systems::{
-        PhysicsStepperSystem, PhysicsSyncShapeSystem, PhysicsSyncTransformSystem,
-    },
+    systems::{PhysicsStepperSystem, PhysicsSyncShapeSystem, PhysicsSyncTransformSystem, PhysicsBatch},
     PhysicsTime,
 };
 
@@ -34,24 +33,81 @@ use crate::{
 //  PrePhysics: These Systems are executed always before the physics step.
 //  InPhysics: These Systems are executed in parallel with the physics step.
 //  PostPhysics: These Systems are executed always after the physics step.
-pub struct PhysicsBundle<N: crate::PtReal, B: crate::PhysicsBackend<N>> {
+pub struct PhysicsBundle<'a, 'b, N: crate::PtReal, B: crate::PhysicsBackend<N>> {
     phantom_data_float: std::marker::PhantomData<N>,
     phantom_data_backend: std::marker::PhantomData<B>,
+    physics_builder: DispatcherBuilder<'a, 'b>,
+    pre_physics_dispatcher_operations: Vec<Box<dyn DispatcherOperation<'a, 'b>>>,
+    in_physics_dispatcher_operations: Vec<Box<dyn DispatcherOperation<'a, 'b>>>,
+    post_physics_dispatcher_operations: Vec<Box<dyn DispatcherOperation<'a, 'b>>>,
 }
 
-impl<N: crate::PtReal, B: crate::PhysicsBackend<N>> PhysicsBundle<N, B> {
-    pub fn new() -> Self {
-        Self {
-            phantom_data_float: std::marker::PhantomData,
-            phantom_data_backend: std::marker::PhantomData,
+macro_rules! define_setters{
+    ($with:ident, $add:ident, $vec:ident) => {
+        pub fn $with<S>(
+            mut self,
+            system: S,
+            name: &'static str,
+            dependencies: &'static [&'static str],
+        ) -> Self
+        where
+            S: for<'c> System<'c> + 'static + Send,
+        {
+            self.add_pre_physics(system, name, dependencies);
+            self
+        }
+
+        pub fn $add<S>(
+            &mut self,
+            system: S,
+            name: &'static str,
+            dependencies: &'static [&'static str],
+        ) where
+            S: for<'c> System<'c> + 'static + Send,
+        {
+            self.$vec
+                .push(Box::new(AddSystem {
+                    system,
+                    name,
+                    dependencies,
+                }) as Box<dyn DispatcherOperation<'a, 'b>>);
         }
     }
 }
 
-impl<'a, 'b, N, B> SystemBundle<'a, 'b> for PhysicsBundle<N, B>
+impl<'a, 'b, N: crate::PtReal, B: crate::PhysicsBackend<N>> PhysicsBundle<'a, 'b, N, B> {
+    pub fn new() -> Self {
+        Self {
+            phantom_data_float: std::marker::PhantomData,
+            phantom_data_backend: std::marker::PhantomData,
+            physics_builder: DispatcherBuilder::new(),
+            pre_physics_dispatcher_operations: Vec::new(),
+            in_physics_dispatcher_operations: Vec::new(),
+            post_physics_dispatcher_operations: Vec::new(),
+        }
+    }
+
+    define_setters!(
+        with_pre_physics,
+        add_pre_physics,
+        pre_physics_dispatcher_operations
+    );
+    define_setters!(
+        with_in_physics,
+        add_in_physics,
+        in_physics_dispatcher_operations
+    );
+    define_setters!(
+        with_post_physics,
+        add_post_physics,
+        post_physics_dispatcher_operations
+    );
+}
+
+impl<'a, 'b, N, B> SystemBundle<'a, 'b> for PhysicsBundle<'_, '_, N, B>
 where
     N: crate::PtReal,
-    B: crate::PhysicsBackend<N> + Send + 'a,
+    B: crate::PhysicsBackend<N> + Send + 'static,
 {
     fn build(
         mut self,
@@ -59,10 +115,10 @@ where
         builder: &mut DispatcherBuilder<'a, 'b>,
     ) -> Result<(), Error> {
         {
-            ReadStorage::<'a, PhysicsHandle<PhysicsWorldTag>>::setup(world);
-            ReadStorage::<'a, PhysicsHandle<PhysicsBodyTag>>::setup(world);
-            ReadStorage::<'a, PhysicsHandle<PhysicsAreaTag>>::setup(world);
-            ReadStorage::<'a, PhysicsHandle<PhysicsShapeTag>>::setup(world);
+            ReadStorage::<'_, PhysicsHandle<PhysicsWorldTag>>::setup(world);
+            ReadStorage::<'_, PhysicsHandle<PhysicsBodyTag>>::setup(world);
+            ReadStorage::<'_, PhysicsHandle<PhysicsAreaTag>>::setup(world);
+            ReadStorage::<'_, PhysicsHandle<PhysicsShapeTag>>::setup(world);
 
             let (mut world_server, rb_server, area_server, shape_server) = B::create_servers();
             let physics_world = world_server.create_world();
@@ -74,6 +130,33 @@ where
             world.insert(physics_world);
         }
 
+        let mut physics_builder = self.physics_builder;
+
+        // Register PRE physics operations
+        self.pre_physics_dispatcher_operations
+            .into_iter()
+            .try_for_each(|operation| operation.exec(world, &mut physics_builder))
+            .unwrap_or_else(|e| {
+                panic!("Failed to setup the pre physics systems. Error: {}", e)
+            });
+
+        // Register IN physics operations
+        physics_builder.add_barrier();
+        physics_builder.add(PhysicsStepperSystem::<N>::new(), "", &[]);
+        self.in_physics_dispatcher_operations
+            .into_iter()
+            .try_for_each(|operation| operation.exec(world, &mut physics_builder))
+            .unwrap_or_else(|e| panic!("Failed to setup the in physics systems. Error: {}", e));
+
+        // Register POST physics operations
+        physics_builder.add_barrier();
+        self.post_physics_dispatcher_operations
+            .into_iter()
+            .try_for_each(|operation| operation.exec(world, &mut physics_builder))
+            .unwrap_or_else(|e| {
+                panic!("Failed to setup the post physics systems. Error: {}", e)
+            });
+
         builder.add(
             PhysicsSyncShapeSystem::<N>::default(),
             "physics_sync_entity",
@@ -84,11 +167,10 @@ where
             "physics_sync_transform",
             &[],
         );
-        builder.add_barrier();
-        builder.add(
-            PhysicsStepperSystem::<N>::new(),
-            "",
-            &["physics_sync_transform"], // TODO Useless since I'm using the barrier
+        builder.add_batch::<PhysicsBatch<N>>(
+            physics_builder,
+            "physics_batch",
+            &["physics_sync_entity", "physics_sync_transform"]
         );
 
         info!("Physics bundle registered.");
