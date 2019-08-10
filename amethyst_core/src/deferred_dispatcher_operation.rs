@@ -50,8 +50,8 @@ pub struct AddSystem<S> {
 }
 
 impl<'a, 'b, S> DispatcherOperation<'a, 'b> for AddSystem<S>
-where
-    S: for<'s> System<'s> + Send + 'a,
+    where
+        S: for<'s> System<'s> + Send + 'a,
 {
     fn exec(
         self: Box<Self>,
@@ -79,9 +79,9 @@ pub struct AddSystemDesc<SD, S> {
 }
 
 impl<'a, 'b, SD, S> DispatcherOperation<'a, 'b> for AddSystemDesc<SD, S>
-where
-    SD: SystemDesc<'a, 'b, S>,
-    S: for<'s> System<'s> + Send + 'a,
+    where
+        SD: SystemDesc<'a, 'b, S>,
+        S: for<'s> System<'s> + Send + 'a,
 {
     fn exec(
         self: Box<Self>,
@@ -104,8 +104,8 @@ pub struct AddThreadLocal<S> {
 }
 
 impl<'a, 'b, S> DispatcherOperation<'a, 'b> for AddThreadLocal<S>
-where
-    S: for<'c> RunNow<'c> + 'b,
+    where
+        S: for<'c> RunNow<'c> + 'b,
 {
     fn exec(
         self: Box<Self>,
@@ -129,9 +129,9 @@ pub struct AddThreadLocalDesc<SD, S> {
 }
 
 impl<'a, 'b, SD, S> DispatcherOperation<'a, 'b> for AddThreadLocalDesc<SD, S>
-where
-    SD: RunNowDesc<'a, 'b, S>,
-    S: for<'c> RunNow<'c> + 'b,
+    where
+        SD: RunNowDesc<'a, 'b, S>,
+        S: for<'c> RunNow<'c> + 'b,
 {
     fn exec(
         self: Box<Self>,
@@ -154,8 +154,8 @@ pub struct AddBundle<B> {
 }
 
 impl<'a, 'b, B> DispatcherOperation<'a, 'b> for AddBundle<B>
-where
-    B: SystemBundle<'a, 'b>,
+    where
+        B: SystemBundle<'a, 'b>,
 {
     fn exec(
         self: Box<Self>,
