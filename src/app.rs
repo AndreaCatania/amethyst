@@ -25,7 +25,6 @@ use crate::{
     ecs::prelude::{Component, Read, World, WorldExt, Write},
     error::Error,
     game_data::{DataDispose, DataInit},
-    phythyst::{servers::PhysicsServers, PhysicsTime},
     state::{State, StateData, StateMachine, TransEvent},
     state_event::{StateEvent, StateEventReader},
     ui::UiEvent,
