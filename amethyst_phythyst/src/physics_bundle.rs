@@ -16,8 +16,7 @@ use crate::{
     PhysicsTime,
 };
 
-/// This bundle registers the `Phythyst` `System`s that will handle the most tricky and redundant
-/// part of the physics engine for you.
+/// To use the `Phythyst` crate is necessary to register the `PhysicsBundle` as show below.
 ///
 /// ```rust
 /// use amethyst::phythyst::PhysicsBundle;
@@ -27,15 +26,36 @@ use crate::{
 ///     .with_bundle(PhysicsBundle::<f32, NPhysicsBackend>::new()).unwrap()
 ///
 /// ```
-/// During the creation of the `PhysicsBundle` (as show above), is possible to define the floating
-/// point precision and the [PhysicsBackend](./trait.PhysicsBackend.html).
+/// Is it possible to define the Physics Engine floating point precision and the [PhysicsBackend](./trait.PhysicsBackend.html);
+/// additionally, the physics frame rate  can be specified using the function `with_frames_per_second`.
 ///
-/// TODO please continue dispathcer pipeline description once implemented
-// TODO, this must be converted in PhysicsDispatcherBuilder that accept systems and bundles.
-// It will have three stages where i possible register Systems and Bundles.
-//  PrePhysics: These Systems are executed always before the physics step.
-//  InPhysics: These Systems are executed in parallel with the physics step.
-//  PostPhysics: These Systems are executed always after the physics step.
+/// # Dispatcher pipeline
+///
+/// ##### Behind the scenes
+/// To have a stable execution, the physics stepping is executed with a constant frame rate;
+/// and to be frame rate agnostic it keep tracks of the elapsed time.
+/// **But don't worry**, the above statement means that a physics step can occur multiple times per
+/// each frame.
+/// But the only thing that you have to take care is to register your `System`s using
+/// the API provided by the `PhysicsBundle`; `Phythyst` will take care to execute your `Systems`
+/// at the right time.
+///
+/// The physics pipeline is composed by three sections:
+/// - **Pre physics**
+///     Executed just before any physics step. In this section of the pipeline you want to register
+///     any `System` that will alter the simulation (like add a force or change a transform).
+/// - **In physics**
+/// - **Post physics**
+///
+/// All the `System`s that deal with the physics, must be registered using the `PhysicsBundle` using:
+///
+///
+/// # Physics dispatcher pipeline - Advanced
+/// `Phythyst` is designed to process the physics stepping in parallel with all other systems;
+/// and at the same time, it gives full control over the physics.
+///
+/// Without
+///
 pub struct PhysicsBundle<'a, 'b, N: crate::PtReal, B: crate::PhysicsBackend<N>> {
     phantom_data_float: std::marker::PhantomData<N>,
     phantom_data_backend: std::marker::PhantomData<B>,
