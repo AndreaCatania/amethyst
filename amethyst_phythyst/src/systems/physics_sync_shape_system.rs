@@ -11,19 +11,6 @@ pub struct PhysicsSyncShapeSystem<N: crate::PtReal> {
     shapes_event_reader: Option<ReaderId<ComponentEvent>>,
 }
 
-impl<N: crate::PtReal> PhysicsSyncShapeSystem<N> {
-    fn setup_step_2(&mut self, res: &World) {
-        {
-            let mut storage: WriteStorage<PhysicsHandle<PhysicsBodyTag>> = SystemData::fetch(&res);
-            self.bodies_event_reader = Some(storage.register_reader());
-        }
-        {
-            let mut storage: WriteStorage<PhysicsHandle<PhysicsShapeTag>> = SystemData::fetch(&res);
-            self.shapes_event_reader = Some(storage.register_reader());
-        }
-    }
-}
-
 impl<N: crate::PtReal> Default for PhysicsSyncShapeSystem<N> {
     fn default() -> Self {
         PhysicsSyncShapeSystem {
@@ -40,8 +27,6 @@ impl<'a, N: crate::PtReal> System<'a> for PhysicsSyncShapeSystem<N> {
         ReadStorage<'a, PhysicsHandle<PhysicsBodyTag>>,
         ReadStorage<'a, PhysicsHandle<PhysicsShapeTag>>,
     );
-
-    define_setup_with_physics_assertion!(setup_step_2);
 
     fn run(&mut self, (body_server, bodies, shapes): Self::SystemData) {
         // Synchronize the `Shapes` with `RigidBodies`
@@ -77,6 +62,17 @@ impl<'a, N: crate::PtReal> System<'a> for PhysicsSyncShapeSystem<N> {
         // Remove shape to `RigidBody`
         for (body, _, _) in (&bodies, !&shapes, &dirty_shapes).join() {
             body_server.0.set_shape(body.get(), None);
+        }
+    }
+
+    fn setup(&mut self, res: &mut World) {
+        {
+            let mut storage: WriteStorage<PhysicsHandle<PhysicsBodyTag>> = SystemData::fetch(&res);
+            self.bodies_event_reader = Some(storage.register_reader());
+        }
+        {
+            let mut storage: WriteStorage<PhysicsHandle<PhysicsShapeTag>> = SystemData::fetch(&res);
+            self.shapes_event_reader = Some(storage.register_reader());
         }
     }
 }

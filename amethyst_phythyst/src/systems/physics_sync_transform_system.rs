@@ -45,20 +45,6 @@ impl<N: crate::PtReal> PhysicsSyncTransformSystem<N> {
         }
     }
 
-    fn setup_step_2(&mut self, res: &World) {
-        {
-            let mut storage: WriteStorage<Transform> = SystemData::fetch(&res);
-            self.transf_event_reader = Some(storage.register_reader());
-        }
-        {
-            let mut storage: WriteStorage<PhysicsHandle<PhysicsBodyTag>> = SystemData::fetch(&res);
-            self.rigid_bodies_event_reader = Some(storage.register_reader());
-        }
-        {
-            let mut storage: WriteStorage<PhysicsHandle<PhysicsAreaTag>> = SystemData::fetch(&res);
-            self.areas_event_reader = Some(storage.register_reader());
-        }
-    }
 }
 
 impl<'a, N: crate::PtReal> System<'a> for PhysicsSyncTransformSystem<N> {
@@ -71,8 +57,6 @@ impl<'a, N: crate::PtReal> System<'a> for PhysicsSyncTransformSystem<N> {
         ReadStorage<'a, PhysicsHandle<PhysicsAreaTag>>,
         ReadStorage<'a, Parent>,
     );
-
-    define_setup_with_physics_assertion!(setup_step_2);
 
     fn run(
         &mut self,
@@ -180,5 +164,20 @@ impl<'a, N: crate::PtReal> System<'a> for PhysicsSyncTransformSystem<N> {
         transforms
             .channel()
             .read(self.transf_event_reader.as_mut().unwrap());
+    }
+
+    fn setup(&mut self, res: &mut World) {
+        {
+            let mut storage: WriteStorage<Transform> = SystemData::fetch(&res);
+            self.transf_event_reader = Some(storage.register_reader());
+        }
+        {
+            let mut storage: WriteStorage<PhysicsHandle<PhysicsBodyTag>> = SystemData::fetch(&res);
+            self.rigid_bodies_event_reader = Some(storage.register_reader());
+        }
+        {
+            let mut storage: WriteStorage<PhysicsHandle<PhysicsAreaTag>> = SystemData::fetch(&res);
+            self.areas_event_reader = Some(storage.register_reader());
+        }
     }
 }

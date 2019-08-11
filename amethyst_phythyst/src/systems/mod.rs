@@ -1,6 +1,3 @@
-#[macro_use]
-mod assertions;
-
 mod physics_batch_system;
 mod physics_stepper_system;
 mod physics_sync_shape_system;
