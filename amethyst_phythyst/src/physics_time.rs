@@ -48,33 +48,41 @@ impl Default for PhysicsTime {
             _max_bank_size: 0.0,
             _time_bank: 0.0,
         };
-        t.set_frames_per_second(60).set_max_sub_steps(8)
+        t.with_frames_per_second(60).with_max_sub_steps(8)
     }
 }
 
 impl PhysicsTime {
-    pub fn set_frames_per_second(mut self, frames_per_second: u32) -> Self {
-        self.set_sub_step_seconds(1.0 / frames_per_second as f32)
-    }
-
-    pub fn set_max_sub_steps(mut self, max_sub_steps: u32) -> Self {
-        self.max_sub_steps = max_sub_steps;
-        self.update_max_bank_size();
+    pub fn with_frames_per_second(mut self, frames_per_second: u32) -> Self {
+        self.set_frames_per_second(frames_per_second);
         self
     }
 
-    pub fn sub_step_seconds(&self) -> f32 {
-        self.sub_step_seconds
+    pub fn set_frames_per_second(&mut self, frames_per_second: u32) {
+        self.set_sub_step_seconds(1.0 / frames_per_second as f32);
+    }
+
+    pub fn with_max_sub_steps(mut self, max_sub_steps: u32) -> Self {
+        self.set_max_sub_steps(max_sub_steps);
+        self
+    }
+
+    pub fn set_max_sub_steps(&mut self, max_sub_steps: u32) {
+        self.max_sub_steps = max_sub_steps;
+        self.update_max_bank_size();
     }
 
     pub fn sub_max_sub_steps(&self) -> u32 {
         self.max_sub_steps
     }
 
-    fn set_sub_step_seconds(mut self, sub_step_seconds: f32) -> Self {
+    fn set_sub_step_seconds(&mut self, sub_step_seconds: f32) {
         self.sub_step_seconds = sub_step_seconds;
         self.update_max_bank_size();
-        self
+    }
+
+    pub fn sub_step_seconds(&self) -> f32 {
+        self.sub_step_seconds
     }
 
     fn update_max_bank_size(&mut self) {

@@ -39,6 +39,7 @@ use crate::{
 pub struct PhysicsBundle<'a, 'b, N: crate::PtReal, B: crate::PhysicsBackend<N>> {
     phantom_data_float: std::marker::PhantomData<N>,
     phantom_data_backend: std::marker::PhantomData<B>,
+    physics_time: PhysicsTime,
     physics_builder: DispatcherBuilder<'a, 'b>,
     pre_physics_dispatcher_operations: Vec<Box<dyn DispatcherOperation<'a, 'b>>>,
     in_physics_dispatcher_operations: Vec<Box<dyn DispatcherOperation<'a, 'b>>>,
@@ -83,11 +84,30 @@ impl<'a, 'b, N: crate::PtReal, B: crate::PhysicsBackend<N>> PhysicsBundle<'a, 'b
         Self {
             phantom_data_float: std::marker::PhantomData,
             phantom_data_backend: std::marker::PhantomData,
+            physics_time: PhysicsTime::default(),
             physics_builder: DispatcherBuilder::new(),
             pre_physics_dispatcher_operations: Vec::new(),
             in_physics_dispatcher_operations: Vec::new(),
             post_physics_dispatcher_operations: Vec::new(),
         }
+    }
+
+    pub fn with_frames_per_second(mut self, frames_per_second: u32) -> Self {
+        self.physics_time.set_frames_per_second(frames_per_second);
+        self
+    }
+
+    pub fn set_frames_per_second(mut self, frames_per_second: u32) {
+        self.physics_time.set_frames_per_second(frames_per_second);
+    }
+
+    pub fn with_max_sub_steps(mut self, frames_per_second: u32) -> Self {
+        self.physics_time.set_max_sub_steps(frames_per_second);
+        self
+    }
+
+    pub fn set_max_sub_steps(mut self, frames_per_second: u32) {
+        self.physics_time.set_max_sub_steps(frames_per_second);
     }
 
     define_setters!(
@@ -133,7 +153,7 @@ where
             world.insert(rb_server);
             world.insert(area_server);
             world.insert(shape_server);
-            world.insert(PhysicsTime::default());
+            world.insert(self.physics_time);
             world.insert(physics_world);
         }
 
