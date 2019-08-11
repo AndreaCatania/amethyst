@@ -22,6 +22,7 @@
 /// in a single frame increasing even more the `Timer::delta_time` of the next frame, entering so
 /// in a spiral that will drop the performances.
 /// For this reason the `max_sub_steps` is necessary in order to counter this behavior.
+#[derive(Debug)]
 pub struct PhysicsTime {
     /// The time used to advance the physics.
     /// The default is 60 frames per second : 1 / 60

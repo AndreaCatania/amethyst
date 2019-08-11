@@ -31,7 +31,6 @@ impl<'a, N: PtReal> System<'a> for PhysicsBatchSystem<'_, '_, N> {
     type SystemData = BatchUncheckedWorld<'a>;
 
     fn run(&mut self, data: Self::SystemData) {
-        println!("AA");
         let want_to_dispatch = {
             let time = data.0.fetch::<Time>();
             let mut physics_time = data.0.fetch_mut::<PhysicsTime>();
@@ -45,7 +44,6 @@ impl<'a, N: PtReal> System<'a> for PhysicsBatchSystem<'_, '_, N> {
         };
 
         if want_to_dispatch {
-            println!("BB");
             self.dispatcher.dispatch(data.0);
         }
     }
