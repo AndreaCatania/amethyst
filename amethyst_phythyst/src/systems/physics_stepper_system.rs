@@ -28,9 +28,6 @@ impl<'a, N: crate::PtReal> System<'a> for PhysicsStepperSystem<N> {
     define_setup_with_physics_assertion!();
 
     fn run(&mut self, (physics_time, physics_world, mut world_server): Self::SystemData) {
-        // TODO please remove this once shred allow batch processing
-        world_server.consume_events();
-
         world_server.step(physics_world.get(), physics_time.sub_step_seconds.into());
     }
 }

@@ -101,77 +101,88 @@ impl<N: PtReal> WorldNpServer<N> {
     fn fetch_events(&self, world: &mut NpWorld<N>) {
         let mut s = self.storages.areas_w();
 
-        let events = world.proximity_events();
-        for e in events {
-            if e.prev_status == e.new_status {
-                continue;
+        {
+            // Clear old events
+            for area in s.iter_mut() {
+                area.1.overlap_events.clear();
             }
+        }
 
-            // 0 Enter, 1 Exit
-            let status = match e.new_status {
-                Proximity::Intersecting => {
-                    match e.prev_status {
-                        Proximity::Intersecting => {
-                            continue;
-                        }
-                        _ => {
-                            0 // Enter
+        {
+            // Fetch new events
+
+            let events = world.proximity_events();
+            for e in events {
+                if e.prev_status == e.new_status {
+                    continue;
+                }
+
+                // 0 Enter, 1 Exit
+                let status = match e.new_status {
+                    Proximity::Intersecting => {
+                        match e.prev_status {
+                            Proximity::Intersecting => {
+                                continue;
+                            }
+                            _ => {
+                                0 // Enter
+                            }
                         }
                     }
-                }
-                _ => {
-                    match e.prev_status {
-                        Proximity::Intersecting => {
-                            1 // Exit
-                        }
-                        _ => {
-                            continue;
+                    _ => {
+                        match e.prev_status {
+                            Proximity::Intersecting => {
+                                1 // Exit
+                            }
+                            _ => {
+                                continue;
+                            }
                         }
                     }
+                };
+
+                let collider1 = world.collider(e.collider1).unwrap();
+                let collider2 = world.collider(e.collider2).unwrap();
+
+                let body_1_ud = collider1
+                    .user_data()
+                    .unwrap()
+                    .downcast_ref::<UserData>()
+                    .unwrap();
+                let body_2_ud = collider2
+                    .user_data()
+                    .unwrap()
+                    .downcast_ref::<UserData>()
+                    .unwrap();
+
+                let mut area_tag;
+                let mut body_tag;
+                let mut body_entity;
+
+                match body_1_ud.object_type() {
+                    ObjectType::Area => {
+                        area_tag = body_1_ud.store_tag();
+                        body_tag = body_2_ud.store_tag();
+                        body_entity = body_2_ud.entity();
+                    }
+                    _ => {
+                        area_tag = body_2_ud.store_tag();
+                        body_tag = body_1_ud.store_tag();
+                        body_entity = body_1_ud.entity();
+                    }
                 }
-            };
 
-            let collider1 = world.collider(e.collider1).unwrap();
-            let collider2 = world.collider(e.collider2).unwrap();
+                let area = s.get_mut(area_tag).unwrap();
 
-            let body_1_ud = collider1
-                .user_data()
-                .unwrap()
-                .downcast_ref::<UserData>()
-                .unwrap();
-            let body_2_ud = collider2
-                .user_data()
-                .unwrap()
-                .downcast_ref::<UserData>()
-                .unwrap();
-
-            let mut area_tag;
-            let mut body_tag;
-            let mut body_entity;
-
-            match body_1_ud.object_type() {
-                ObjectType::Area => {
-                    area_tag = body_1_ud.store_tag();
-                    body_tag = body_2_ud.store_tag();
-                    body_entity = body_2_ud.entity();
+                if status == 0 {
+                    // Enter
+                    area.overlap_events
+                        .push(OverlapEvent::Enter(PhysicsBodyTag(body_tag), body_entity));
+                } else {
+                    // Exit
+                    area.overlap_events
+                        .push(OverlapEvent::Exit(PhysicsBodyTag(body_tag), body_entity));
                 }
-                _ => {
-                    area_tag = body_2_ud.store_tag();
-                    body_tag = body_1_ud.store_tag();
-                    body_entity = body_1_ud.entity();
-                }
-            }
-
-            let area = s.get_mut(area_tag).unwrap();
-
-            if status == 0 {
-                // Enter
-                area.overlap_events
-                    .push(OverlapEvent::Enter(PhysicsBodyTag(body_tag), body_entity));
-            } else {
-                // Exit
-                area.overlap_events
-                    .push(OverlapEvent::Exit(PhysicsBodyTag(body_tag), body_entity));
             }
         }
     }
@@ -206,16 +217,6 @@ impl<N: PtReal> WorldPhysicsServerTrait<N> for WorldNpServer<N> {
             world.step();
 
             self.fetch_events(world);
-        }
-    }
-
-    fn consume_events(&self) {
-        // READ BEFORE REMOVE
-        //
-        // Is important to perform this operation inside the stepping once this is removed
-        let mut s = self.storages.areas_w();
-        for a in s.iter_mut() {
-            a.1.overlap_events.clear();
         }
     }
 }

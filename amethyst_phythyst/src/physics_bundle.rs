@@ -9,7 +9,10 @@ use log::info;
 use crate::{
     prelude::*,
     servers::PhysicsServers,
-    systems::{PhysicsStepperSystem, PhysicsSyncShapeSystem, PhysicsSyncTransformSystem, PhysicsBatchSystem},
+    systems::{
+        PhysicsBatchSystem, PhysicsStepperSystem, PhysicsSyncShapeSystem,
+        PhysicsSyncTransformSystem,
+    },
     PhysicsTime,
 };
 
@@ -136,9 +139,7 @@ where
         self.pre_physics_dispatcher_operations
             .into_iter()
             .try_for_each(|operation| operation.exec(world, &mut physics_builder))
-            .unwrap_or_else(|e| {
-                panic!("Failed to setup the pre physics systems. Error: {}", e)
-            });
+            .unwrap_or_else(|e| panic!("Failed to setup the pre physics systems. Error: {}", e));
 
         // Register IN physics operations
         physics_builder.add_barrier();
@@ -153,9 +154,7 @@ where
         self.post_physics_dispatcher_operations
             .into_iter()
             .try_for_each(|operation| operation.exec(world, &mut physics_builder))
-            .unwrap_or_else(|e| {
-                panic!("Failed to setup the post physics systems. Error: {}", e)
-            });
+            .unwrap_or_else(|e| panic!("Failed to setup the post physics systems. Error: {}", e));
 
         builder.add(
             PhysicsSyncShapeSystem::<N>::default(),
@@ -170,7 +169,7 @@ where
         builder.add_batch::<PhysicsBatchSystem<N>>(
             physics_builder,
             "physics_batch",
-            &["physics_sync_entity", "physics_sync_transform"]
+            &["physics_sync_entity", "physics_sync_transform"],
         );
 
         info!("Physics bundle registered.");

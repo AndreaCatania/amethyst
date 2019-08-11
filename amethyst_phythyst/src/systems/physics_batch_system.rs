@@ -1,7 +1,7 @@
 use amethyst_core::{
     ecs::{
-        BatchAccessor, BatchController, BatchUncheckedWorld, Dispatcher, Read, ReadExpect,
-        System, WriteExpect, RunningTime, AccessorCow, World
+        AccessorCow, BatchAccessor, BatchController, BatchUncheckedWorld, Dispatcher, Read,
+        ReadExpect, RunningTime, System, World, WriteExpect,
     },
     shred::Resources,
     Time,
@@ -61,4 +61,4 @@ impl<'a, N: PtReal> System<'a> for PhysicsBatchSystem<'_, '_, N> {
     }
 }
 
-unsafe impl<N: PtReal> Send for PhysicsBatchSystem<'_, '_, N>{}
+unsafe impl<N: PtReal> Send for PhysicsBatchSystem<'_, '_, N> {}
