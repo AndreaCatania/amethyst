@@ -20,29 +20,17 @@ impl<N: crate::PtReal> PhysicsStepperSystem<N> {
 
 impl<'a, N: crate::PtReal> System<'a> for PhysicsStepperSystem<N> {
     type SystemData = (
-        ReadExpect<'a, Time>,
-        WriteExpect<'a, PhysicsTime>,
+        ReadExpect<'a, PhysicsTime>,
         ReadExpect<'a, PhysicsHandle<PhysicsWorldTag>>,
         WriteExpect<'a, WorldPhysicsServer<N>>,
     );
 
     define_setup_with_physics_assertion!();
 
-    fn run(&mut self, (time, mut physics_time, physics_world, mut world_server): Self::SystemData) {
+    fn run(&mut self, (physics_time, physics_world, mut world_server): Self::SystemData) {
         // TODO please remove this once shred allow batch processing
         world_server.consume_events();
 
-        physics_time._time_bank += time.delta_seconds();
-
-        // Avoid spiral performance degradation
-        physics_time._time_bank = physics_time._time_bank.min(physics_time._max_bank_size);
-
-        while physics_time._time_bank >= physics_time.sub_step_seconds {
-            physics_time._time_bank -= physics_time.sub_step_seconds;
-
-            // TODO start dispatcher
-
-            world_server.step(physics_world.get(), physics_time.sub_step_seconds.into());
-        }
+        world_server.step(physics_world.get(), physics_time.sub_step_seconds.into());
     }
 }
