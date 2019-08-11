@@ -9,7 +9,7 @@ use log::info;
 use crate::{
     prelude::*,
     servers::PhysicsServers,
-    systems::{PhysicsStepperSystem, PhysicsSyncShapeSystem, PhysicsSyncTransformSystem, PhysicsBatch},
+    systems::{PhysicsStepperSystem, PhysicsSyncShapeSystem, PhysicsSyncTransformSystem, PhysicsBatchSystem},
     PhysicsTime,
 };
 
@@ -167,7 +167,7 @@ where
             "physics_sync_transform",
             &[],
         );
-        builder.add_batch::<PhysicsBatch<N>>(
+        builder.add_batch::<PhysicsBatchSystem<N>>(
             physics_builder,
             "physics_batch",
             &["physics_sync_entity", "physics_sync_transform"]

@@ -9,17 +9,17 @@ use amethyst_core::{
 
 use crate::{objects::*, servers::WorldPhysicsServer, PhysicsTime, PtReal};
 
-pub struct PhysicsBatch<'a, 'b, N: crate::PtReal> {
+pub struct PhysicsBatchSystem<'a, 'b, N: crate::PtReal> {
     accessor: BatchAccessor,
     dispatcher: Dispatcher<'a, 'b>,
     phantom_data: std::marker::PhantomData<N>,
 }
 
-impl<'a, 'b, N: PtReal> BatchController<'a, 'b> for PhysicsBatch<'a, 'b, N> {
+impl<'a, 'b, N: PtReal> BatchController<'a, 'b> for PhysicsBatchSystem<'a, 'b, N> {
     type BatchSystemData = (ReadExpect<'a, PhysicsTime>, ReadExpect<'a, Time>);
 
     unsafe fn create(accessor: BatchAccessor, dispatcher: Dispatcher<'a, 'b>) -> Self {
-        PhysicsBatch {
+        PhysicsBatchSystem {
             accessor,
             dispatcher,
             phantom_data: std::marker::PhantomData,
@@ -27,7 +27,7 @@ impl<'a, 'b, N: PtReal> BatchController<'a, 'b> for PhysicsBatch<'a, 'b, N> {
     }
 }
 
-impl<'a, N: PtReal> System<'a> for PhysicsBatch<'_, '_, N> {
+impl<'a, N: PtReal> System<'a> for PhysicsBatchSystem<'_, '_, N> {
     type SystemData = BatchUncheckedWorld<'a>;
 
     fn run(&mut self, data: Self::SystemData) {
@@ -61,4 +61,4 @@ impl<'a, N: PtReal> System<'a> for PhysicsBatch<'_, '_, N> {
     }
 }
 
-unsafe impl<N: PtReal> Send for PhysicsBatch<'_, '_, N>{}
+unsafe impl<N: PtReal> Send for PhysicsBatchSystem<'_, '_, N>{}
