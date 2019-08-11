@@ -107,6 +107,13 @@ impl<'a, 'b, N: crate::PtReal, B: crate::PhysicsBackend<N>> PhysicsBundle<'a, 'b
     );
 }
 
+type PhysicsSetupStorages<'a> = (
+    ReadStorage<'a, PhysicsHandle<PhysicsWorldTag>>,
+    ReadStorage<'a, PhysicsHandle<PhysicsBodyTag>>,
+    ReadStorage<'a, PhysicsHandle<PhysicsAreaTag>>,
+    ReadStorage<'a, PhysicsHandle<PhysicsShapeTag>>,
+);
+
 impl<N, B> SystemBundle<'static, 'static> for PhysicsBundle<'static, 'static, N, B>
 where
     N: crate::PtReal,
@@ -117,12 +124,9 @@ where
         world: &mut World,
         builder: &mut DispatcherBuilder<'static, 'static>,
     ) -> Result<(), Error> {
-        {
-            ReadStorage::<PhysicsHandle<PhysicsWorldTag>>::setup(world);
-            ReadStorage::<PhysicsHandle<PhysicsBodyTag>>::setup(world);
-            ReadStorage::<PhysicsHandle<PhysicsAreaTag>>::setup(world);
-            ReadStorage::<PhysicsHandle<PhysicsShapeTag>>::setup(world);
+        PhysicsSetupStorages::setup(world);
 
+        {
             let (mut world_server, rb_server, area_server, shape_server) = B::create_servers();
             let physics_world = world_server.create_world();
             world.insert(world_server);
