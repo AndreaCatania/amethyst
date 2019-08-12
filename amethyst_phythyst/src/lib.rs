@@ -35,6 +35,14 @@
 //! [PhysicsBackend]: ./trait.PhysicsBackend.html
 //! [PhysicsBundle]: ./struct.PhysicsBundle.html
 
+#![warn(
+    missing_debug_implementations,
+    missing_docs,
+    rust_2018_idioms,
+    rust_2018_compatibility
+)]
+#![warn(clippy::all)]
+
 mod physics_bundle;
 mod physics_time;
 mod systems;

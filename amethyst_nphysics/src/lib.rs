@@ -19,6 +19,14 @@
 //! In this way is possible to have a clear distinction of what is what.
 //! Example: `RigidBody` and `NpRigidBody`.
 
+#![warn(
+    missing_debug_implementations,
+    missing_docs,
+    rust_2018_idioms,
+    rust_2018_compatibility
+)]
+#![warn(clippy::all)]
+
 #[macro_use]
 mod conditional_macros;
 #[macro_use]

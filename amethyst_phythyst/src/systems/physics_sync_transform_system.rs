@@ -44,7 +44,6 @@ impl<N: crate::PtReal> PhysicsSyncTransformSystem<N> {
             i
         }
     }
-
 }
 
 impl<'a, N: crate::PtReal> System<'a> for PhysicsSyncTransformSystem<N> {
