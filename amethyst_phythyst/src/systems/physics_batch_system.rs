@@ -9,6 +9,22 @@ use amethyst_core::{
 
 use crate::{objects::*, servers::WorldPhysicsServer, PhysicsTime, PtReal};
 
+/// This `Batch` is a used to dispatch the physics `System`s.
+///
+/// Depending on the `PhysicsTime::_time_bank` value, could be necessary run the stepping, multiple
+/// times on the same frame.
+///
+///
+/// Each frame, to the `_time_bank` is added the frame _delta time_ (which is variable).
+///
+/// Sometimes, could happens that the `Timer::delta_time` is so big that too much sub steps have to
+/// be processed in order to consume the `_time_bank`.
+/// This process, will increase the delta time of the next frame, entering so
+/// in a spiral that will drop the performances.
+///
+/// To break this behavior a fall back algorithm, will clamp the maximum size of the `_time_bank`.
+///
+/// You can control the maximum `_time_bank` by changing the `max_sub_steps`.
 pub struct PhysicsBatchSystem<'a, 'b, N: crate::PtReal> {
     accessor: BatchAccessor,
     dispatcher: Dispatcher<'a, 'b>,

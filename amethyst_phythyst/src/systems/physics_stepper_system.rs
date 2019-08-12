@@ -6,6 +6,7 @@ use amethyst_core::{
 
 use crate::{objects::*, servers::WorldPhysicsServer, PhysicsTime};
 
+/// This `System` simply step the physics.
 pub struct PhysicsStepperSystem<N: crate::PtReal> {
     phantom_data: std::marker::PhantomData<N>,
 }

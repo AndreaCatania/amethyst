@@ -107,7 +107,8 @@ use crate::{
 /// So the dispatcher looks like:
 /// ```ignore
 /// |--Sync--|         |-------------PhysicsBatch------------|
-/// |--CollisionSync--||--Any other System--|                 |-- Rendering --|
+/// |--CollisionSync--||--Any other System--|
+///                                                            |-- Rendering --|
 /// ```
 ///
 /// To know more about it, check this: [https://github.com/AndreaCatania/amethyst/issues/2](https://github.com/AndreaCatania/amethyst/issues/2)
@@ -127,7 +128,8 @@ pub struct PhysicsBundle<'a, 'b, N: crate::PtReal, B: crate::PhysicsBackend<N>> 
 }
 
 macro_rules! define_setters{
-    ($with:ident, $add:ident, $vec:ident) => {
+    ($(#[$doc:meta])* $with:ident, $add:ident, $vec:ident) => {
+        $(#[$doc])*
         pub fn $with<S>(
             mut self,
             system: S,
@@ -141,6 +143,7 @@ macro_rules! define_setters{
             self
         }
 
+        $(#[$doc])*
         pub fn $add<S>(
             &mut self,
             system: S,
@@ -160,6 +163,7 @@ macro_rules! define_setters{
 }
 
 impl<'a, 'b, N: crate::PtReal, B: crate::PhysicsBackend<N>> PhysicsBundle<'a, 'b, N, B> {
+    /// Creates new `PhysicsBundle`
     pub fn new() -> Self {
         Self {
             phantom_data_float: std::marker::PhantomData,
@@ -172,41 +176,85 @@ impl<'a, 'b, N: crate::PtReal, B: crate::PhysicsBackend<N>> PhysicsBundle<'a, 'b
         }
     }
 
+    /// Set the physics frames per seconds.
+    ///
+    /// This is just an helper function, and you can modify it later in the game.
+    ///
+    /// Check the [PhysicsTime](./struct.PhysicsTime.html)
     pub fn with_frames_per_seconds(mut self, frames_per_seconds: u32) -> Self {
         self.physics_time.set_frames_per_seconds(frames_per_seconds);
         self
     }
 
+    /// Set the physics frames per seconds.
+    ///
+    /// This is just an helper function, and you can modify it later in the game.
+    ///
+    /// Check the [PhysicsTime](./struct.PhysicsTime.html)
     pub fn set_frames_per_seconds(mut self, frames_per_seconds: u32) {
         self.physics_time.set_frames_per_seconds(frames_per_seconds);
     }
 
+    /// Set the physics max sub steps.
+    ///
+    /// This controls how much physics step can be executed in a single frame. It's used to avoid
+    /// spiral performance degradation.
+    /// Set it to an too high value, will make this mechanism ineffective, and a too low value will make the physics unstable.
+    /// Is advised to keep the default
+    ///
+    /// This is just an helper function, and you can modify it later in the game.
+    /// Check the [PhysicsTime](./struct.PhysicsTime.html)
     pub fn with_max_sub_steps(mut self, max_sub_steps: u32) -> Self {
         self.physics_time.set_max_sub_steps(max_sub_steps);
         self
     }
 
+    /// Set the physics max sub steps.
+    ///
+    /// This controls how much physics step can be executed in a single frame. It's used to avoid
+    /// spiral performance degradation.
+    /// Set it to an too high value, will make this mechanism ineffective, and a too low value will make the physics unstable.
+    /// Is advised to keep the default
+    ///
+    /// This is just an helper function, and you can modify it later in the game.
+    /// Check the [PhysicsTime](./struct.PhysicsTime.html)
     pub fn set_max_sub_steps(mut self, max_sub_steps: u32) {
         self.physics_time.set_max_sub_steps(max_sub_steps);
     }
 
     define_setters!(
+        /// Add a `System` to the **Pre physics** pipeline.
+        ///
+        /// This pipeline is executed before the physics step. Register here all the `System`s that
+        /// want to control the physics (like add force, set transform).
         with_pre_physics,
         add_pre_physics,
         pre_physics_dispatcher_operations
     );
+
     define_setters!(
+        /// Add a `System` to the **In physics** pipeline.
+        ///
+        /// This pipeline is executed along the physics step.
+        /// Register here all the `System`s that doesn't interact with the physics, but need to be
+        /// executed each physics frame.
         with_in_physics,
         add_in_physics,
         in_physics_dispatcher_operations
     );
+
     define_setters!(
+        /// Add a `System` to the **Post physics** pipeline.
+        ///
+        /// This pipeline is executed after the physics step. Register here all the `System`s that
+        /// fetch the physics events.
         with_post_physics,
         add_post_physics,
         post_physics_dispatcher_operations
     );
 }
 
+/// This is used only to perform the setup of these storages.
 type PhysicsSetupStorages<'a> = (
     ReadStorage<'a, PhysicsHandle<PhysicsWorldTag>>,
     ReadStorage<'a, PhysicsHandle<PhysicsBodyTag>>,
