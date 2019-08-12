@@ -40,16 +40,21 @@ use crate::{
 /// the API provided by the `PhysicsBundle`; `Phythyst` will take care to execute your `System`s
 /// at the right time.
 ///
-/// ##### Pipeline sections
+/// ##### Pipeline
 /// The physics pipeline is composed by three sections:
 /// - **Pre physics** `with_pre_physics`
+///
 ///     Executed just before any physics step. In this section of the pipeline you want to register
 ///     any `System` that will alter the simulation (like add a force or change a transform).
+///
 /// - **In physics** `with_in_physics`
+///
 ///     The `System`s in this stage are executed in parallel with the physics stepping, and this section
 ///     is meant for all the `System`s that have to be executed each physics frame but doesn't depend
 ///     on its state.
+///
 /// - **Post physics** `with_post_physics`
+///
 ///     The last section of the physics pipeline, is simply executed just after the physics stepping.
 ///     In this section, you want to register the `System`s that collects the physics states,
 ///     (like checking for volumes overlaps, or collision events).
@@ -63,6 +68,7 @@ use crate::{
 ///
 /// The physics pipeline, just explained above, groups all the `System`s that interact with the physics.
 /// We can consider all these `System`s, a single group; let's call it `PhysicsBatch`.
+///
 /// Like any other `System` in `Amethyst`, the `PhysicsBatch` is dispatched by `shred`, this mean that
 /// if we make sure that its resources are not used by any other `System`, registered after it, them will
 /// run in parallel.
@@ -95,11 +101,13 @@ use crate::{
 ///
 /// That's it.
 ///
+/// Following this small trick, the physics will run in parallel with anything else!.
+///
 /// ## Small TODO to highlight
 /// I'm confident that this section will be removed ASAP, but for the sake of completeness I've to
 /// mention a problem.
 ///
-/// The above section, which explains how to make the physics runsin parallel, due to a small
+/// The above section, which explains how to make the physics runs in parallel, due to a small
 /// Amethyst's design problem, is lying.
 /// Indeed, is not possible to run the physics and the rendering in parallel, because they
 /// are in two different pipelines.

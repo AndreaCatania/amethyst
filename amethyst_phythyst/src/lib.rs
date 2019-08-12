@@ -6,6 +6,7 @@
 //! more engines in order to use the one that perform better depending on the game needs. Even worst,
 //! sometimes is not obvious from the start that a physics engine is not meant to do a specific task,
 //! (which unfortunately is even the main feature of the game), and when it get realized is too late.
+//!
 //! To avoid this unpredictable, and not cute, surprises; `Phythyst` allow to change at any stage of
 //! the game development, the physics engine without changing any part of the game.
 //! At the same time, `Phythyst` doesn't force to use the physics engine through its interfaces.
