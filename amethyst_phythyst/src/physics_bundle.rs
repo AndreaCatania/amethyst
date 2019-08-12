@@ -27,7 +27,7 @@ use crate::{
 ///
 /// ```
 /// Is it possible to define the Physics Engine floating point precision and the [PhysicsBackend](./trait.PhysicsBackend.html);
-/// additionally, the physics frame rate  can be specified using the function `with_frames_per_second`.
+/// additionally, the physics frame rate can be specified using the function `with_frames_per_second`.
 ///
 /// # Dispatcher pipeline
 ///
@@ -36,26 +36,86 @@ use crate::{
 /// and to be frame rate agnostic it keep tracks of the elapsed time.
 /// **But don't worry**, the above statement means that a physics step can occur multiple times per
 /// each frame.
-/// But the only thing that you have to take care is to register your `System`s using
-/// the API provided by the `PhysicsBundle`; `Phythyst` will take care to execute your `Systems`
+/// So, when you have a `System` that interact with the physics, you have to register it using
+/// the API provided by the `PhysicsBundle`; `Phythyst` will take care to execute your `System`s
 /// at the right time.
 ///
+/// ##### Pipeline sections
 /// The physics pipeline is composed by three sections:
-/// - **Pre physics**
+/// - **Pre physics** `with_pre_physics`
 ///     Executed just before any physics step. In this section of the pipeline you want to register
 ///     any `System` that will alter the simulation (like add a force or change a transform).
-/// - **In physics**
-/// - **Post physics**
+/// - **In physics** `with_in_physics`
+///     The `System`s in this stage are executed in parallel with the physics stepping, and this section
+///     is meant for all the `System`s that have to be executed each physics frame but doesn't depend
+///     on its state.
+/// - **Post physics** `with_post_physics`
+///     The last section of the physics pipeline, is simply executed just after the physics stepping.
+///     In this section, you want to register the `System`s that collects the physics states,
+///     (like checking for volumes overlaps, or collision events).
 ///
-/// All the `System`s that deal with the physics, must be registered using the `PhysicsBundle` using:
+/// # Parallel physics dispatching
+/// `Phythyst` is designed to dispatch the physics in parallel with everything else, by default.
+/// When you start to interact with it, you have to approach it correctly to maintain this property.
 ///
+/// Some internal parts are being explained, and if the physics of your game is not so heavy, or you
+/// are not yet confortable with `phythyst`, you can just skip this section.
 ///
-/// # Physics dispatcher pipeline - Advanced
-/// `Phythyst` is designed to process the physics stepping in parallel with all other systems;
-/// and at the same time, it gives full control over the physics.
+/// The physics pipeline, just explained above, groups all the `System`s that interact with the physics.
+/// We can consider all these `System`s, a single group; let's call it `PhysicsBatch`.
+/// Like any other `System` in `Amethyst`, the `PhysicsBatch` is dispatched by `shred`, this mean that
+/// if we make sure that its resources are not used by any other `System`, registered after it, them will
+/// run in parallel.
 ///
-/// Without
+/// ##### Synchronization
+/// The main concept is easy, but let's see what it mean in practice.
 ///
+/// When nothing is registered in the `PhysicsBatch`, the only resource that can potentially cause problems
+/// is the [Transform Component].
+/// To avoid using the [Transform Component] inside the `PhysicsBatch`; `Phythyst` defines the
+/// `PhysicsSyncSystem`, that executed at the begining of each frame, it will take care to copy the
+/// transforms from the physics to `Amethyst`. Leaving the physics and the rendering untied and free
+/// to be executed in parallel.
+///
+/// The dispatcher looks like this:
+/// ```ignore
+/// |--Sync--||-------------PhysicsBatch------------|
+///           |--Any other System--||-- Rendering --|
+/// ```
+///
+/// Taking as example a race game, you may want to display a scratch on the car when it hits something.
+/// To ensure that the physics runs in parallel, you want to register the `System` that checks for the
+/// collision, before the `PhysicsBatch` (similarly as was explained above).
+///
+/// The dispatcher looks like this:
+/// ```ignore
+/// |--Sync--|         |-------------PhysicsBatch------------|
+/// |--CollisionSync--||--Any other System--||-- Rendering --|
+/// ```
+///
+/// That's it.
+///
+/// ## Small TODO to highlight
+/// I'm confident that this section will be removed ASAP, but for the sake of completeness I've to
+/// mention a problem.
+///
+/// The above section, which explains how to make the physics runsin parallel, due to a small
+/// Amethyst's design problem, is lying.
+/// Indeed, is not possible to run the physics and the rendering in parallel, because they
+/// are in two different pipelines.
+///
+/// So the dispatcher looks like:
+/// ```ignore
+/// |--Sync--|         |-------------PhysicsBatch------------|
+/// |--CollisionSync--||--Any other System--|                 |-- Rendering --|
+/// ```
+///
+/// To know more about it, check this: [https://github.com/AndreaCatania/amethyst/issues/2](https://github.com/AndreaCatania/amethyst/issues/2)
+///
+/// However, I'm confident that this will be solved soon, and for this reason the above section is
+/// written as if this problem doesn't exist.
+///
+/// [Transform component]: ../amethyst_core/transform/components/struct.Transform.html
 pub struct PhysicsBundle<'a, 'b, N: crate::PtReal, B: crate::PhysicsBackend<N>> {
     phantom_data_float: std::marker::PhantomData<N>,
     phantom_data_backend: std::marker::PhantomData<B>,
