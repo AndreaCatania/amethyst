@@ -54,13 +54,13 @@ impl Default for PhysicsTime {
 }
 
 impl PhysicsTime {
-    pub fn with_frames_per_second(mut self, frames_per_second: u32) -> Self {
-        self.set_frames_per_second(frames_per_second);
+    pub fn with_frames_per_second(mut self, frames_per_seconds: u32) -> Self {
+        self.set_frames_per_seconds(frames_per_seconds);
         self
     }
 
-    pub fn set_frames_per_second(&mut self, frames_per_second: u32) {
-        self.set_sub_step_seconds(1.0 / frames_per_second as f32);
+    pub fn set_frames_per_seconds(&mut self, frames_per_seconds: u32) {
+        self.set_sub_step_seconds(1.0 / frames_per_seconds as f32);
     }
 
     pub fn with_max_sub_steps(mut self, max_sub_steps: u32) -> Self {

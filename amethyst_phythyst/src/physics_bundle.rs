@@ -27,7 +27,7 @@ use crate::{
 ///
 /// ```
 /// Is it possible to define the Physics Engine floating point precision and the [PhysicsBackend](./trait.PhysicsBackend.html);
-/// additionally, the physics frame rate can be specified using the function `with_frames_per_second`.
+/// additionally, the physics frame rate can be specified using the function `with_frames_per_seconds`.
 ///
 /// # Dispatcher pipeline
 ///
@@ -172,22 +172,22 @@ impl<'a, 'b, N: crate::PtReal, B: crate::PhysicsBackend<N>> PhysicsBundle<'a, 'b
         }
     }
 
-    pub fn with_frames_per_second(mut self, frames_per_second: u32) -> Self {
-        self.physics_time.set_frames_per_second(frames_per_second);
+    pub fn with_frames_per_seconds(mut self, frames_per_seconds: u32) -> Self {
+        self.physics_time.set_frames_per_seconds(frames_per_seconds);
         self
     }
 
-    pub fn set_frames_per_second(mut self, frames_per_second: u32) {
-        self.physics_time.set_frames_per_second(frames_per_second);
+    pub fn set_frames_per_seconds(mut self, frames_per_seconds: u32) {
+        self.physics_time.set_frames_per_seconds(frames_per_seconds);
     }
 
-    pub fn with_max_sub_steps(mut self, frames_per_second: u32) -> Self {
-        self.physics_time.set_max_sub_steps(frames_per_second);
+    pub fn with_max_sub_steps(mut self, max_sub_steps: u32) -> Self {
+        self.physics_time.set_max_sub_steps(max_sub_steps);
         self
     }
 
-    pub fn set_max_sub_steps(mut self, frames_per_second: u32) {
-        self.physics_time.set_max_sub_steps(frames_per_second);
+    pub fn set_max_sub_steps(mut self, max_sub_steps: u32) {
+        self.physics_time.set_max_sub_steps(max_sub_steps);
     }
 
     define_setters!(
