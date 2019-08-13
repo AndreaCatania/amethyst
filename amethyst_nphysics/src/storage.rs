@@ -1,11 +1,13 @@
-use slab::Slab;
+use generational_arena::{
+    Index, Arena, Iter, IterMut
+};
 
-pub type StoreTag = std::num::NonZeroUsize;
+pub type StoreKey = Index;
 
 /// This struct is used to store the physics resources, and return an opaque handle that allow to
 /// return a reference to them.
 pub struct Storage<T> {
-    memory: Slab<T>,
+    memory: Arena<T>,
     growing_size: usize,
 }
 
@@ -16,7 +18,7 @@ impl<T> Storage<T> {
     /// The `growing_size` must be big enough to avoid too much reallocation
     pub fn new(initial_capacity: usize, growing_size: usize) -> Storage<T> {
         Storage {
-            memory: Slab::with_capacity(initial_capacity),
+            memory: Arena::with_capacity(initial_capacity),
             growing_size,
         }
     }
@@ -24,39 +26,39 @@ impl<T> Storage<T> {
     /// Takes an object and returns an opaque id.
     /// This function takes also the ownership, so to drop an object you need to call the `drop`
     /// function with the ID of the object to delete.
-    pub fn make_opaque(&mut self, object: T) -> StoreTag {
+    // TODO rename to insert
+    pub fn make_opaque(&mut self, object: T) -> StoreKey {
         // Reserve the memory if no more space
         if self.memory.len() == self.memory.capacity() {
             self.memory.reserve(self.growing_size);
         }
 
-        let key = self.memory.insert(object);
-        TagMachine::make(key + 1)
+        self.memory.insert(object)
     }
 
-    pub fn has(&self, tag: StoreTag) -> bool {
-        self.memory.contains(TagMachine::read(tag) - 1)
+    pub fn has(&self, key: StoreKey) -> bool {
+        self.memory.contains(key)
     }
 
-    pub fn get(&self, tag: StoreTag) -> Option<&T> {
-        self.memory.get(TagMachine::read(tag) - 1)
+    pub fn get(&self, key: StoreKey) -> Option<&T> {
+        self.memory.get(key)
     }
 
-    pub fn get_mut(&mut self, tag: StoreTag) -> Option<&mut T> {
-        self.memory.get_mut(TagMachine::read(tag) - 1)
+    pub fn get_mut(&mut self, key: StoreKey) -> Option<&mut T> {
+        self.memory.get_mut(key)
     }
 
-    /// Destroy an object and release the SoreTag for future use.
-    pub fn destroy(&mut self, tag: StoreTag) {
-        let object = self.memory.remove(TagMachine::read(tag) - 1);
-        drop(object);
+    /// Destroy an object and release the key for future use.
+    // TODO rename to drop
+    pub fn destroy(&mut self, key: StoreKey) {
+        self.memory.remove(key);
     }
 
-    pub fn iter(&self) -> slab::Iter<'_, T> {
+    pub fn iter(&self) -> Iter<'_, T> {
         self.memory.iter()
     }
 
-    pub fn iter_mut(&mut self) -> slab::IterMut<'_, T> {
+    pub fn iter_mut(&mut self) -> IterMut<'_, T> {
         self.memory.iter_mut()
     }
 }
@@ -64,16 +66,5 @@ impl<T> Storage<T> {
 impl<T> Default for Storage<T> {
     fn default() -> Self {
         Storage::new(10, 10)
-    }
-}
-
-struct TagMachine;
-impl TagMachine {
-    pub fn make(id: usize) -> StoreTag {
-        std::num::NonZeroUsize::new(id).unwrap()
-    }
-
-    pub fn read(tag: StoreTag) -> usize {
-        tag.get()
     }
 }

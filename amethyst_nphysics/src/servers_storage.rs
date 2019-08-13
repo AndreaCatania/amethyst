@@ -1,3 +1,9 @@
+use std::sync::{Arc, RwLock, RwLockReadGuard, RwLockWriteGuard};
+
+use amethyst_phythyst::objects::*;
+use nphysics3d::object::{BodyHandle as NpBodyHandle, RigidBody as NpRigidBody};
+use nalgebra::RealField;
+
 use crate::{
     area::Area,
     rigid_body::RigidBody,
@@ -6,14 +12,6 @@ use crate::{
     world::World,
     PtReal,
 };
-
-use amethyst_phythyst::objects::*;
-
-use std::sync::{Arc, RwLock, RwLockReadGuard, RwLockWriteGuard};
-
-use nphysics3d::object::{BodyHandle as NpBodyHandle, RigidBody as NpRigidBody};
-
-use nalgebra::RealField;
 
 pub type ServersStorageType<N> = Arc<ServersStorage<N>>;
 pub type WorldStorageWrite<'a, N> = RwLockWriteGuard<'a, Storage<Box<World<N>>>>;
@@ -42,7 +40,6 @@ pub type ShapeStorageRead<'a, N> = RwLockReadGuard<'a, Storage<Box<RigidShape<N>
 ///
 /// A solution to this problem would be support add multithreading support on NPhysics
 pub struct ServersStorage<N: PtReal> {
-    // TODO is possible to remove RealField here?
     pub(crate) gc: Arc<RwLock<PhysicsGarbageCollector>>,
     worlds: Arc<RwLock<Storage<Box<World<N>>>>>,
     rigid_bodies: Arc<RwLock<Storage<Box<RigidBody>>>>,

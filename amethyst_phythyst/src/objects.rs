@@ -5,8 +5,8 @@ use amethyst_core::ecs::{Component, DenseVecStorage, FlaggedStorage};
 macro_rules! define_opaque_object {
     ($what:ident, $doc_name:ident, $gc_name:ident) => {
         /// $what is the opaque ID that identify a `$doc_name` in the physics server
-        #[derive(Copy, Clone, Debug, PartialEq)]
-        pub struct $what(pub std::num::NonZeroUsize);
+        #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+        pub struct $what(pub std::num::NonZeroU64);
 
         /// Panic if called
         impl Default for $what {
@@ -16,8 +16,8 @@ macro_rules! define_opaque_object {
         }
 
         impl std::ops::Deref for $what {
-            type Target = std::num::NonZeroUsize;
-            fn deref(&self) -> &std::num::NonZeroUsize {
+            type Target = std::num::NonZeroU64;
+            fn deref(&self) -> &std::num::NonZeroU64 {
                 &self.0
             }
         }

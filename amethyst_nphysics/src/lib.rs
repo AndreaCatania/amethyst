@@ -26,7 +26,7 @@
     rust_2018_compatibility
 )]
 #![warn(clippy::all)]
-
+/*
 #[macro_use]
 mod conditional_macros;
 #[macro_use]
@@ -37,13 +37,16 @@ mod utils;
 mod area;
 mod area_physics_server;
 mod conversors;
-mod rigid_body;
 mod rigid_body_physics_server;
 mod shape;
 mod shape_physics_server;
+*/
 mod storage;
 mod world;
 mod world_physics_server;
+mod body_storage;
+mod rigid_body;
+/*
 
 use amethyst_phythyst::{
     servers::{
@@ -76,3 +79,4 @@ where
         )
     }
 }
+*/

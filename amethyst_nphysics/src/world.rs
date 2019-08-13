@@ -1,3 +1,13 @@
-use nphysics3d::world::World as NpWorld;
+use nphysics3d::world::{
+    GeometricalWorld,
+    MechanicalWorld,
+};
+use amethyst_phythyst::{
+    objects::PhysicsBodyTag,
+    PtReal,
+};
 
-pub type World<N> = NpWorld<N>;
+pub struct World<N: PtReal>{
+    pub(crate) geometrical_world: GeometricalWorld<N, usize, usize>,
+    //pub(crate) mechanical_world: MechanicalWorld<N, StoreTag,>,
+}

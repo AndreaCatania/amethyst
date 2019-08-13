@@ -9,20 +9,22 @@ use nalgebra::Vector3;
 use core::borrow::BorrowMut;
 
 use crate::{
-    servers_storage::{ServersStorageType, WorldStorageWrite},
-    utils::*,
+    //servers_storage::{ServersStorageType},
+    //utils::*,
     world::World,
-    AreaNpServer, RBodyNpServer, ShapeNpServer,
+    //AreaNpServer, RBodyNpServer, ShapeNpServer,
 };
 
-use nphysics3d::{utils::UserData as NpUserData, world::World as NpWorld};
+use nphysics3d::{utils::UserData as NpUserData, world::{GeometricalWorld, MechanicalWorld}};
 
 use ncollide3d::query::Proximity;
 
 pub struct WorldNpServer<N: PtReal> {
-    storages: ServersStorageType<N>,
+    p:std::marker::PhantomData<N>, // TODO please remove here once storages get uncommented
+    //storages: ServersStorageType<N>,
 }
 
+/*
 impl<N: PtReal> WorldNpServer<N> {
     pub fn new(storages: ServersStorageType<N>) -> WorldNpServer<N> {
         WorldNpServer { storages }
@@ -187,36 +189,47 @@ impl<N: PtReal> WorldNpServer<N> {
         }
     }
 }
-
+*/
 impl<N: PtReal> WorldPhysicsServerTrait<N> for WorldNpServer<N> {
     fn create_world(&mut self) -> PhysicsHandle<PhysicsWorldTag> {
-        let mut w = World::<N>::new();
+        let mut w = World::<N> {
+            geometrical_world: GeometricalWorld::new(),
+        };
 
-        w.set_gravity(Vector3::new(
-            nalgebra::convert(0.0),
-            nalgebra::convert(-9.8),
-            nalgebra::convert(0.0),
-        ));
+        //let mut w = World::<N>::new();
 
+        //w.set_gravity(Vector3::new(
+        //    nalgebra::convert(0.0),
+        //    nalgebra::convert(-9.8),
+        //    nalgebra::convert(0.0),
+        //));
+
+        //PhysicsHandle::new(
+        //    PhysicsWorldTag(self.storages.worlds_w().make_opaque(Box::new(w))),
+        //    self.storages.gc.clone(),
+        //)
+
+        let gc = std::sync::Arc::new(std::sync::RwLock::new(PhysicsGarbageCollector::default()));
         PhysicsHandle::new(
-            PhysicsWorldTag(self.storages.worlds_w().make_opaque(Box::new(w))),
-            self.storages.gc.clone(),
+            PhysicsWorldTag::default(),
+            gc,
         )
     }
 
     fn step(&self, world: PhysicsWorldTag, delta_time: N) {
-        self.garbage_collect();
+        //self.garbage_collect();
 
-        {
-            let mut w = self.storages.worlds_w();
-            let world = w.get_mut(world.0);
-            fail_cond!(world.is_none());
-            let mut world = world.unwrap();
+        //{
+        //    let mut w = self.storages.worlds_w();
+        //    let world = w.get_mut(world.0);
+        //    fail_cond!(world.is_none());
+        //    let mut world = world.unwrap();
 
-            world.set_timestep(delta_time);
-            world.step();
+        //    // TODO this is not completely free. So perform it only when needed.
+        //    world.set_timestep(delta_time);
+        //    world.step();
 
-            self.fetch_events(world);
-        }
+        //    self.fetch_events(world);
+        //}
     }
 }
