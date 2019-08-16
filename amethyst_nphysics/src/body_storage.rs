@@ -11,26 +11,18 @@ use amethyst_phythyst::{
 use crate::{
     rigid_body::RigidBody,
     storage::{
-        Storage,StoreKey,
+        Storage, StoreKey,
     }
 };
 
-fn body_tag_to_store_key(tag: PhysicsBodyTag) -> StoreKey {
-    StoreKey::new(0,0)
-}
-
-fn store_key_to_body_tag(key: StoreKey) -> PhysicsBodyTag {
-    key.map(|k| PhysicsBodyTag(std::num::NonZeroU64::new(1).unwrap()))
-}
-
-pub(crate) struct BodyStorage<N: PtReal>{
+pub struct BodyStorage<N: PtReal>{
     storage: Storage<RigidBody<N>>,
     /// A list of removed ID, this list is decremented only when the function `pop_removal_event` is called
     removed: Vec<StoreKey>,
 }
 
 impl<N: PtReal> BodyStorage<N>{
-    fn new() -> Self {
+    pub fn new() -> Self {
         BodyStorage {
             storage: Storage::new(50, 50),
             removed: Vec::new(),

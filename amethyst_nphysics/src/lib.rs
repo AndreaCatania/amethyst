@@ -26,22 +26,22 @@
     rust_2018_compatibility
 )]
 #![warn(clippy::all)]
-/*
+
 #[macro_use]
 mod conditional_macros;
-#[macro_use]
-mod servers_storage;
+/*
 #[macro_use]
 mod utils;
-
 mod area;
 mod area_physics_server;
-mod conversors;
 mod rigid_body_physics_server;
 mod shape;
 mod shape_physics_server;
 */
-mod storage;
+pub mod conversors;
+pub mod storage;
+#[macro_use]
+mod servers_storage;
 mod world;
 mod world_physics_server;
 mod body_storage;

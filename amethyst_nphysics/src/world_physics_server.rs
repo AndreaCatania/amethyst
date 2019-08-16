@@ -9,7 +9,8 @@ use nalgebra::Vector3;
 use core::borrow::BorrowMut;
 
 use crate::{
-    //servers_storage::{ServersStorageType},
+    servers_storage::{ServersStorageType},
+    conversors::*,
     //utils::*,
     world::World,
     //AreaNpServer, RBodyNpServer, ShapeNpServer,
@@ -20,8 +21,7 @@ use nphysics3d::{utils::UserData as NpUserData, world::{GeometricalWorld, Mechan
 use ncollide3d::query::Proximity;
 
 pub struct WorldNpServer<N: PtReal> {
-    p:std::marker::PhantomData<N>, // TODO please remove here once storages get uncommented
-    //storages: ServersStorageType<N>,
+    storages: ServersStorageType<N>,
 }
 
 /*
@@ -194,25 +194,12 @@ impl<N: PtReal> WorldPhysicsServerTrait<N> for WorldNpServer<N> {
     fn create_world(&mut self) -> PhysicsHandle<PhysicsWorldTag> {
         let mut w = World::<N> {
             geometrical_world: GeometricalWorld::new(),
+            mechanical_world: MechanicalWorld::new(Vector3::new(N::from(0.0), N::from(-9.8), N::from(0.0))),
         };
 
-        //let mut w = World::<N>::new();
-
-        //w.set_gravity(Vector3::new(
-        //    nalgebra::convert(0.0),
-        //    nalgebra::convert(-9.8),
-        //    nalgebra::convert(0.0),
-        //));
-
-        //PhysicsHandle::new(
-        //    PhysicsWorldTag(self.storages.worlds_w().make_opaque(Box::new(w))),
-        //    self.storages.gc.clone(),
-        //)
-
-        let gc = std::sync::Arc::new(std::sync::RwLock::new(PhysicsGarbageCollector::default()));
         PhysicsHandle::new(
-            PhysicsWorldTag::default(),
-            gc,
+            PhysicsWorldTag(store_key_to_tag(self.storages.worlds_w().make_opaque(Box::new(w)))),
+            self.storages.gc.clone(),
         )
     }
 

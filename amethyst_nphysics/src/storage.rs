@@ -6,6 +6,15 @@ pub type StoreKey = Index;
 
 /// This struct is used to store the physics resources, and return an opaque handle that allow to
 /// return a reference to them.
+// TODO
+//I've a vector that holds some objects. Some algorithms can add and remove these objects at the same time. To do it I'm using Arc<RwLock<Vec<Object>>.
+//
+//Often happens that I've to modify the objects held by this vector, so I take a mutable reference of this vector (from RwLock) and then I can modify the object that I want.
+//The problem is that, if another function want to modify another object, it has to wait that the first function release it.
+//
+//Use something like Arc<RwLock<Vec<Arc<RwLock<Vec<Object>>>> seems a bit too much, do you know vector structures that are optimized to handle these situations?
+//If not, what do you think about -> Arc<RwLock<Vec<Arc<RwLock<Vec<Object>>>> ?
+// Another idea is to create a storage that take care of make a thread and simulate a RwLock.
 pub struct Storage<T> {
     memory: Arena<T>,
     growing_size: usize,

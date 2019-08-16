@@ -2,8 +2,13 @@ use amethyst_core::{
     components::Transform,
     math::{Quaternion, Translation3, UnitQuaternion, Vector3, Vector4},
 };
-
 use nalgebra::{Isometry3, Transform3};
+
+use amethyst_phythyst::objects::{
+    PhysicsWorldTag, PhysicsBodyTag,
+};
+
+use crate::storage::StoreKey;
 
 pub(crate) struct VecConversor;
 
@@ -94,4 +99,33 @@ pub mod body_mode_conversor {
             NpBodyStatus::Kinematic => BodyMode::Kinematic,
         }
     }
+}
+
+// TODO think a better way to have an opaque that is the same with all backends
+// bug give the possibility to each backend to easily convert itw IDS to the phythyst opaque ID.
+/// ```rust
+/// use crate::amethyst_nphysics::storage::StoreKey;
+/// use crate::amethyst_nphysics::conversors::*;
+/// let sk = StoreKey::new(0, 0);
+/// assert_eq!(tag_to_store_key(std::num::NonZeroU64::new(1).unwrap()), sk);
+/// ```
+pub fn tag_to_store_key(tag: std::num::NonZeroU64) -> StoreKey {
+    let opaque = tag.get() - 1;
+    let index = (opaque & 0xffff_ffff) as usize;
+    let generation = opaque >> 32;
+    StoreKey::new(index, generation)
+}
+
+// TODO think a better way to have an opaque that is the same with all backends
+// bug give the possibility to each backend to easily convert itw IDS to the phythyst opaque ID.
+/// ```rust
+/// use crate::amethyst_nphysics::storage::StoreKey;
+/// use crate::amethyst_nphysics::conversors::*;
+/// let sk = StoreKey::new(0, 0);
+/// assert_eq!(std::num::NonZeroU64::new(1).unwrap(), store_key_to_tag(sk));
+/// ```
+pub fn store_key_to_tag(key: StoreKey) -> std::num::NonZeroU64 {
+    key.map(|index, generation | std::num::NonZeroU64::new(
+        ( generation << 32 | (index as u64) ) + 1
+    ).unwrap())
 }

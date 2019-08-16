@@ -1,27 +1,31 @@
 use std::sync::{Arc, RwLock, RwLockReadGuard, RwLockWriteGuard};
 
-use amethyst_phythyst::objects::*;
+use amethyst_phythyst::{
+    PtReal,
+    objects::*
+};
 use nphysics3d::object::{BodyHandle as NpBodyHandle, RigidBody as NpRigidBody};
 use nalgebra::RealField;
 
 use crate::{
-    area::Area,
+    //area::Area,
     rigid_body::RigidBody,
-    shape::RigidShape,
-    storage::{Storage, StoreTag},
+    //shape::RigidShape,
+    storage::{Storage, StoreKey},
     world::World,
-    PtReal,
+    body_storage::BodyStorage,
 };
 
 pub type ServersStorageType<N> = Arc<ServersStorage<N>>;
+
 pub type WorldStorageWrite<'a, N> = RwLockWriteGuard<'a, Storage<Box<World<N>>>>;
 pub type WorldStorageRead<'a, N> = RwLockReadGuard<'a, Storage<Box<World<N>>>>;
-pub type RigidBodyStorageWrite<'a> = RwLockWriteGuard<'a, Storage<Box<RigidBody>>>;
-pub type RigidBodyStorageRead<'a> = RwLockReadGuard<'a, Storage<Box<RigidBody>>>;
-pub type AreaStorageWrite<'a> = RwLockWriteGuard<'a, Storage<Box<Area>>>;
-pub type AreaStorageRead<'a> = RwLockReadGuard<'a, Storage<Box<Area>>>;
-pub type ShapeStorageWrite<'a, N> = RwLockWriteGuard<'a, Storage<Box<RigidShape<N>>>>;
-pub type ShapeStorageRead<'a, N> = RwLockReadGuard<'a, Storage<Box<RigidShape<N>>>>;
+pub type RigidBodyStorageWrite<'a, N> = RwLockWriteGuard<'a, BodyStorage<N>>; // TODo rename to body
+pub type RigidBodyStorageRead<'a, N> = RwLockReadGuard<'a, BodyStorage<N>>; // TODo rename to body
+//pub type AreaStorageWrite<'a> = RwLockWriteGuard<'a, Storage<Box<Area>>>;
+//pub type AreaStorageRead<'a> = RwLockReadGuard<'a, Storage<Box<Area>>>;
+//pub type ShapeStorageWrite<'a, N> = RwLockWriteGuard<'a, Storage<Box<RigidShape<N>>>>;
+//pub type ShapeStorageRead<'a, N> = RwLockReadGuard<'a, Storage<Box<RigidShape<N>>>>;
 
 /// This struct is responsible to hold all the storages
 ///
@@ -42,9 +46,10 @@ pub type ShapeStorageRead<'a, N> = RwLockReadGuard<'a, Storage<Box<RigidShape<N>
 pub struct ServersStorage<N: PtReal> {
     pub(crate) gc: Arc<RwLock<PhysicsGarbageCollector>>,
     worlds: Arc<RwLock<Storage<Box<World<N>>>>>,
-    rigid_bodies: Arc<RwLock<Storage<Box<RigidBody>>>>,
-    areas: Arc<RwLock<Storage<Box<Area>>>>,
-    shapes: Arc<RwLock<Storage<Box<RigidShape<N>>>>>,
+    // TODO rename to bodies. Because other specialized data are stored within the body itself
+    rigid_bodies: Arc<RwLock<BodyStorage<N>>>,
+    //areas: Arc<RwLock<Storage<Box<Area>>>>,
+    //shapes: Arc<RwLock<Storage<Box<RigidShape<N>>>>>,
 }
 
 impl<N: PtReal> ServersStorage<N> {
@@ -52,39 +57,39 @@ impl<N: PtReal> ServersStorage<N> {
         Arc::new(ServersStorage {
             gc: Arc::new(RwLock::new(PhysicsGarbageCollector::default())),
             worlds: Arc::new(RwLock::new(Storage::new(1, 1))),
-            rigid_bodies: Arc::new(RwLock::new(Storage::new(50, 50))),
-            areas: Arc::new(RwLock::new(Storage::new(50, 50))),
-            shapes: Arc::new(RwLock::new(Storage::new(50, 50))),
+            rigid_bodies: Arc::new(RwLock::new(BodyStorage::new())),
+            //areas: Arc::new(RwLock::new(Storage::new(50, 50))),
+            //shapes: Arc::new(RwLock::new(Storage::new(50, 50))),
         })
     }
 
     // TODO why use this?
-    pub fn rigid_body<'s>(
-        body_handle: NpBodyHandle,
-        world_tag: StoreTag,
-        storage: &'s WorldStorageRead<N>,
-    ) -> Option<&'s NpRigidBody<N>> {
-        let world = storage.get(world_tag);
-        if let Some(world) = world {
-            world.rigid_body(body_handle)
-        } else {
-            None
-        }
-    }
+    //pub fn rigid_body<'s>(
+    //    body_handle: StoreKey,
+    //    world_tag: StoreTag,
+    //    storage: &'s WorldStorageRead<N>,
+    //) -> Option<&'s NpRigidBody<N>> {
+    //    let world = storage.get(world_tag);
+    //    if let Some(world) = world {
+    //        world.rigid_body(body_handle)
+    //    } else {
+    //        None
+    //    }
+    //}
 
-    // TODO why use this?
-    pub fn rigid_body_mut<'s>(
-        body_handle: NpBodyHandle,
-        world_tag: StoreTag,
-        storage: &'s mut WorldStorageWrite<N>,
-    ) -> Option<&'s mut NpRigidBody<N>> {
-        let mut world = storage.get_mut(world_tag);
-        if let Some(world) = world {
-            world.rigid_body_mut(body_handle)
-        } else {
-            None
-        }
-    }
+    //// TODO why use this?
+    //pub fn rigid_body_mut<'s>(
+    //    body_handle: NpBodyHandle,
+    //    world_tag: StoreTag,
+    //    storage: &'s mut WorldStorageWrite<N>,
+    //) -> Option<&'s mut NpRigidBody<N>> {
+    //    let mut world = storage.get_mut(world_tag);
+    //    if let Some(world) = world {
+    //        world.rigid_body_mut(body_handle)
+    //    } else {
+    //        None
+    //    }
+    //}
 }
 
 impl<N: PtReal> ServersStorage<N> {
@@ -96,27 +101,27 @@ impl<N: PtReal> ServersStorage<N> {
         self.worlds.read().unwrap()
     }
 
-    pub fn rbodies_w(&self) -> RigidBodyStorageWrite {
+    pub fn rbodies_w(&self) -> RigidBodyStorageWrite<N> {
         self.rigid_bodies.write().unwrap()
     }
 
-    pub fn rbodies_r(&self) -> RigidBodyStorageRead {
+    pub fn rbodies_r(&self) -> RigidBodyStorageRead<N> {
         self.rigid_bodies.read().unwrap()
     }
 
-    pub fn areas_w(&self) -> AreaStorageWrite {
-        self.areas.write().unwrap()
-    }
+    //pub fn areas_w(&self) -> AreaStorageWrite {
+    //    self.areas.write().unwrap()
+    //}
 
-    pub fn areas_r(&self) -> AreaStorageRead {
-        self.areas.read().unwrap()
-    }
+    //pub fn areas_r(&self) -> AreaStorageRead {
+    //    self.areas.read().unwrap()
+    //}
 
-    pub fn shapes_w(&self) -> ShapeStorageWrite<N> {
-        self.shapes.write().unwrap()
-    }
+    //pub fn shapes_w(&self) -> ShapeStorageWrite<N> {
+    //    self.shapes.write().unwrap()
+    //}
 
-    pub fn shapes_r(&self) -> ShapeStorageRead<N> {
-        self.shapes.read().unwrap()
-    }
+    //pub fn shapes_r(&self) -> ShapeStorageRead<N> {
+    //    self.shapes.read().unwrap()
+    //}
 }
