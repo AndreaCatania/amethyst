@@ -12,7 +12,7 @@ pub struct RigidShape<N: PtReal> {
     shape_desc: ShapeDesc<N>,
     shape_handle: NcShapeHandle<N>,
     bodies: Vec<StoreKey>,
-    areas: Vec<PhysicsAreaTag>,
+    areas: Vec<StoreKey>,
     /// This is used to know if the shape will be soon dropped since no one own it anymore.
     ///
     /// When the shape is no more owned but still in use by a rigid body or an area is safer not delete it.
@@ -54,15 +54,15 @@ impl<N: PtReal> RigidShape<N> {
         &self.bodies
     }
 
-    pub fn register_area(&mut self, area: PhysicsAreaTag) {
+    pub fn register_area(&mut self, area: StoreKey) {
         self.areas.push(area);
     }
 
-    pub fn unregister_area(&mut self, area: PhysicsAreaTag) {
+    pub fn unregister_area(&mut self, area: StoreKey) {
         self.areas.retain(|&a| a != area);
     }
 
-    pub fn areas(&self) -> &Vec<PhysicsAreaTag> {
+    pub fn areas(&self) -> &Vec<StoreKey> {
         &self.areas
     }
 }

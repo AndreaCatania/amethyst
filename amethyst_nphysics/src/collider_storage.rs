@@ -14,14 +14,13 @@ use amethyst_phythyst::{
 };
 
 use crate::{
-    collider::Collider,
     storage::{
         Storage, StoreKey,
     }
 };
 
 pub struct ColliderStorage<N: PtReal, BH: NpBodyHandle>{
-    storage: Storage<Collider<N, BH>>,
+    storage: Storage<NpCollider<N, BH>>,
     /// A list of inserted ID, this list is decremented only when the function `pop_inserted_event` is called
     inserted: Vec<StoreKey>,
     /// A list of removed ID, this list is decremented only when the function `pop_removal_event` is called
@@ -45,7 +44,7 @@ impl<N: PtReal, BH: NpBodyHandle> Default for ColliderStorage<N, BH> {
 }
 
 impl<N:PtReal, BH: NpBodyHandle> ColliderStorage<N, BH> {
-    pub fn insert_collider(&mut self, collider: Collider<N, BH>) -> StoreKey {
+    pub fn insert_collider(&mut self, collider: NpCollider<N, BH>) -> StoreKey {
         let key = self.storage.make_opaque(collider);
         self.inserted.push(key);
         key
@@ -54,17 +53,17 @@ impl<N:PtReal, BH: NpBodyHandle> ColliderStorage<N, BH> {
     pub fn drop_collider(&mut self, key: StoreKey) {
         let res = self.storage.destroy(key);
         if let Some(data) = res {
-            if let Some(d) = data.np_collider.removal_data() {
+            if let Some(d) = data.removal_data() {
                 self.removed.push((key, d));
             }
         }
     }
 
-    pub fn get_collider(&self, key: StoreKey) -> Option<&Collider<N, BH>> {
+    pub fn get_collider(&self, key: StoreKey) -> Option<&NpCollider<N, BH>> {
         self.storage.get(key)
     }
 
-    pub fn get_collider_mut(&mut self, key: StoreKey) -> Option<&mut Collider<N, BH>> {
+    pub fn get_collider_mut(&mut self, key: StoreKey) -> Option<&mut NpCollider<N, BH>> {
         self.storage.get_mut(key)
     }
 }
@@ -76,7 +75,7 @@ impl<N: PtReal, BH: NpBodyHandle> NpCollisionObjectSet<N> for ColliderStorage<N,
 
     fn collision_object(&self, handle: Self::CollisionObjectHandle) -> Option<&Self::CollisionObject>{
         if let Some(collider) = self.storage.get(handle) {
-            Some(&collider.np_collider)
+            Some(&collider)
         }else{
             None
         }
@@ -84,7 +83,7 @@ impl<N: PtReal, BH: NpBodyHandle> NpCollisionObjectSet<N> for ColliderStorage<N,
 
     fn foreach(&self, mut f: impl FnMut(Self::CollisionObjectHandle, &Self::CollisionObject)){
         for(i, c) in self.storage.iter() {
-            f(i, &c.np_collider)
+            f(i, &c)
         }
     }
 }
@@ -94,19 +93,11 @@ impl<N: PtReal, BH: NpBodyHandle> ColliderSet<N, BH> for ColliderStorage<N, BH> 
     type Handle = StoreKey;
 
     fn get(&self, handle: Self::Handle) -> Option<&NpCollider<N, BH>> {
-        if let Some(collider) = self.storage.get(handle) {
-            Some(&collider.np_collider)
-        }else{
-            None
-        }
+        self.storage.get(handle)
     }
 
     fn get_mut(&mut self, handle: Self::Handle) -> Option<&mut NpCollider<N, BH>> {
-        if let Some(collider) = self.storage.get_mut(handle) {
-            Some(&mut collider.np_collider)
-        }else{
-            None
-        }
+        self.storage.get_mut(handle)
     }
 
     fn get_pair_mut(&mut self, handle1: Self::Handle, handle2: Self::Handle) -> (Option<&mut NpCollider<N, BH>>, Option<&mut NpCollider<N, BH>>){
@@ -128,13 +119,13 @@ impl<N: PtReal, BH: NpBodyHandle> ColliderSet<N, BH> for ColliderStorage<N, BH> 
 
     fn foreach(&self, mut f: impl FnMut(Self::Handle, &NpCollider<N, BH>)){
         for(i, c) in self.storage.iter() {
-            f(i, &c.np_collider)
+            f(i, c)
         }
     }
 
     fn foreach_mut(&mut self, mut f: impl FnMut(Self::Handle, &mut NpCollider<N, BH>)){
         for(i, c) in self.storage.iter_mut() {
-            f(i, &mut c.np_collider)
+            f(i, c)
         }
     }
 
@@ -147,8 +138,8 @@ impl<N: PtReal, BH: NpBodyHandle> ColliderSet<N, BH> for ColliderStorage<N, BH> 
     }
 
     fn remove(&mut self, to_remove: Self::Handle) -> Option<&mut NpColliderRemovalData<N, BH>> {
-        let res = self.storage.destroy(to_remove)?;
-        if let Some(data) = res.np_collider.removal_data() {
+        let collider = self.storage.destroy(to_remove)?;
+        if let Some(data) = collider.removal_data() {
             self.removed.push((to_remove, data));
             self.removed.last_mut().map(|r| &mut r.1)
         } else {

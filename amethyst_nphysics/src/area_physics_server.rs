@@ -1,4 +1,4 @@
-use crate::{area::Area, conversors::*, servers_storage::*, utils::*};
+use crate::{area::Area, conversors::*, servers_storage::*};
 use amethyst_core::ecs::Entity;
 use amethyst_phythyst::{
     objects::*,
@@ -10,7 +10,6 @@ use nphysics3d::{
     object::{
         Collider as NpCollider, ColliderDesc as NpColliderDesc, ColliderHandle as NpColliderHandle,
     },
-    world::World as NpWorld,
 };
 
 pub struct AreaNpServer<N: PtReal> {
@@ -26,66 +25,68 @@ impl<N: PtReal> AreaNpServer<N> {
 // This is a collection of functions that can be used by other servers to perform some common
 // operation on areas.
 impl<N: PtReal> AreaNpServer<N> {
-    pub fn drop_body(
+    pub fn drop_area(
         area_tag: PhysicsAreaTag,
-        worlds_storage: &mut WorldStorageWrite<N>,
         areas_storage: &mut AreaStorageWrite,
+        colliders_storage: &mut ColliderStorageWrite<N>,
         shapes_storage: &mut ShapeStorageWrite<N>,
     ) {
-        {
-            let area = storage_safe_get!(areas_storage, area_tag);
-
-            // Remove from world
-            let world = storage_safe_get_mut!(worlds_storage, area.world_tag);
-            if let Some(handle) = area.collider_handle {
-                world.remove_colliders(&[handle]);
-            }
-
-            // Remove from shape
-            let shape = storage_safe_get_mut!(shapes_storage, area.shape_tag);
-            shape.unregister_area(area_tag);
+        let area_key = tag_to_store_key(area_tag.0);
+        if let Some(area) = areas_storage.get_mut(area_key) {
+            Self::remove_shape(area.as_mut(), shapes_storage, colliders_storage);
         }
-
-        areas_storage.destroy(*area_tag);
+        areas_storage.destroy(area_key);
     }
 
-    pub fn destroy_collider(area: &mut Area, world: &mut NpWorld<N>) {
-        fail_cond!(area.collider_handle.is_none());
-        world.remove_colliders(&[area.collider_handle.unwrap()]);
-        area.collider_handle = None;
+    /// Remove shape.
+    /// Take care to unregister the shape and then drop the internal collider.
+    pub fn remove_shape(area: &mut Area, shapes: &mut ShapeStorageWrite<N>, colliders: &mut ColliderStorageWrite<N>) {
+        if let Some(shape) = shapes.get_mut(area.shape_key) {
+            shape.unregister_area(area.self_key.unwrap());
+        }
+        Self::drop_collider(area, colliders);
     }
 
-    pub fn copy_collider_desc(
-        np_collider: &mut NpCollider<N>,
-        collider_desc: &mut NpColliderDesc<N>,
-    ) {
-        collider_desc
-            .set_is_sensor(true)
-            .set_position(*np_collider.position());
+    /// Just drop the internal collider of the passed area.
+    pub fn drop_collider(area: &mut Area, colliders: &mut ColliderStorageWrite<N>) {
+        if let Some(collider_key) = area.collider_key {
+            colliders.drop_collider(collider_key);
+            area.collider_key = None;
+        }
     }
 
-    pub fn set_collider<'w>(
-        area: &mut Area,
-        area_tag: PhysicsAreaTag,
-        np_world: &'w mut NpWorld<N>,
-        collider_desc: &NpColliderDesc<N>,
-    ) {
-        let collider = collider_desc.build(np_world);
-        AreaNpServer::update_user_data(collider, area);
+    //pub fn copy_collider_desc(
+    //    np_collider: &mut NpCollider<N>,
+    //    collider_desc: &mut NpColliderDesc<N>,
+    //) {
+    //    collider_desc
+    //        .set_is_sensor(true)
+    //        .set_position(*np_collider.position());
+    //}
 
-        // Collider registration
-        area.collider_handle = Some(collider.handle());
-    }
+    //pub fn set_collider<'w>(
+    //    area: &mut Area,
+    //    area_tag: PhysicsAreaTag,
+    //    np_world: &'w mut NpWorld<N>,
+    //    collider_desc: &NpColliderDesc<N>,
+    //) {
+    //    let collider = collider_desc.build(np_world);
+    //    AreaNpServer::update_user_data(collider, area);
 
-    pub fn update_user_data(collider: &mut NpCollider<N>, area: &Area) {
-        collider.set_user_data(Some(Box::new(UserData::new(
-            ObjectType::Area,
-            *area.self_tag.unwrap(),
-            area.entity,
-        ))));
-    }
+    //    // Collider registration
+    //    area.collider_handle = Some(collider.handle());
+    //}
+
+    //pub fn update_user_data(collider: &mut NpCollider<N>, area: &Area) {
+    //    collider.set_user_data(Some(Box::new(UserData::new(
+    //        ObjectType::Area,
+    //        *area.self_tag.unwrap(),
+    //        area.entity,
+    //    ))));
+    //}
 }
 
+/*
 impl<N> AreaPhysicsServerTrait for AreaNpServer<N>
 where
     N: PtReal,
@@ -172,3 +173,4 @@ where
         area.unwrap().overlap_events.to_vec()
     }
 }
+*/

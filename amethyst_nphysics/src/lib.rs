@@ -32,8 +32,6 @@ mod conditional_macros;
 /*
 #[macro_use]
 mod utils;
-mod area;
-mod area_physics_server;
 mod shape_physics_server;
 */
 pub mod conversors;
@@ -44,7 +42,7 @@ mod world;
 mod world_physics_server;
 mod rigid_body;
 mod body_storage;
-mod collider;
+mod area;
 mod collider_storage;
 mod joint;
 mod joint_storage;
@@ -52,6 +50,11 @@ mod force_generator;
 mod force_generator_storage;
 mod shape;
 mod rigid_body_physics_server;
+mod area_physics_server;
+
+use rigid_body_physics_server::RBodyNpServer;
+use area_physics_server::AreaNpServer;
+
 /*
 
 use amethyst_phythyst::{
@@ -61,10 +64,8 @@ use amethyst_phythyst::{
     },
     PtReal,
 };
-use area_physics_server::*;
 use nalgebra::RealField;
 */
-use rigid_body_physics_server::RBodyNpServer;
 /*
 use shape_physics_server::*;
 use world_physics_server::WorldNpServer;

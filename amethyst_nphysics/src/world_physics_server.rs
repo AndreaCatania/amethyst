@@ -13,7 +13,7 @@ use crate::{
     conversors::*,
     //utils::*,
     world::World,
-    //AreaNpServer,
+    AreaNpServer,
     RBodyNpServer,
     //ShapeNpServer,
 };
@@ -41,10 +41,10 @@ impl<N: PtReal> WorldNpServer<N> {
 */
 impl<N: PtReal> WorldNpServer<N> {
     fn garbage_collect(&self) {
-        unimplemented!();
         let mut gc = self.storages.gc.write().unwrap();
         let mut worlds_storage = self.storages.worlds_w();
         let mut bodies_storage = self.storages.rbodies_w();
+        let mut areas_storage = self.storages.areas_w();
         let mut colliders_storage = self.storages.colliders_w();
         let mut shapes_storage = self.storages.shapes_w();
 
@@ -58,24 +58,23 @@ impl<N: PtReal> WorldNpServer<N> {
                 );
             }
 
-            // The body drop can never fail.
             gc.bodies.clear();
         }
 
-        //{
-        //    for rb in gc.bodies.iter() {
-        //        RBodyNpServer::drop_body(
-        //            *rb,
-        //            &mut worlds_storage,
-        //            &mut rbodies_storage,
-        //            &mut shapes_storage,
-        //        );
-        //    }
+        {
+            for area in gc.areas.iter() {
+                AreaNpServer::drop_area(
+                    *area,
+                    &mut areas_storage,
+                    &mut colliders_storage,
+                    &mut shapes_storage,
+                );
+            }
 
-        //    // The body drop can never fail.
-        //    gc.bodies.clear();
-        //}
+            gc.areas.clear();
+        }
 
+        unimplemented!();
         //// This happen after the bodies and the areas since they depend on this.
         //{
         //    // Not all shapes can be safely removed since they could be assigned to Rigid Body and Areas.

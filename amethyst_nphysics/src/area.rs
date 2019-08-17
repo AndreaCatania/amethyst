@@ -1,25 +1,25 @@
 use amethyst_phythyst::{objects::*, servers::OverlapEvent};
-
 use amethyst_core::ecs::Entity;
-
 use nphysics3d::object::ColliderHandle as NpColliderHandle;
 
+use crate::storage::StoreKey;
+
 pub struct Area {
-    pub self_tag: Option<PhysicsAreaTag>,
-    pub collider_handle: Option<NpColliderHandle>,
-    pub world_tag: PhysicsWorldTag,
-    pub shape_tag: PhysicsShapeTag,
+    pub self_key: Option<StoreKey>,
+    pub collider_key: Option<StoreKey>,
+    pub world_key: StoreKey,
+    pub shape_key: StoreKey,
     pub entity: Option<Entity>,
     pub overlap_events: Vec<OverlapEvent>,
 }
 
 impl Area {
-    pub(crate) fn new(world_tag: PhysicsWorldTag, shape_tag: PhysicsShapeTag) -> Self {
+    pub(crate) fn new(world_key: StoreKey, shape_key: StoreKey) -> Self {
         Area {
-            self_tag: None,
-            collider_handle: None,
-            world_tag,
-            shape_tag,
+            self_key: None,
+            collider_key: None,
+            world_key,
+            shape_key,
             entity: None,
             overlap_events: Vec::new(),
         }
