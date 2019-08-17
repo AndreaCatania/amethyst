@@ -77,34 +77,6 @@ impl<N: PtReal> ServersStorage<N> {
             shapes: Arc::new(RwLock::new(Storage::new(50, 50))),
         })
     }
-
-    // TODO why use this?
-    //pub fn rigid_body<'s>(
-    //    body_handle: StoreKey,
-    //    world_tag: StoreTag,
-    //    storage: &'s WorldStorageRead<N>,
-    //) -> Option<&'s NpRigidBody<N>> {
-    //    let world = storage.get(world_tag);
-    //    if let Some(world) = world {
-    //        world.rigid_body(body_handle)
-    //    } else {
-    //        None
-    //    }
-    //}
-
-    //// TODO why use this?
-    //pub fn rigid_body_mut<'s>(
-    //    body_handle: NpBodyHandle,
-    //    world_tag: StoreTag,
-    //    storage: &'s mut WorldStorageWrite<N>,
-    //) -> Option<&'s mut NpRigidBody<N>> {
-    //    let mut world = storage.get_mut(world_tag);
-    //    if let Some(world) = world {
-    //        world.rigid_body_mut(body_handle)
-    //    } else {
-    //        None
-    //    }
-    //}
 }
 
 impl<N: PtReal> ServersStorage<N> {

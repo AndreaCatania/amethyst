@@ -22,7 +22,7 @@ use crate::{
 };
 
 pub struct ForceGeneratorStorage<N: PtReal, S: NpBodySet<N>>{
-    storage: Storage<ForceGenerator<N, S>>,
+    storage: Storage<Box<ForceGenerator<N, S>>>,
 }
 
 impl<N: PtReal, S: NpBodySet<N>> ForceGeneratorStorage<N, S>{
@@ -40,7 +40,7 @@ impl<N: PtReal, S: NpBodySet<N>> Default for ForceGeneratorStorage<N, S> {
 }
 
 impl<N:PtReal, S: NpBodySet<N>> ForceGeneratorStorage<N, S> {
-    pub fn insert(&mut self, force_generator: ForceGenerator<N, S>) -> StoreKey {
+    pub fn insert(&mut self, force_generator: Box<ForceGenerator<N, S>>) -> StoreKey {
         self.storage.make_opaque(force_generator)
     }
 
@@ -48,11 +48,11 @@ impl<N:PtReal, S: NpBodySet<N>> ForceGeneratorStorage<N, S> {
         self.storage.destroy(key);
     }
 
-    pub fn get_collider(&self, key: StoreKey) -> Option<&ForceGenerator<N, S>> {
+    pub fn get_collider(&self, key: StoreKey) -> Option<&Box<ForceGenerator<N, S>>> {
         self.storage.get(key)
     }
 
-    pub fn get_collider_mut(&mut self, key: StoreKey) -> Option<&mut ForceGenerator<N, S>> {
+    pub fn get_collider_mut(&mut self, key: StoreKey) -> Option<&mut Box<ForceGenerator<N, S>>> {
         self.storage.get_mut(key)
     }
 }

@@ -64,22 +64,22 @@ use amethyst_phythyst::{
 
 pub struct NPhysicsBackend;
 
-/// NPhysics Backend
-impl<N> amethyst_phythyst::PhysicsBackend<N> for NPhysicsBackend
-where
-    N: PtReal,
-{
-    fn create_servers() -> PhysicsServers<N> {
-        let storages = servers_storage::ServersStorage::new();
-
-        let r = RBodyPhysicsServer(Box::new(RBodyNpServer::new(storages.clone())));
-
-        unimplemented!();
-        //(
-        //    WorldPhysicsServer(Box::new(WorldNpServer::new(storages.clone()))),
-        //    RBodyPhysicsServer(Box::new(RBodyNpServer::new(storages.clone()))),
-        //    AreaPhysicsServer(Box::new(AreaNpServer::new(storages.clone()))),
-        //    ShapePhysicsServer(Box::new(ShapeNpServer::new(storages.clone()))),
-        //)
-    }
-}
+///// NPhysics Backend
+//impl<N> amethyst_phythyst::PhysicsBackend<N> for NPhysicsBackend
+//where
+//    N: PtReal,
+//{
+//    fn create_servers() -> PhysicsServers<N> {
+//        let storages = servers_storage::ServersStorage::new();
+//
+//        //let r = AreaPhysicsServer(Box::new(AreaNpServer::new(storages.clone())));
+//
+//        unimplemented!();
+//        //(
+//        //    WorldPhysicsServer(Box::new(WorldNpServer::new(storages.clone()))),
+//        //    RBodyPhysicsServer(Box::new(RBodyNpServer::new(storages.clone()))),
+//        //    AreaPhysicsServer(Box::new(AreaNpServer::new(storages.clone()))),
+//        //    ShapePhysicsServer(Box::new(ShapeNpServer::new(storages.clone()))),
+//        //)
+//    }
+//}

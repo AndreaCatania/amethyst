@@ -84,7 +84,7 @@ impl<N: PtReal> RBodyNpServer<N> {
 
         RBodyNpServer::update_user_data(&mut collider, body);
 
-        let key = colliders.insert_collider(collider);
+        let key = colliders.insert_collider(Box::new(collider));
         body.collider_key = Some(key);
     }
 
@@ -138,7 +138,7 @@ where
             .set_mass(body_desc.mass)
             .build();
 
-        let b_key = bodies_storage.insert_body(RigidBody::new_rigid_body(Box::new(np_rigid_body), body_desc.mode, tag_to_store_key(world_tag.0)));
+        let b_key = bodies_storage.insert_body(Box::new(RigidBody::new_rigid_body(Box::new(np_rigid_body), body_desc.mode, tag_to_store_key(world_tag.0))));
         let body = bodies_storage.get_body_mut(b_key).unwrap();
 
         body.self_key = Some(b_key);
@@ -242,8 +242,8 @@ where
         let mut bodies = self.storages.rbodies_r();
 
         if let Some(body) = bodies.get_body(body_key){
-            if let Some(body) = body.rigid_body_mut() {
-                return TransfConversor::from_physics(body.position())
+            if let Some(body) = body.rigid_body() {
+                return TransfConversor::from_physics(body.position());
             }else{
                 error!("Failed to cast the body, to a Rigid Body!");
             }
@@ -348,7 +348,7 @@ where
         let mut bodies = self.storages.rbodies_r();
 
         if let Some(body) = bodies.get_body(body_key) {
-            if let Some(rb_body) = body.rigid_body_mut() {
+            if let Some(rb_body) = body.rigid_body() {
                 return rb_body.velocity().linear;
             }else{
                 error!("The tag is not associated to any RigidBody");
@@ -375,7 +375,7 @@ where
         let mut bodies = self.storages.rbodies_r();
 
         if let Some(body) = bodies.get_body(body_key) {
-            if let Some(rb_body) = body.rigid_body_mut() {
+            if let Some(rb_body) = body.rigid_body() {
                 return rb_body.velocity().angular;
             }else{
                 error!("The tag is not associated to any RigidBody");

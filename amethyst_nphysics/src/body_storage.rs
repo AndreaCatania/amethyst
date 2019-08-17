@@ -16,7 +16,7 @@ use crate::{
 };
 
 pub struct BodyStorage<N: PtReal>{
-    storage: Storage<RigidBody<N>>,
+    storage: Storage<Box<RigidBody<N>>>,
     /// A list of removed ID, this list is decremented only when the function `pop_removal_event` is called
     removed: Vec<StoreKey>,
 }
@@ -37,7 +37,7 @@ impl<N: PtReal> Default for BodyStorage<N> {
 }
 
 impl<N:PtReal> BodyStorage<N> {
-    pub fn insert_body(&mut self, body: RigidBody<N>) -> StoreKey {
+    pub fn insert_body(&mut self, body: Box<RigidBody<N>>) -> StoreKey {
         self.storage.make_opaque(body)
     }
 
@@ -46,11 +46,11 @@ impl<N:PtReal> BodyStorage<N> {
         self.removed.push(key);
     }
 
-    pub fn get_body(&self, key: StoreKey) -> Option<&RigidBody<N>> {
+    pub fn get_body(&self, key: StoreKey) -> Option<&Box<RigidBody<N>>> {
         self.storage.get(key)
     }
 
-    pub fn get_body_mut(&mut self, key: StoreKey) -> Option<&mut RigidBody<N>> {
+    pub fn get_body_mut(&mut self, key: StoreKey) -> Option<&mut Box<RigidBody<N>>> {
         self.storage.get_mut(key)
     }
 }

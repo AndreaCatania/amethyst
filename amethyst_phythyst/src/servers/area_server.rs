@@ -35,7 +35,7 @@ pub trait AreaPhysicsServerTrait {
 }
 
 pub struct AreaDesc {
-    pub shape: PhysicsShapeTag,
+    pub shape: PhysicsShapeTag, // TODO please remove this, and add an APi like for the RigidBody server
 }
 
 #[derive(Copy, Clone, Debug)]

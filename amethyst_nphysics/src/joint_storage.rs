@@ -22,7 +22,7 @@ use crate::{
 };
 
 pub struct JointStorage<N: PtReal, S: NpBodySet<N>>{
-    storage: Storage<Joint<N, S>>,
+    storage: Storage<Box<Joint<N, S>>>,
     /// A list of inserted ID, this list is decremented only when the function `pop_inserted_event` is called
     inserted: Vec<(StoreKey, NpBodyPartHandle<S::Handle>, NpBodyPartHandle<S::Handle>)>,
     /// A list of removed ID, this list is decremented only when the function `pop_removal_event` is called
@@ -46,7 +46,7 @@ impl<N: PtReal, S: NpBodySet<N>> Default for JointStorage<N, S> {
 }
 
 impl<N:PtReal, S: NpBodySet<N>> JointStorage<N, S> {
-    pub fn insert(&mut self, joint: Joint<N, S>) -> StoreKey {
+    pub fn insert(&mut self, joint: Box<Joint<N, S>>) -> StoreKey {
         let (part1, part2) = joint.np_joint.anchors();
         let key = self.storage.make_opaque(joint);
         self.inserted.push((key, part1, part2));
@@ -61,11 +61,11 @@ impl<N:PtReal, S: NpBodySet<N>> JointStorage<N, S> {
         }
     }
 
-    pub fn get_collider(&self, key: StoreKey) -> Option<&Joint<N, S>> {
+    pub fn get_collider(&self, key: StoreKey) -> Option<&Box<Joint<N, S>>> {
         self.storage.get(key)
     }
 
-    pub fn get_collider_mut(&mut self, key: StoreKey) -> Option<&mut Joint<N, S>> {
+    pub fn get_collider_mut(&mut self, key: StoreKey) -> Option<&mut Box<Joint<N, S>>> {
         self.storage.get_mut(key)
     }
 }

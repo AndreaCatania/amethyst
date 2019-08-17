@@ -1,4 +1,3 @@
-use crate::{area::Area, conversors::*, servers_storage::*};
 use amethyst_core::ecs::Entity;
 use amethyst_phythyst::{
     objects::*,
@@ -8,9 +7,11 @@ use amethyst_phythyst::{
 use nalgebra::Isometry3;
 use nphysics3d::{
     object::{
-        Collider as NpCollider, ColliderDesc as NpColliderDesc, ColliderHandle as NpColliderHandle,
+        Collider as NpCollider, ColliderDesc as NpColliderDesc, ColliderHandle as NpColliderHandle, BodyPartHandle as NpBodyPartHandle,
     },
 };
+
+use crate::{area::Area, conversors::*, servers_storage::*};
 
 pub struct AreaNpServer<N: PtReal> {
     storages: ServersStorageType<N>,
@@ -23,7 +24,7 @@ impl<N: PtReal> AreaNpServer<N> {
 }
 
 // This is a collection of functions that can be used by other servers to perform some common
-// operation on areas.
+// operation on the areas.
 impl<N: PtReal> AreaNpServer<N> {
     pub fn drop_area(
         area_tag: PhysicsAreaTag,
@@ -64,13 +65,12 @@ impl<N: PtReal> AreaNpServer<N> {
     //        .set_position(*np_collider.position());
     //}
 
-    //pub fn set_collider<'w>(
+    //pub fn install_collider<'w>(
     //    area: &mut Area,
-    //    area_tag: PhysicsAreaTag,
-    //    np_world: &'w mut NpWorld<N>,
     //    collider_desc: &NpColliderDesc<N>,
+    //    colliders: &mut ColliderStorageWrite<N>,
     //) {
-    //    let collider = collider_desc.build(np_world);
+    //    let collider = collider_desc.build(NpBodyPartHandle());
     //    AreaNpServer::update_user_data(collider, area);
 
     //    // Collider registration
@@ -85,7 +85,6 @@ impl<N: PtReal> AreaNpServer<N> {
     //    ))));
     //}
 }
-
 /*
 impl<N> AreaPhysicsServerTrait for AreaNpServer<N>
 where
@@ -96,16 +95,24 @@ where
         world_tag: PhysicsWorldTag,
         area_desc: &AreaDesc,
     ) -> PhysicsHandle<PhysicsAreaTag> {
-        let mut worlds_storage = self.storages.worlds_w();
-        let mut areas_storage = self.storages.areas_w();
-        let mut shapes_storage = self.storages.shapes_w();
+        let mut areas = self.storages.areas_w();
+        let mut colliders = self.storages.colliders_w();
+        let mut shapes = self.storages.shapes_w();
 
-        let np_world = worlds_storage
-            .get_mut(*world_tag)
-            .expect("During the area creation the world tag passed was not valid");
-        let shape = shapes_storage
-            .get_mut(*area_desc.shape)
-            .expect("During area creation was not possible to find the shape");
+        let shape_key = tag_to_store_key(area_desc.shape.0);
+        if let Some(shape) = shapes.get_mut(shape_key){
+
+            let area = Area::new(tag_to_store_key(world_key), shape_key);
+            let area_key = areas.make_opaque(Box::new(area));
+            let area = areas.get_mut(area_key).unwrap();
+            area.self_key = Some(area_key);
+
+            let np_collider_desc = NpColliderDesc::new(shape.shape_handle().clone()).sensor(true);
+            AreaNpServer::set_collider(area, &np_collider_desc);
+
+        } else {
+            error!("During area creation was not possible to find the shape");
+        }
 
         let area_tag = PhysicsAreaTag(
             areas_storage.make_opaque(Box::new(Area::new(world_tag, area_desc.shape))),
@@ -115,9 +122,6 @@ where
 
         shape.register_area(area_tag);
 
-        let np_collider_desc = NpColliderDesc::new(shape.shape_handle().clone()).sensor(true);
-
-        AreaNpServer::set_collider(area, area_tag, np_world, &np_collider_desc);
 
         PhysicsHandle::new(area_tag, self.storages.gc.clone())
     }

@@ -20,7 +20,8 @@ use crate::{
 };
 
 pub struct ColliderStorage<N: PtReal, BH: NpBodyHandle>{
-    storage: Storage<NpCollider<N, BH>>,
+    // TODO use Box
+    storage: Storage<Box<NpCollider<N, BH>>>,
     /// A list of inserted ID, this list is decremented only when the function `pop_inserted_event` is called
     inserted: Vec<StoreKey>,
     /// A list of removed ID, this list is decremented only when the function `pop_removal_event` is called
@@ -44,7 +45,7 @@ impl<N: PtReal, BH: NpBodyHandle> Default for ColliderStorage<N, BH> {
 }
 
 impl<N:PtReal, BH: NpBodyHandle> ColliderStorage<N, BH> {
-    pub fn insert_collider(&mut self, collider: NpCollider<N, BH>) -> StoreKey {
+    pub fn insert_collider(&mut self, collider: Box<NpCollider<N, BH>>) -> StoreKey {
         let key = self.storage.make_opaque(collider);
         self.inserted.push(key);
         key
@@ -59,11 +60,11 @@ impl<N:PtReal, BH: NpBodyHandle> ColliderStorage<N, BH> {
         }
     }
 
-    pub fn get_collider(&self, key: StoreKey) -> Option<&NpCollider<N, BH>> {
+    pub fn get_collider(&self, key: StoreKey) -> Option<&Box<NpCollider<N, BH>>> {
         self.storage.get(key)
     }
 
-    pub fn get_collider_mut(&mut self, key: StoreKey) -> Option<&mut NpCollider<N, BH>> {
+    pub fn get_collider_mut(&mut self, key: StoreKey) -> Option<&mut Box<NpCollider<N, BH>>> {
         self.storage.get_mut(key)
     }
 }
@@ -93,11 +94,11 @@ impl<N: PtReal, BH: NpBodyHandle> ColliderSet<N, BH> for ColliderStorage<N, BH> 
     type Handle = StoreKey;
 
     fn get(&self, handle: Self::Handle) -> Option<&NpCollider<N, BH>> {
-        self.storage.get(handle)
+        self.storage.get(handle).map(|c|c.as_ref())
     }
 
     fn get_mut(&mut self, handle: Self::Handle) -> Option<&mut NpCollider<N, BH>> {
-        self.storage.get_mut(handle)
+        self.storage.get_mut(handle).map(|c|c.as_mut())
     }
 
     fn get_pair_mut(&mut self, handle1: Self::Handle, handle2: Self::Handle) -> (Option<&mut NpCollider<N, BH>>, Option<&mut NpCollider<N, BH>>){

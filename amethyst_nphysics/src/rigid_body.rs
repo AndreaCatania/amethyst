@@ -33,7 +33,7 @@ impl<N: PtReal> RigidBody<N> {
         self.np_body.downcast_ref::<NpRigidBody<N>>()
     }
 
-    pub fn rigid_body_mut(&self) -> Option<&mut NpRigidBody<N>> {
+    pub fn rigid_body_mut(&mut self) -> Option<&mut NpRigidBody<N>> {
         self.np_body.downcast_mut::<NpRigidBody<N>>()
     }
 }
