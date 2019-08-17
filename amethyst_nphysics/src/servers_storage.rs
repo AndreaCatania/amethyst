@@ -25,8 +25,6 @@ pub type WorldStorageWrite<'a, N> = RwLockWriteGuard<'a, Storage<Box<World<N>>>>
 pub type WorldStorageRead<'a, N> = RwLockReadGuard<'a, Storage<Box<World<N>>>>;
 pub type RigidBodyStorageWrite<'a, N> = RwLockWriteGuard<'a, BodyStorage<N>>; // TODo rename to body
 pub type RigidBodyStorageRead<'a, N> = RwLockReadGuard<'a, BodyStorage<N>>; // TODo rename to body
-pub type AreaStorageWrite<'a> = RwLockWriteGuard<'a, Storage<Box<Area>>>;
-pub type AreaStorageRead<'a> = RwLockReadGuard<'a, Storage<Box<Area>>>;
 pub type ColliderStorageWrite<'a, N> = RwLockWriteGuard<'a, ColliderStorage<N, StoreKey>>;
 pub type ColliderStorageRead<'a, N> = RwLockReadGuard<'a, ColliderStorage<N, StoreKey>>;
 pub type JointStorageWrite<'a, N> = RwLockWriteGuard<'a, JointStorage<N, BodyStorage<N>>>;
@@ -57,7 +55,6 @@ pub struct ServersStorage<N: PtReal> {
     worlds: Arc<RwLock<Storage<Box<World<N>>>>>,
     // TODO rename to bodies. Because other specialized data are stored within the body itself
     rigid_bodies: Arc<RwLock<BodyStorage<N>>>,
-    areas: Arc<RwLock<Storage<Box<Area>>>>,
     colliders: Arc<RwLock<ColliderStorage<N, StoreKey>>>,
     joints: Arc<RwLock<JointStorage<N, BodyStorage<N>>>>,
     force_generator: Arc<RwLock<ForceGeneratorStorage<N, BodyStorage<N>>>>,
@@ -70,7 +67,6 @@ impl<N: PtReal> ServersStorage<N> {
             gc: Arc::new(RwLock::new(PhysicsGarbageCollector::default())),
             worlds: Arc::new(RwLock::new(Storage::new(1, 1))),
             rigid_bodies: Arc::new(RwLock::new(BodyStorage::default())),
-            areas: Arc::new(RwLock::new(Storage::new(50, 50))),
             colliders: Arc::new(RwLock::new(ColliderStorage::default())),
             joints: Arc::new(RwLock::new(JointStorage::default())),
             force_generator: Arc::new(RwLock::new(ForceGeneratorStorage::default())),
@@ -94,14 +90,6 @@ impl<N: PtReal> ServersStorage<N> {
 
     pub fn rbodies_r(&self) -> RigidBodyStorageRead<N> {
         self.rigid_bodies.read().unwrap()
-    }
-
-    pub fn areas_w(&self) -> AreaStorageWrite {
-        self.areas.write().unwrap()
-    }
-
-    pub fn areas_r(&self) -> AreaStorageRead {
-        self.areas.read().unwrap()
     }
 
     pub fn colliders_w(&self) -> ColliderStorageWrite<N> {

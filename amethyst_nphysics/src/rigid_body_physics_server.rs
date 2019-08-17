@@ -138,9 +138,8 @@ where
             .set_mass(body_desc.mass)
             .build();
 
-        let b_key = bodies_storage.insert_body(Box::new(RigidBody::new_rigid_body(Box::new(np_rigid_body), body_desc.mode, tag_to_store_key(world_tag.0))));
+        let b_key = bodies_storage.insert_body(Box::new(RigidBody::new_rigid_body(Box::new(np_rigid_body), tag_to_store_key(world_tag.0))));
         let body = bodies_storage.get_body_mut(b_key).unwrap();
-
         body.self_key = Some(b_key);
 
         PhysicsHandle::new(PhysicsBodyTag(store_key_to_tag(b_key)), self.storages.gc.clone())

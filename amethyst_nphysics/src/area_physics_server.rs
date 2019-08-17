@@ -7,11 +7,11 @@ use amethyst_phythyst::{
 use nalgebra::Isometry3;
 use nphysics3d::{
     object::{
-        Collider as NpCollider, ColliderDesc as NpColliderDesc, ColliderHandle as NpColliderHandle, BodyPartHandle as NpBodyPartHandle,
+        BodyStatus as NpBodyStatus, Collider as NpCollider, ColliderDesc as NpColliderDesc, ColliderHandle as NpColliderHandle, BodyPartHandle as NpBodyPartHandle,
     },
 };
 
-use crate::{area::Area, conversors::*, servers_storage::*};
+use crate::{rigid_body::RigidBody, conversors::*, servers_storage::*};
 
 pub struct AreaNpServer<N: PtReal> {
     storages: ServersStorageType<N>,
@@ -85,7 +85,7 @@ impl<N: PtReal> AreaNpServer<N> {
     //    ))));
     //}
 }
-/*
+
 impl<N> AreaPhysicsServerTrait for AreaNpServer<N>
 where
     N: PtReal,
@@ -95,35 +95,61 @@ where
         world_tag: PhysicsWorldTag,
         area_desc: &AreaDesc,
     ) -> PhysicsHandle<PhysicsAreaTag> {
-        let mut areas = self.storages.areas_w();
-        let mut colliders = self.storages.colliders_w();
-        let mut shapes = self.storages.shapes_w();
+        // TODO later I want to split these in two different APIs, so I'm developing them already separated.
 
-        let shape_key = tag_to_store_key(area_desc.shape.0);
-        if let Some(shape) = shapes.get_mut(shape_key){
+        let ph = {
+            let mut bodies_storage = self.storages.rbodies_w();
+            let mut colliders = self.storages.colliders_w();
+            let mut shape_storage = self.storages.shapes_w();
 
-            let area = Area::new(tag_to_store_key(world_key), shape_key);
-            let area_key = areas.make_opaque(Box::new(area));
-            let area = areas.get_mut(area_key).unwrap();
-            area.self_key = Some(area_key);
+            // Create Rigid body
+            let np_rigid_body = NpRigidBodyDesc::new()
+                .set_status(NpBodyStatus::Static)
+                .set_mass(N::from(0.0f32))
+                .build();
 
-            let np_collider_desc = NpColliderDesc::new(shape.shape_handle().clone()).sensor(true);
-            AreaNpServer::set_collider(area, &np_collider_desc);
+            let a_key = bodies_storage.insert_body(Box::new(RigidBody::new_area(Box::new(np_rigid_body), tag_to_store_key(world_tag.0))));
+            let area = bodies_storage.get_body_mut(a_key).unwrap();
+            area.self_key = Some(b_key);
 
-        } else {
-            error!("During area creation was not possible to find the shape");
+            PhysicsAreaTag(store_key_to_tag(b_key))
+        };
+
+        {
+            let body_key = tag_to_store_key(ph.0);
+            let mut bodies = self.storages.rbodies_w();
+
+            let shape_key = tag_to_store_key(area_desc.shape);
+            if let Some(body) = bodies.get_body_mut(body_key) {
+                if body.shape_key != shape_key {
+                    let mut colliders = self.storages.colliders_w();
+                    let mut shapes = self.storages.shapes_w();
+
+                    // Remove the old shape
+                    if let Some(b_shape_key) = body.shape_key {
+                        RBodyNpServer::remove_shape(body, &mut shapes, &mut colliders);
+                    }
+
+                    // Assign the new shape if shape_tag is Some
+                    if let Some(shape_key) = shape_key {
+                        if let Some(shape) = shapes.get_mut(shape_key) {
+
+                            // Create and attach the collider
+                            let mut collider_desc =
+                                NpColliderDesc::new(shape.shape_handle().clone()).density(nalgebra::convert(1.0));
+
+                            RBodyNpServer::install_shape(body, shape, &collider_desc, &mut colliders);
+                        }else{
+                            error!("During the rigid body creation, was not possible to find the shape to assign");
+                        }
+                    }
+                }
+            } else{
+                error!("Body not found");
+            }
         }
 
-        let area_tag = PhysicsAreaTag(
-            areas_storage.make_opaque(Box::new(Area::new(world_tag, area_desc.shape))),
-        );
-        let area = areas_storage.get_mut(*area_tag).unwrap();
-        area.self_tag = Some(area_tag);
-
-        shape.register_area(area_tag);
-
-
-        PhysicsHandle::new(area_tag, self.storages.gc.clone())
+        PhysicsHandle::new(ph, self.storages.gc.clone())
     }
 
     fn set_entity(&self, area_tag: PhysicsAreaTag, entity: Option<Entity>) {
@@ -177,4 +203,3 @@ where
         area.unwrap().overlap_events.to_vec()
     }
 }
-*/

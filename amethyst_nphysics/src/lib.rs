@@ -38,7 +38,6 @@ mod world;
 mod world_physics_server;
 mod rigid_body;
 mod body_storage;
-mod area;
 mod collider_storage;
 mod joint;
 mod joint_storage;
