@@ -15,7 +15,7 @@ use crate::{
     world::World,
     AreaNpServer,
     RBodyNpServer,
-    //ShapeNpServer,
+    ShapeNpServer,
 };
 
 use nphysics3d::{utils::UserData as NpUserData, world::{GeometricalWorld, MechanicalWorld}};
@@ -74,24 +74,23 @@ impl<N: PtReal> WorldNpServer<N> {
             gc.areas.clear();
         }
 
-        unimplemented!();
-        //// This happen after the bodies and the areas since they depend on this.
-        //{
-        //    // Not all shapes can be safely removed since they could be assigned to Rigid Body and Areas.
-        //    // If a shape is not removed it remains in the garbage collector.
-        //    let mut removed_shape = Vec::<PhysicsShapeTag>::with_capacity(gc.shapes.len());
+        // This happen after the bodies and the areas since they depend on this.
+        {
+            // Not all shapes can be safely removed since they could be assigned to Rigid Body and Areas.
+            // If a shape is not removed it remains in the garbage collector.
+            let mut removed_shape = Vec::<PhysicsShapeTag>::with_capacity(gc.shapes.len());
 
-        //    for s in gc.shapes.iter() {
-        //        if ShapeNpServer::drop_shape(*s, &mut shapes_storage) {
-        //            removed_shape.push(*s);
-        //        }
-        //    }
+            for s in gc.shapes.iter() {
+                if ShapeNpServer::drop_shape(*s, &mut shapes_storage) {
+                    removed_shape.push(*s);
+                }
+            }
 
-        //    if removed_shape.len() > 0 {
-        //        // Clear the garbage collector
-        //        gc.shapes.retain(|&s| !removed_shape.contains(&s));
-        //    }
-        //}
+            if removed_shape.len() > 0 {
+                // Remove from GC only the removed shapes.
+                gc.shapes.retain(|&s| !removed_shape.contains(&s));
+            }
+        }
 
         //{
         //    for w in gc.worlds.iter() {

@@ -1,3 +1,4 @@
+use nphysics3d::object::ColliderDesc as NpColliderDesc;
 use amethyst_phythyst::{
     objects::*,
     servers::{ShapeDesc, ShapePhysicsServerTrait},
@@ -6,59 +7,65 @@ use amethyst_phythyst::{
 
 use crate::{
     area_physics_server::AreaNpServer, conversors::*, rigid_body_physics_server::RBodyNpServer,
-    servers_storage::*, shape::RigidShape,
+    servers_storage::*, shape::RigidShape, storage::StoreKey,
 };
 
-use nphysics3d::object::ColliderDesc as NpColliderDesc;
 
 pub struct ShapeNpServer<N: PtReal> {
     storages: ServersStorageType<N>,
 }
 
 impl<N: PtReal> ShapeNpServer<N> {
-    pub fn new(storages: ServersStorageType<N>) -> Self {
-        ShapeNpServer { storages }
-    }
-
-    pub fn has_dependency(
-        shape_tag: PhysicsShapeTag,
-        shapes_storage: &mut ShapeStorageWrite<N>,
-    ) -> bool {
-        let shape = storage_safe_get_mut!(shapes_storage, shape_tag, false);
-
-        if shape.bodies().len() > 0 {
-            return true;
-        }
-
-        if shape.areas().len() > 0 {
-            return true;
-        }
-
-        false
-    }
+    //pub fn new(storages: ServersStorageType<N>) -> Self {
+    //    ShapeNpServer { storages }
+    //}
 
     /// Drop a shape, return false if it can't be removed right now or it something failed.
     pub fn drop_shape(
         shape_tag: PhysicsShapeTag,
         shapes_storage: &mut ShapeStorageWrite<N>,
     ) -> bool {
-        let safe_to_drop = !ShapeNpServer::has_dependency(shape_tag, shapes_storage);
+        let shape_key = tag_to_store_key(shape_tag.0);
+
+        let safe_to_drop = !ShapeNpServer::has_dependency(shape_key, shapes_storage);
 
         if !safe_to_drop {
-            let shape = storage_safe_get_mut!(shapes_storage, shape_tag, false);
-            if !shape.marked_for_drop {
-                shape.marked_for_drop = true;
-                fail!("A shape is marked for drop while still in use. Consider to store the PhysicsHandle<PhysicsShapeTag> to not waste resources.", false);
+
+            if let Some(shape) = shapes_storage.get_mut(shape_key) {
+                if !shape.marked_for_drop {
+                    shape.marked_for_drop = true;
+                    fail!("A shape is marked for drop while still in use. Consider to store the PhysicsHandle<PhysicsShapeTag> to not waste resources.", false);
+                }
             }
-            return false;
+            false
+        }else{
+
+            shapes_storage.destroy(shape_key);
+            true
+        }
+    }
+
+    /// Returns `true` if this shape is still in use.
+    pub fn has_dependency(
+        shape_key: StoreKey,
+        shapes_storage: &mut ShapeStorageWrite<N>,
+    ) -> bool {
+
+        if let Some(shape) = shapes_storage.get_mut(shape_key) {
+
+            if shape.bodies().len() > 0 {
+                return true;
+            }
+
+            if shape.areas().len() > 0 {
+                return true;
+            }
         }
 
-        shapes_storage.destroy(*shape_tag);
-
-        true
+        false
     }
 }
-
+/*
 impl<N: PtReal> ShapePhysicsServerTrait<N> for ShapeNpServer<N> {
     fn create_shape(&mut self, shape_desc: &ShapeDesc<N>) -> PhysicsHandle<PhysicsShapeTag> {
         let shape = Box::new(RigidShape::new(shape_desc));
@@ -136,3 +143,4 @@ impl<N: PtReal> ShapePhysicsServerTrait<N> for ShapeNpServer<N> {
         }
     }
 }
+*/

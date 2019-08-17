@@ -32,7 +32,6 @@ mod conditional_macros;
 /*
 #[macro_use]
 mod utils;
-mod shape_physics_server;
 */
 pub mod conversors;
 pub mod storage;
@@ -51,9 +50,11 @@ mod force_generator_storage;
 mod shape;
 mod rigid_body_physics_server;
 mod area_physics_server;
+mod shape_physics_server;
 
 use rigid_body_physics_server::RBodyNpServer;
 use area_physics_server::AreaNpServer;
+use shape_physics_server::ShapeNpServer;
 
 /*
 
@@ -65,9 +66,6 @@ use amethyst_phythyst::{
     PtReal,
 };
 use nalgebra::RealField;
-*/
-/*
-use shape_physics_server::*;
 use world_physics_server::WorldNpServer;
 
 pub struct NPhysicsBackend;
