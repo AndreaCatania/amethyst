@@ -37,11 +37,11 @@ impl<N: PtReal> Default for BodyStorage<N> {
 }
 
 impl<N:PtReal> BodyStorage<N> {
-    pub fn insert(&mut self, body: RigidBody<N>) -> StoreKey {
+    pub fn insert_body(&mut self, body: RigidBody<N>) -> StoreKey {
         self.storage.make_opaque(body)
     }
 
-    pub fn drop(&mut self, key: StoreKey) {
+    pub fn drop_body(&mut self, key: StoreKey) {
         self.storage.destroy(key);
         self.removed.push(key);
     }

@@ -45,13 +45,13 @@ impl<N: PtReal, BH: NpBodyHandle> Default for ColliderStorage<N, BH> {
 }
 
 impl<N:PtReal, BH: NpBodyHandle> ColliderStorage<N, BH> {
-    pub fn insert(&mut self, collider: Collider<N, BH>) -> StoreKey {
+    pub fn insert_collider(&mut self, collider: Collider<N, BH>) -> StoreKey {
         let key = self.storage.make_opaque(collider);
         self.inserted.push(key);
         key
     }
 
-    pub fn drop(&mut self, key: StoreKey) {
+    pub fn drop_collider(&mut self, key: StoreKey) {
         let res = self.storage.destroy(key);
         if let Some(data) = res {
             if let Some(d) = data.np_collider.removal_data() {

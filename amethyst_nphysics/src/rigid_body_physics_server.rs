@@ -6,7 +6,6 @@ use nphysics3d::{
         BodyStatus as NpBodyStatus, Collider as NpCollider, ColliderDesc as NpColliderDesc,
         RigidBody as NpRigidBody, RigidBodyDesc as NpRigidBodyDesc,
     },
-    world::World as NpWorld,
 };
 
 use ncollide3d::shape::{Ball as NcBall, ShapeHandle as NcShapeHandle};
@@ -18,13 +17,14 @@ use amethyst_phythyst::{objects::*, servers::*, PtReal};
 use amethyst_core::ecs::Entity;
 
 use crate::{
-    conversors::*, rigid_body::RigidBody, servers_storage::*, shape::RigidShape, utils::*,
+    conversors::*, rigid_body::RigidBody, servers_storage::*, shape::RigidShape, //utils::*,
 };
 
 pub struct RBodyNpServer<N: PtReal> {
     storages: ServersStorageType<N>,
 }
 
+// TODO still need this?
 macro_rules! extract_np_rigid_body {
     ($_self:ident, $body:ident) => {
         let bodies_storage = $_self.storages.rbodies_r();
@@ -50,6 +50,7 @@ macro_rules! extract_np_rigid_body {
     };
 }
 
+// TODO still need this?
 macro_rules! extract_np_rigid_body_mut {
     ($_self:ident, $body:ident) => {
         let mut bodies_storage = $_self.storages.rbodies_w();
@@ -92,94 +93,90 @@ impl<N: PtReal> RBodyNpServer<N> {
 impl<N: PtReal> RBodyNpServer<N> {
     pub fn drop_body(
         body_tag: PhysicsBodyTag,
-        worlds_storage: &mut WorldStorageWrite<N>,
-        rbodies_storage: &mut RigidBodyStorageWrite,
+        bodies_storage: &mut RigidBodyStorageWrite<N>,
+        colliders_storage: &mut ColliderStorageWrite<N>,
         shapes_storage: &mut ShapeStorageWrite<N>,
     ) {
-        {
-            let body = storage_safe_get_mut!(rbodies_storage, body_tag);
-
-            // Remove from shape
-            let shape = storage_safe_get_mut!(shapes_storage, body.shape_tag.unwrap());
-
-            // Remove from world
-            let world = storage_safe_get_mut!(worlds_storage, body.world_tag);
-            RBodyNpServer::remove_shape(shape, body, world);
-            world.remove_bodies(&[body.body_handle]);
+        let body_key = tag_to_store_key(body_tag.0);
+        if let Some(body) = bodies_storage.get_body_mut(body_key){
+            Self::remove_shape(body, shapes_storage, colliders_storage);
         }
-
-        rbodies_storage.destroy(*body_tag);
+        bodies_storage.drop_body(body_key);
     }
 
-    /// Set shape.
-    /// Take care to register the shape and set the collider to the body.
-    pub fn install_shape<'w>(
-        body: &mut RigidBody,
-        np_part_handle: NpBodyPartHandle,
-        np_world: &'w mut NpWorld<N>,
-        shape: &mut RigidShape<N>,
-        collider_desc: &NpColliderDesc<N>,
-    ) {
-        Self::install_collider(body, np_part_handle, np_world, collider_desc);
+    ///// Set shape.
+    ///// Take care to register the shape and set the collider to the body.
+    //pub fn install_shape<'w>(
+    //    body: &mut RigidBody,
+    //    np_part_handle: NpBodyPartHandle,
+    //    np_world: &'w mut NpWorld<N>,
+    //    shape: &mut RigidShape<N>,
+    //    collider_desc: &NpColliderDesc<N>,
+    //) {
+    //    Self::install_collider(body, np_part_handle, np_world, collider_desc);
 
-        // Collider registration
-        shape.register_body(body.self_tag.unwrap());
-        body.shape_tag = shape.self_tag;
-    }
+    //    // Collider registration
+    //    shape.register_body(body.self_tag.unwrap());
+    //    body.shape_tag = shape.self_tag;
+    //}
 
     /// Remove shape.
     /// Take care to unregister the shape and then drop the internal collider.
-    pub fn remove_shape(shape: &mut RigidShape<N>, body: &mut RigidBody, world: &mut NpWorld<N>) {
-        Self::drop_collider(body, world);
-        shape.unregister_body(body.self_tag.unwrap());
+    pub fn remove_shape(body: &mut RigidBody<N>, shapes: &mut ShapeStorageWrite<N>, colliders: &mut ColliderStorageWrite<N>) {
+        if let Some(shape_key) = body.shape_key {
+            if let Some(shape) = shapes.get_mut(shape_key) {
+                shape.unregister_body(body.self_key.unwrap());
+                body.shape_key = None;
+            }
+        }
+        Self::drop_collider(body, colliders);
     }
 
-    /// Set collider to the body
-    pub fn install_collider<'w>(
-        body: &mut RigidBody,
-        np_part_handle: NpBodyPartHandle,
-        np_world: &'w mut NpWorld<N>,
-        collider_desc: &NpColliderDesc<N>,
-    ) {
-        let collider = collider_desc
-            .build_with_parent(np_part_handle, np_world)
-            .unwrap();
+    ///// Set collider to the body
+    //pub fn install_collider<'w>(
+    //    body: &mut RigidBody,
+    //    np_part_handle: NpBodyPartHandle,
+    //    np_world: &'w mut NpWorld<N>,
+    //    collider_desc: &NpColliderDesc<N>,
+    //) {
+    //    let collider = collider_desc
+    //        .build_with_parent(np_part_handle, np_world)
+    //        .unwrap();
 
-        RBodyNpServer::update_user_data(collider, body);
+    //    RBodyNpServer::update_user_data(collider, body);
 
-        // Collider registration
-        body.collider_handle = Some(collider.handle());
-    }
+    //    // Collider registration
+    //    body.collider_handle = Some(collider.handle());
+    //}
 
     /// Just drop the internal collider of the passed body.
-    pub fn drop_collider(body: &mut RigidBody, world: &mut NpWorld<N>) {
-        if body.collider_handle.is_none() {
-            return;
+    pub fn drop_collider(body: &mut RigidBody<N>, colliders: &mut ColliderStorageWrite<N>) {
+        if let Some(collider_key) = body.collider_key {
+            colliders.drop_collider(collider_key);
+            body.collider_key = None;
         }
-        world.remove_colliders(&[body.collider_handle.unwrap()]);
-        body.collider_handle = None;
     }
 
-    pub fn update_user_data(collider: &mut NpCollider<N>, body: &RigidBody) {
-        collider.set_user_data(Some(Box::new(UserData::new(
-            ObjectType::RigidBody,
-            body.self_tag.unwrap().0,
-            body.entity,
-        ))));
-    }
+    //pub fn update_user_data(collider: &mut NpCollider<N>, body: &RigidBody) {
+    //    collider.set_user_data(Some(Box::new(UserData::new(
+    //        ObjectType::RigidBody,
+    //        body.self_tag.unwrap().0,
+    //        body.entity,
+    //    ))));
+    //}
 
-    /// Extract collider description from a rigid body
-    pub fn extract_collider_desc(
-        np_rigid_body: &mut NpRigidBody<N>,
-        collider_desc: &mut NpColliderDesc<N>,
-    ) {
-        collider_desc.set_density(nalgebra::convert(1.0));
-    }
+    ///// Extract collider description from a rigid body
+    //pub fn extract_collider_desc(
+    //    np_rigid_body: &mut NpRigidBody<N>,
+    //    collider_desc: &mut NpColliderDesc<N>,
+    //) {
+    //    collider_desc.set_density(nalgebra::convert(1.0));
+    //}
 }
-
+/*
 /// ### Serial execution
 /// There are functions that are marked as serial execution.
-/// These functions doesn't have the capacity to be executed in parallel. Even if executed by different
+/// These functions doesn't have the capability to be executed in parallel. Even if executed by different
 /// threads.
 impl<N> RBodyPhysicsServerTrait<N> for RBodyNpServer<N>
 where
@@ -406,3 +403,4 @@ where
         body.velocity().angular
     }
 }
+*/

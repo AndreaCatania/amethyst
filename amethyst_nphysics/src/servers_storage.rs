@@ -10,7 +10,7 @@ use nalgebra::RealField;
 use crate::{
     collider_storage::ColliderStorage,
     rigid_body::RigidBody,
-    //shape::RigidShape,
+    shape::RigidShape,
     storage::{Storage, StoreKey},
     world::World,
     body_storage::BodyStorage,
@@ -30,8 +30,8 @@ pub type JointStorageWrite<'a, N> = RwLockWriteGuard<'a, JointStorage<N, BodySto
 pub type JointStorageRead<'a, N> = RwLockReadGuard<'a, JointStorage<N, BodyStorage<N>>>;
 pub type ForceGeneratorStorageWrite<'a, N> = RwLockWriteGuard<'a, ForceGeneratorStorage<N, BodyStorage<N>>>;
 pub type ForceGeneratorStorageRead<'a, N> = RwLockReadGuard<'a, ForceGeneratorStorage<N, BodyStorage<N>>>;
-//pub type ShapeStorageWrite<'a, N> = RwLockWriteGuard<'a, Storage<Box<RigidShape<N>>>>;
-//pub type ShapeStorageRead<'a, N> = RwLockReadGuard<'a, Storage<Box<RigidShape<N>>>>;
+pub type ShapeStorageWrite<'a, N> = RwLockWriteGuard<'a, Storage<Box<RigidShape<N>>>>;
+pub type ShapeStorageRead<'a, N> = RwLockReadGuard<'a, Storage<Box<RigidShape<N>>>>;
 
 /// This struct is responsible to hold all the storages
 ///
@@ -56,8 +56,8 @@ pub struct ServersStorage<N: PtReal> {
     rigid_bodies: Arc<RwLock<BodyStorage<N>>>,
     colliders: Arc<RwLock<ColliderStorage<N, StoreKey>>>,
     joints: Arc<RwLock<JointStorage<N, BodyStorage<N>>>>,
-    force_generator: Arc<RwLock<ForceGeneratorStorage<N, BodyStorage<N>>>>
-    //shapes: Arc<RwLock<Storage<Box<RigidShape<N>>>>>,
+    force_generator: Arc<RwLock<ForceGeneratorStorage<N, BodyStorage<N>>>>,
+    shapes: Arc<RwLock<Storage<Box<RigidShape<N>>>>>,
 }
 
 impl<N: PtReal> ServersStorage<N> {
@@ -69,7 +69,7 @@ impl<N: PtReal> ServersStorage<N> {
             colliders: Arc::new(RwLock::new(ColliderStorage::default())),
             joints: Arc::new(RwLock::new(JointStorage::default())),
             force_generator: Arc::new(RwLock::new(ForceGeneratorStorage::default())),
-            //shapes: Arc::new(RwLock::new(Storage::new(50, 50))),
+            shapes: Arc::new(RwLock::new(Storage::new(50, 50))),
         })
     }
 
@@ -143,11 +143,11 @@ impl<N: PtReal> ServersStorage<N> {
         self.force_generator.read().unwrap()
     }
 
-    //pub fn shapes_w(&self) -> ShapeStorageWrite<N> {
-    //    self.shapes.write().unwrap()
-    //}
+    pub fn shapes_w(&self) -> ShapeStorageWrite<N> {
+        self.shapes.write().unwrap()
+    }
 
-    //pub fn shapes_r(&self) -> ShapeStorageRead<N> {
-    //    self.shapes.read().unwrap()
-    //}
+    pub fn shapes_r(&self) -> ShapeStorageRead<N> {
+        self.shapes.read().unwrap()
+    }
 }

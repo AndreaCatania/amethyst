@@ -1,17 +1,17 @@
 use amethyst_phythyst::{objects::*, servers::ShapeDesc, PtReal};
-
 use ncollide3d::shape::{
     Ball as NcBall, Cuboid as NcCuboid, Cylinder as NcCylinder, Plane as NcPlane,
     ShapeHandle as NcShapeHandle,
 };
-
 use nalgebra::{convert, RealField, Unit, Vector3};
+
+use crate::storage::StoreKey;
 
 pub struct RigidShape<N: PtReal> {
     pub self_tag: Option<PhysicsShapeTag>,
     shape_desc: ShapeDesc<N>,
     shape_handle: NcShapeHandle<N>,
-    bodies: Vec<PhysicsBodyTag>,
+    bodies: Vec<StoreKey>,
     areas: Vec<PhysicsAreaTag>,
     /// This is used to know if the shape will be soon dropped since no one own it anymore.
     ///
@@ -42,15 +42,15 @@ impl<N: PtReal> RigidShape<N> {
         &self.shape_handle
     }
 
-    pub fn register_body(&mut self, body: PhysicsBodyTag) {
+    pub fn register_body(&mut self, body: StoreKey) {
         self.bodies.push(body);
     }
 
-    pub fn unregister_body(&mut self, body: PhysicsBodyTag) {
+    pub fn unregister_body(&mut self, body: StoreKey) {
         self.bodies.retain(|&b| b != body);
     }
 
-    pub fn bodies(&self) -> &Vec<PhysicsBodyTag> {
+    pub fn bodies(&self) -> &Vec<StoreKey> {
         &self.bodies
     }
 
