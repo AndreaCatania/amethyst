@@ -8,7 +8,7 @@ use nalgebra::{convert, RealField, Unit, Vector3};
 use crate::storage::StoreKey;
 
 pub struct RigidShape<N: PtReal> {
-    pub self_tag: Option<PhysicsShapeTag>,
+    pub self_key: Option<StoreKey>,
     shape_desc: ShapeDesc<N>,
     shape_handle: NcShapeHandle<N>,
     bodies: Vec<StoreKey>,
@@ -24,7 +24,7 @@ pub struct RigidShape<N: PtReal> {
 impl<N: PtReal> RigidShape<N> {
     pub fn new(shape_desc: &ShapeDesc<N>) -> Self {
         RigidShape {
-            self_tag: None,
+            self_key: None,
             shape_desc: shape_desc.clone(),
             shape_handle: RigidShape::generate_handle(shape_desc),
             bodies: Vec::new(),

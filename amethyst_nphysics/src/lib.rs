@@ -29,10 +29,7 @@
 
 #[macro_use]
 mod conditional_macros;
-/*
-#[macro_use]
 mod utils;
-*/
 pub mod conversors;
 pub mod storage;
 #[macro_use]
@@ -52,11 +49,10 @@ mod rigid_body_physics_server;
 mod area_physics_server;
 mod shape_physics_server;
 
+use world_physics_server::WorldNpServer;
 use rigid_body_physics_server::RBodyNpServer;
 use area_physics_server::AreaNpServer;
 use shape_physics_server::ShapeNpServer;
-
-/*
 
 use amethyst_phythyst::{
     servers::{
@@ -65,8 +61,6 @@ use amethyst_phythyst::{
     },
     PtReal,
 };
-use nalgebra::RealField;
-use world_physics_server::WorldNpServer;
 
 pub struct NPhysicsBackend;
 
@@ -78,12 +72,14 @@ where
     fn create_servers() -> PhysicsServers<N> {
         let storages = servers_storage::ServersStorage::new();
 
-        (
-            WorldPhysicsServer(Box::new(WorldNpServer::new(storages.clone()))),
-            RBodyPhysicsServer(Box::new(RBodyNpServer::new(storages.clone()))),
-            AreaPhysicsServer(Box::new(AreaNpServer::new(storages.clone()))),
-            ShapePhysicsServer(Box::new(ShapeNpServer::new(storages.clone()))),
-        )
+        let r = RBodyPhysicsServer(Box::new(RBodyNpServer::new(storages.clone())));
+
+        unimplemented!();
+        //(
+        //    WorldPhysicsServer(Box::new(WorldNpServer::new(storages.clone()))),
+        //    RBodyPhysicsServer(Box::new(RBodyNpServer::new(storages.clone()))),
+        //    AreaPhysicsServer(Box::new(AreaNpServer::new(storages.clone()))),
+        //    ShapePhysicsServer(Box::new(ShapeNpServer::new(storages.clone()))),
+        //)
     }
 }
-*/

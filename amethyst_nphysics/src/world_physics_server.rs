@@ -28,9 +28,9 @@ pub struct WorldNpServer<N: PtReal> {
 
 
 impl<N: PtReal> WorldNpServer<N> {
-    //pub fn new(storages: ServersStorageType<N>) -> WorldNpServer<N> {
-    //    WorldNpServer { storages }
-    //}
+    pub fn new(storages: ServersStorageType<N>) -> WorldNpServer<N> {
+        WorldNpServer { storages }
+    }
 
     fn drop_world(world_tag: PhysicsWorldTag, worlds_storage: &mut WorldStorageWrite<N>) {
         worlds_storage.destroy(tag_to_store_key(world_tag.0));

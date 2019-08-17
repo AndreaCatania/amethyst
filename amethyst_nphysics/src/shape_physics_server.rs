@@ -16,9 +16,9 @@ pub struct ShapeNpServer<N: PtReal> {
 }
 
 impl<N: PtReal> ShapeNpServer<N> {
-    //pub fn new(storages: ServersStorageType<N>) -> Self {
-    //    ShapeNpServer { storages }
-    //}
+    pub fn new(storages: ServersStorageType<N>) -> Self {
+        ShapeNpServer { storages }
+    }
 
     /// Drop a shape, return false if it can't be removed right now or it something failed.
     pub fn drop_shape(
@@ -65,6 +65,7 @@ impl<N: PtReal> ShapeNpServer<N> {
         false
     }
 }
+
 /*
 impl<N: PtReal> ShapePhysicsServerTrait<N> for ShapeNpServer<N> {
     fn create_shape(&mut self, shape_desc: &ShapeDesc<N>) -> PhysicsHandle<PhysicsShapeTag> {

@@ -1,35 +1,5 @@
-use crate::storage::StoreTag;
+use crate::storage::StoreKey;
 use amethyst_core::ecs::Entity;
-
-/// Returns the valid reference or fail
-#[macro_export]
-macro_rules! storage_safe_get {
-    ($storage:ident, $tag:expr) => {{
-        let option = $storage.get(*$tag);
-        fail_cond!(option.is_none());
-        option.unwrap()
-    }};
-    ($storage:ident, $tag:expr, $fail_ret:expr) => {{
-        let option = $storage.get(*$tag);
-        fail_cond!(option.is_none(), $fail_ret);
-        option.unwrap()
-    }};
-}
-
-/// Returns the valid mutable reference or fail
-#[macro_export]
-macro_rules! storage_safe_get_mut {
-    ($storage:ident, $tag:expr) => {{
-        let option = $storage.get_mut(*$tag);
-        fail_cond!(option.is_none());
-        option.unwrap()
-    }};
-    ($storage:ident, $tag:expr, $fail_ret:expr) => {{
-        let option = $storage.get_mut(*$tag);
-        fail_cond!(option.is_none(), $fail_ret);
-        option.unwrap()
-    }};
-}
 
 #[derive(Copy, Clone, Debug)]
 pub(crate) enum ObjectType {
@@ -40,19 +10,19 @@ pub(crate) enum ObjectType {
 #[derive(Clone, Debug)]
 pub(crate) struct UserData {
     object_type: ObjectType,
-    store_tag: StoreTag,
+    store_key: StoreKey,
     entity: Option<Entity>,
 }
 
 impl UserData {
     pub(crate) fn new(
         object_type: ObjectType,
-        store_tag: StoreTag,
+        store_key: StoreKey,
         entity: Option<Entity>,
     ) -> Self {
         UserData {
             object_type,
-            store_tag,
+            store_key,
             entity,
         }
     }
@@ -62,8 +32,8 @@ impl UserData {
     pub fn object_type(&self) -> ObjectType {
         self.object_type
     }
-    pub fn store_tag(&self) -> StoreTag {
-        self.store_tag
+    pub fn store_key(&self) -> StoreKey {
+        self.store_key
     }
     pub fn entity(&self) -> Option<Entity> {
         self.entity
