@@ -9,7 +9,7 @@ use nalgebra::Vector3;
 use core::borrow::BorrowMut;
 
 use crate::{
-    servers_storage::{ServersStorageType},
+    servers_storage::{ServersStorageType, WorldStorageWrite},
     conversors::*,
     //utils::*,
     world::World,
@@ -26,19 +26,17 @@ pub struct WorldNpServer<N: PtReal> {
     storages: ServersStorageType<N>,
 }
 
-/*
+
 impl<N: PtReal> WorldNpServer<N> {
-    pub fn new(storages: ServersStorageType<N>) -> WorldNpServer<N> {
-        WorldNpServer { storages }
-    }
+    //pub fn new(storages: ServersStorageType<N>) -> WorldNpServer<N> {
+    //    WorldNpServer { storages }
+    //}
 
     fn drop_world(world_tag: PhysicsWorldTag, worlds_storage: &mut WorldStorageWrite<N>) {
-        // Here should be check if there are active bodies, but how?
-
-        worlds_storage.destroy(*world_tag);
+        worlds_storage.destroy(tag_to_store_key(world_tag.0));
     }
 }
-*/
+
 impl<N: PtReal> WorldNpServer<N> {
     fn garbage_collect(&self) {
         let mut gc = self.storages.gc.write().unwrap();
@@ -92,13 +90,13 @@ impl<N: PtReal> WorldNpServer<N> {
             }
         }
 
-        //{
-        //    for w in gc.worlds.iter() {
-        //        WorldNpServer::drop_world(*w, &mut worlds_storage);
-        //    }
+        {
+            for w in gc.worlds.iter() {
+                WorldNpServer::drop_world(*w, &mut worlds_storage);
+            }
 
-        //    gc.worlds.clear();
-        //}
+            gc.worlds.clear();
+        }
     }
 /*
     fn fetch_events(&self, world: &mut NpWorld<N>) {
