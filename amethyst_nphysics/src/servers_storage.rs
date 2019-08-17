@@ -8,12 +8,14 @@ use nphysics3d::object::{BodyHandle as NpBodyHandle, RigidBody as NpRigidBody};
 use nalgebra::RealField;
 
 use crate::{
-    //area::Area,
+    collider_storage::ColliderStorage,
     rigid_body::RigidBody,
     //shape::RigidShape,
     storage::{Storage, StoreKey},
     world::World,
     body_storage::BodyStorage,
+    joint_storage::JointStorage,
+    force_generator_storage::ForceGeneratorStorage,
 };
 
 pub type ServersStorageType<N> = Arc<ServersStorage<N>>;
@@ -22,8 +24,12 @@ pub type WorldStorageWrite<'a, N> = RwLockWriteGuard<'a, Storage<Box<World<N>>>>
 pub type WorldStorageRead<'a, N> = RwLockReadGuard<'a, Storage<Box<World<N>>>>;
 pub type RigidBodyStorageWrite<'a, N> = RwLockWriteGuard<'a, BodyStorage<N>>; // TODo rename to body
 pub type RigidBodyStorageRead<'a, N> = RwLockReadGuard<'a, BodyStorage<N>>; // TODo rename to body
-//pub type AreaStorageWrite<'a> = RwLockWriteGuard<'a, Storage<Box<Area>>>;
-//pub type AreaStorageRead<'a> = RwLockReadGuard<'a, Storage<Box<Area>>>;
+pub type ColliderStorageWrite<'a, N> = RwLockWriteGuard<'a, ColliderStorage<N, StoreKey>>;
+pub type ColliderStorageRead<'a, N> = RwLockReadGuard<'a, ColliderStorage<N, StoreKey>>;
+pub type JointStorageWrite<'a, N> = RwLockWriteGuard<'a, JointStorage<N, BodyStorage<N>>>;
+pub type JointStorageRead<'a, N> = RwLockReadGuard<'a, JointStorage<N, BodyStorage<N>>>;
+pub type ForceGeneratorStorageWrite<'a, N> = RwLockWriteGuard<'a, ForceGeneratorStorage<N, BodyStorage<N>>>;
+pub type ForceGeneratorStorageRead<'a, N> = RwLockReadGuard<'a, ForceGeneratorStorage<N, BodyStorage<N>>>;
 //pub type ShapeStorageWrite<'a, N> = RwLockWriteGuard<'a, Storage<Box<RigidShape<N>>>>;
 //pub type ShapeStorageRead<'a, N> = RwLockReadGuard<'a, Storage<Box<RigidShape<N>>>>;
 
@@ -48,7 +54,9 @@ pub struct ServersStorage<N: PtReal> {
     worlds: Arc<RwLock<Storage<Box<World<N>>>>>,
     // TODO rename to bodies. Because other specialized data are stored within the body itself
     rigid_bodies: Arc<RwLock<BodyStorage<N>>>,
-    //areas: Arc<RwLock<Storage<Box<Area>>>>,
+    colliders: Arc<RwLock<ColliderStorage<N, StoreKey>>>,
+    joints: Arc<RwLock<JointStorage<N, BodyStorage<N>>>>,
+    force_generator: Arc<RwLock<ForceGeneratorStorage<N, BodyStorage<N>>>>
     //shapes: Arc<RwLock<Storage<Box<RigidShape<N>>>>>,
 }
 
@@ -57,8 +65,10 @@ impl<N: PtReal> ServersStorage<N> {
         Arc::new(ServersStorage {
             gc: Arc::new(RwLock::new(PhysicsGarbageCollector::default())),
             worlds: Arc::new(RwLock::new(Storage::new(1, 1))),
-            rigid_bodies: Arc::new(RwLock::new(BodyStorage::new())),
-            //areas: Arc::new(RwLock::new(Storage::new(50, 50))),
+            rigid_bodies: Arc::new(RwLock::new(BodyStorage::default())),
+            colliders: Arc::new(RwLock::new(ColliderStorage::default())),
+            joints: Arc::new(RwLock::new(JointStorage::default())),
+            force_generator: Arc::new(RwLock::new(ForceGeneratorStorage::default())),
             //shapes: Arc::new(RwLock::new(Storage::new(50, 50))),
         })
     }
@@ -109,13 +119,29 @@ impl<N: PtReal> ServersStorage<N> {
         self.rigid_bodies.read().unwrap()
     }
 
-    //pub fn areas_w(&self) -> AreaStorageWrite {
-    //    self.areas.write().unwrap()
-    //}
+    pub fn colliders_w(&self) -> ColliderStorageWrite<N> {
+        self.colliders.write().unwrap()
+    }
 
-    //pub fn areas_r(&self) -> AreaStorageRead {
-    //    self.areas.read().unwrap()
-    //}
+    pub fn colliders_r(&self) -> ColliderStorageRead<N> {
+        self.colliders.read().unwrap()
+    }
+
+    pub fn joints_w(&self) -> JointStorageWrite<N> {
+        self.joints.write().unwrap()
+    }
+
+    pub fn joints_r(&self) -> JointStorageRead<N> {
+        self.joints.read().unwrap()
+    }
+
+    pub fn force_generator_w(&self) -> ForceGeneratorStorageWrite<N> {
+        self.force_generator.write().unwrap()
+    }
+
+    pub fn force_generator_r(&self) -> ForceGeneratorStorageRead<N> {
+        self.force_generator.read().unwrap()
+    }
 
     //pub fn shapes_w(&self) -> ShapeStorageWrite<N> {
     //    self.shapes.write().unwrap()

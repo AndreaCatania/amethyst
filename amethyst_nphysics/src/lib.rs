@@ -34,7 +34,6 @@ mod conditional_macros;
 mod utils;
 mod area;
 mod area_physics_server;
-mod rigid_body_physics_server;
 mod shape;
 mod shape_physics_server;
 */
@@ -46,6 +45,13 @@ mod world;
 mod world_physics_server;
 mod body_storage;
 mod rigid_body;
+mod collider;
+mod collider_storage;
+mod joint;
+mod joint_storage;
+mod force_generator;
+mod force_generator_storage;
+//mod rigid_body_physics_server;
 /*
 
 use amethyst_phythyst::{

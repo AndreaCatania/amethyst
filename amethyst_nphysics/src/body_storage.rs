@@ -1,6 +1,6 @@
 
 use nphysics3d::object::{
-    Body,
+    Body as NpBody,
     BodySet,
 };
 use amethyst_phythyst::{
@@ -57,7 +57,7 @@ impl<N:PtReal> BodyStorage<N> {
 
 impl<N: PtReal> BodySet<N> for BodyStorage<N> {
 
-    type Body = dyn Body<N>;
+    type Body = dyn NpBody<N>;
     type Handle = StoreKey;
 
     fn get(&self, handle: Self::Handle) -> Option<&Self::Body>{
@@ -78,8 +78,8 @@ impl<N: PtReal> BodySet<N> for BodyStorage<N> {
 
     fn get_pair_mut(&mut self, handle1: Self::Handle, handle2: Self::Handle) -> (Option<&mut Self::Body>, Option<&mut Self::Body>){
         assert_ne!(handle1, handle2, "Both body handles must not be equal.");
-        let b1 = self.get_mut(handle1).map(|b| b as *mut dyn Body<N>);
-        let b2 = self.get_mut(handle2).map(|b| b as *mut dyn Body<N>);
+        let b1 = self.get_mut(handle1).map(|b| b as *mut dyn NpBody<N>);
+        let b2 = self.get_mut(handle2).map(|b| b as *mut dyn NpBody<N>);
         unsafe {
             use std::mem;
             (

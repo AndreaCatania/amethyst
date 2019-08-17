@@ -58,9 +58,9 @@ impl<T> Storage<T> {
     }
 
     /// Destroy an object and release the key for future use.
-    // TODO rename to drop
-    pub fn destroy(&mut self, key: StoreKey) {
-        self.memory.remove(key);
+    // TODO rename to remove
+    pub fn destroy(&mut self, key: StoreKey) -> Option<T> {
+        self.memory.remove(key)
     }
 
     pub fn iter(&self) -> Iter<'_, T> {

@@ -3,10 +3,12 @@ use nphysics3d::object::{Body as NpBody, BodyHandle as NpBodyHandle, ColliderHan
 use amethyst_core::ecs::Entity;
 use amethyst_phythyst::{PtReal, objects::*, servers::BodyMode};
 
+use crate::storage::StoreKey;
+
 // TODO rename to Body
 // The idea is to store the per type data using a pointer or something like that.
 pub struct RigidBody<N: PtReal> {
-    pub self_tag: Option<PhysicsBodyTag>,
+    pub self_tag: Option<StoreKey>,
     pub np_body: Box<dyn NpBody<N>>,
     pub body_mode: BodyMode,
     //pub body_handle: NpBodyHandle,
