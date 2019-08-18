@@ -15,7 +15,7 @@ use nphysics3d::object::{
 use crate::{
     conditional_macros,
     conversors::*,
-    rigid_body::{BodyData, RigidBody},
+    body::{BodyData, Body},
     servers_storage::*,
     shape::RigidShape,
     storage::StoreKey,
@@ -37,9 +37,9 @@ impl<N: PtReal> AreaNpServer<N> {
 impl<N: PtReal> AreaNpServer<N> {
     pub fn drop_area(
         area_tag: PhysicsAreaTag,
-        bodies_storage: &mut RigidBodyStorageWrite<N>,
-        colliders_storage: &mut ColliderStorageWrite<N>,
-        shapes_storage: &mut ShapeStorageWrite<N>,
+        bodies_storage: &mut BodiesStorageWrite<N>,
+        colliders_storage: &mut CollidersStorageWrite<N>,
+        shapes_storage: &mut ShapesStorageWrite<N>,
     ) {
         let area_key = tag_to_store_key(area_tag.0);
         if let Some(area) = bodies_storage.get_body_mut(area_key) {
@@ -51,10 +51,10 @@ impl<N: PtReal> AreaNpServer<N> {
     /// Set shape.
     /// Take care to register the shape and set the collider to the body.
     pub fn install_shape<'w>(
-        area: &mut RigidBody<N>,
+        area: &mut Body<N>,
         shape: &mut RigidShape<N>,
         collider_desc: &NpColliderDesc<N>,
-        colliders: &mut ColliderStorageWrite<N>,
+        colliders: &mut CollidersStorageWrite<N>,
     ) {
         Self::install_collider(area, collider_desc, colliders);
 
@@ -66,9 +66,9 @@ impl<N: PtReal> AreaNpServer<N> {
     /// Remove shape.
     /// Take care to unregister the shape and then drop the internal collider.
     pub fn remove_shape(
-        area: &mut RigidBody<N>,
-        shapes: &mut ShapeStorageWrite<N>,
-        colliders: &mut ColliderStorageWrite<N>,
+        area: &mut Body<N>,
+        shapes: &mut ShapesStorageWrite<N>,
+        colliders: &mut CollidersStorageWrite<N>,
     ) {
         if let Some(shape_key) = area.shape_key {
             if let Some(shape) = shapes.get_mut(shape_key) {
@@ -82,9 +82,9 @@ impl<N: PtReal> AreaNpServer<N> {
     }
 
     pub fn install_collider<'w>(
-        area: &mut RigidBody<N>,
+        area: &mut Body<N>,
         collider_desc: &NpColliderDesc<N>,
-        colliders: &mut ColliderStorageWrite<N>,
+        colliders: &mut CollidersStorageWrite<N>,
     ) {
         let mut collider = collider_desc.build(NpBodyPartHandle(area.self_key.unwrap(), 0));
         AreaNpServer::update_user_data(&mut collider, area);
@@ -94,14 +94,14 @@ impl<N: PtReal> AreaNpServer<N> {
     }
 
     /// Just drop the internal collider of the passed area.
-    pub fn drop_collider(area: &mut RigidBody<N>, colliders: &mut ColliderStorageWrite<N>) {
+    pub fn drop_collider(area: &mut Body<N>, colliders: &mut CollidersStorageWrite<N>) {
         if let Some(collider_key) = area.collider_key {
             colliders.drop_collider(collider_key);
             area.collider_key = None;
         }
     }
 
-    pub fn update_user_data(collider: &mut NpCollider<N, StoreKey>, area: &RigidBody<N>) {
+    pub fn update_user_data(collider: &mut NpCollider<N, StoreKey>, area: &Body<N>) {
         collider.set_user_data(Some(Box::new(UserData::new(
             ObjectType::Area,
             area.self_key.unwrap(),
@@ -130,7 +130,7 @@ where
         // TODO later I want to split these in two different APIs, so I'm developing them already separated.
 
         let ph = {
-            let mut bodies_storage = self.storages.rbodies_w();
+            let mut bodies_storage = self.storages.bodies_w();
             let mut colliders = self.storages.colliders_w();
             let mut shape_storage = self.storages.shapes_w();
 
@@ -140,7 +140,7 @@ where
                 .set_mass(N::from(0.0f32))
                 .build();
 
-            let a_key = bodies_storage.insert_body(Box::new(RigidBody::new_area(
+            let a_key = bodies_storage.insert_body(Box::new(Body::new_area(
                 Box::new(np_rigid_body),
                 tag_to_store_key(world_tag.0),
             )));
@@ -152,7 +152,7 @@ where
 
         {
             let body_key = tag_to_store_key(ph.0);
-            let mut bodies = self.storages.rbodies_w();
+            let mut bodies = self.storages.bodies_w();
 
             let shape_key = Option::Some(tag_to_store_key(area_desc.shape.0));
             if let Some(body) = bodies.get_body_mut(body_key) {
@@ -193,7 +193,7 @@ where
 
     fn set_entity(&self, area_tag: PhysicsAreaTag, entity: Option<Entity>) {
         let area_key = tag_to_store_key(area_tag.0);
-        let mut bodies = self.storages.rbodies_w();
+        let mut bodies = self.storages.bodies_w();
 
         if let Some(area) = bodies.get_body_mut(area_key) {
             fail_cond!(!matches!(area.body_data, BodyData::Area(_)));
@@ -212,7 +212,7 @@ where
 
     fn entity(&self, area_tag: PhysicsAreaTag) -> Option<Entity> {
         let area_key = tag_to_store_key(area_tag.0);
-        let mut bodies = self.storages.rbodies_r();
+        let mut bodies = self.storages.bodies_r();
 
         if let Some(area) = bodies.get_body(area_key) {
             area.entity
@@ -223,7 +223,7 @@ where
 
     fn set_body_transform(&self, area_tag: PhysicsAreaTag, transf: &Isometry3<f32>) {
         let area_key = tag_to_store_key(area_tag.0);
-        let mut bodies = self.storages.rbodies_w();
+        let mut bodies = self.storages.bodies_w();
 
         if let Some(area) = bodies.get_body_mut(area_key) {
             if let Some(body) = area.rigid_body_mut() {
@@ -236,7 +236,7 @@ where
 
     fn overlap_events(&self, area_tag: PhysicsAreaTag) -> Vec<OverlapEvent> {
         let area_key = tag_to_store_key(area_tag.0);
-        let s = self.storages.rbodies_r();
+        let s = self.storages.bodies_r();
         if let Some(area) = s.get_body(area_key) {
             if let BodyData::Area(e) = &area.body_data {
                 return e.to_vec();

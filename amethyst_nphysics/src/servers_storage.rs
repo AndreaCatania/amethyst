@@ -9,7 +9,7 @@ use crate::{
     collider_storage::ColliderStorage,
     force_generator_storage::ForceGeneratorStorage,
     joint_storage::JointStorage,
-    rigid_body::RigidBody,
+    body::Body,
     shape::RigidShape,
     storage::{Storage, StoreKey},
     world::World,
@@ -17,20 +17,20 @@ use crate::{
 
 pub type ServersStorageType<N> = Arc<ServersStorage<N>>;
 
-pub type WorldStorageWrite<'a, N> = RwLockWriteGuard<'a, Storage<Box<World<N>>>>;
-pub type WorldStorageRead<'a, N> = RwLockReadGuard<'a, Storage<Box<World<N>>>>;
-pub type RigidBodyStorageWrite<'a, N> = RwLockWriteGuard<'a, BodyStorage<N>>; // TODo rename to body
-pub type RigidBodyStorageRead<'a, N> = RwLockReadGuard<'a, BodyStorage<N>>; // TODo rename to body
-pub type ColliderStorageWrite<'a, N> = RwLockWriteGuard<'a, ColliderStorage<N, StoreKey>>;
-pub type ColliderStorageRead<'a, N> = RwLockReadGuard<'a, ColliderStorage<N, StoreKey>>;
-pub type JointStorageWrite<'a, N> = RwLockWriteGuard<'a, JointStorage<N, BodyStorage<N>>>;
-pub type JointStorageRead<'a, N> = RwLockReadGuard<'a, JointStorage<N, BodyStorage<N>>>;
-pub type ForceGeneratorStorageWrite<'a, N> =
+pub type WorldsStorageWrite<'a, N> = RwLockWriteGuard<'a, Storage<Box<World<N>>>>;
+pub type WorldsStorageRead<'a, N> = RwLockReadGuard<'a, Storage<Box<World<N>>>>;
+pub type BodiesStorageWrite<'a, N> = RwLockWriteGuard<'a, BodyStorage<N>>;
+pub type BodiesStorageRead<'a, N> = RwLockReadGuard<'a, BodyStorage<N>>;
+pub type CollidersStorageWrite<'a, N> = RwLockWriteGuard<'a, ColliderStorage<N, StoreKey>>;
+pub type CollidersStorageRead<'a, N> = RwLockReadGuard<'a, ColliderStorage<N, StoreKey>>;
+pub type JointsStorageWrite<'a, N> = RwLockWriteGuard<'a, JointStorage<N, BodyStorage<N>>>;
+pub type JointsStorageRead<'a, N> = RwLockReadGuard<'a, JointStorage<N, BodyStorage<N>>>;
+pub type ForceGeneratorsStorageWrite<'a, N> =
     RwLockWriteGuard<'a, ForceGeneratorStorage<N, BodyStorage<N>>>;
-pub type ForceGeneratorStorageRead<'a, N> =
+pub type ForceGeneratorsStorageRead<'a, N> =
     RwLockReadGuard<'a, ForceGeneratorStorage<N, BodyStorage<N>>>;
-pub type ShapeStorageWrite<'a, N> = RwLockWriteGuard<'a, Storage<Box<RigidShape<N>>>>;
-pub type ShapeStorageRead<'a, N> = RwLockReadGuard<'a, Storage<Box<RigidShape<N>>>>;
+pub type ShapesStorageWrite<'a, N> = RwLockWriteGuard<'a, Storage<Box<RigidShape<N>>>>;
+pub type ShapesStorageRead<'a, N> = RwLockReadGuard<'a, Storage<Box<RigidShape<N>>>>;
 
 /// This struct is responsible to hold all the storages
 ///
@@ -51,11 +51,10 @@ pub type ShapeStorageRead<'a, N> = RwLockReadGuard<'a, Storage<Box<RigidShape<N>
 pub struct ServersStorage<N: PtReal> {
     pub(crate) gc: Arc<RwLock<PhysicsGarbageCollector>>,
     worlds: Arc<RwLock<Storage<Box<World<N>>>>>,
-    // TODO rename to bodies. Because other specialized data are stored within the body itself
-    rigid_bodies: Arc<RwLock<BodyStorage<N>>>,
+    bodies: Arc<RwLock<BodyStorage<N>>>,
     colliders: Arc<RwLock<ColliderStorage<N, StoreKey>>>,
     joints: Arc<RwLock<JointStorage<N, BodyStorage<N>>>>,
-    force_generator: Arc<RwLock<ForceGeneratorStorage<N, BodyStorage<N>>>>,
+    force_generators: Arc<RwLock<ForceGeneratorStorage<N, BodyStorage<N>>>>,
     shapes: Arc<RwLock<Storage<Box<RigidShape<N>>>>>,
 }
 
@@ -64,61 +63,61 @@ impl<N: PtReal> ServersStorage<N> {
         Arc::new(ServersStorage {
             gc: Arc::new(RwLock::new(PhysicsGarbageCollector::default())),
             worlds: Arc::new(RwLock::new(Storage::new(1, 1))),
-            rigid_bodies: Arc::new(RwLock::new(BodyStorage::default())),
+            bodies: Arc::new(RwLock::new(BodyStorage::default())),
             colliders: Arc::new(RwLock::new(ColliderStorage::default())),
             joints: Arc::new(RwLock::new(JointStorage::default())),
-            force_generator: Arc::new(RwLock::new(ForceGeneratorStorage::default())),
+            force_generators: Arc::new(RwLock::new(ForceGeneratorStorage::default())),
             shapes: Arc::new(RwLock::new(Storage::new(50, 50))),
         })
     }
 }
 
 impl<N: PtReal> ServersStorage<N> {
-    pub fn worlds_w(&self) -> WorldStorageWrite<N> {
+    pub fn worlds_w(&self) -> WorldsStorageWrite<N> {
         self.worlds.write().unwrap()
     }
 
-    pub fn worlds_r(&self) -> WorldStorageRead<N> {
+    pub fn worlds_r(&self) -> WorldsStorageRead<N> {
         self.worlds.read().unwrap()
     }
 
-    pub fn rbodies_w(&self) -> RigidBodyStorageWrite<N> {
-        self.rigid_bodies.write().unwrap()
+    pub fn bodies_w(&self) -> BodiesStorageWrite<N> {
+        self.bodies.write().unwrap()
     }
 
-    pub fn rbodies_r(&self) -> RigidBodyStorageRead<N> {
-        self.rigid_bodies.read().unwrap()
+    pub fn bodies_r(&self) -> BodiesStorageRead<N> {
+        self.bodies.read().unwrap()
     }
 
-    pub fn colliders_w(&self) -> ColliderStorageWrite<N> {
+    pub fn colliders_w(&self) -> CollidersStorageWrite<N> {
         self.colliders.write().unwrap()
     }
 
-    pub fn colliders_r(&self) -> ColliderStorageRead<N> {
+    pub fn colliders_r(&self) -> CollidersStorageRead<N> {
         self.colliders.read().unwrap()
     }
 
-    pub fn joints_w(&self) -> JointStorageWrite<N> {
+    pub fn joints_w(&self) -> JointsStorageWrite<N> {
         self.joints.write().unwrap()
     }
 
-    pub fn joints_r(&self) -> JointStorageRead<N> {
+    pub fn joints_r(&self) -> JointsStorageRead<N> {
         self.joints.read().unwrap()
     }
 
-    pub fn force_generator_w(&self) -> ForceGeneratorStorageWrite<N> {
-        self.force_generator.write().unwrap()
+    pub fn force_generator_w(&self) -> ForceGeneratorsStorageWrite<N> {
+        self.force_generators.write().unwrap()
     }
 
-    pub fn force_generator_r(&self) -> ForceGeneratorStorageRead<N> {
-        self.force_generator.read().unwrap()
+    pub fn force_generator_r(&self) -> ForceGeneratorsStorageRead<N> {
+        self.force_generators.read().unwrap()
     }
 
-    pub fn shapes_w(&self) -> ShapeStorageWrite<N> {
+    pub fn shapes_w(&self) -> ShapesStorageWrite<N> {
         self.shapes.write().unwrap()
     }
 
-    pub fn shapes_r(&self) -> ShapeStorageRead<N> {
+    pub fn shapes_r(&self) -> ShapesStorageRead<N> {
         self.shapes.read().unwrap()
     }
 }

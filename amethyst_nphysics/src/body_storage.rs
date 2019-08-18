@@ -3,12 +3,12 @@ use nphysics3d::object::{Body as NpBody, BodySet};
 use generational_arena::{Iter, IterMut};
 
 use crate::{
-    rigid_body::RigidBody,
+    body::Body,
     storage::{Storage, StoreKey},
 };
 
 pub struct BodyStorage<N: PtReal> {
-    storage: Storage<Box<RigidBody<N>>>,
+    storage: Storage<Box<Body<N>>>,
     /// A list of removed ID, this list is decremented only when the function `pop_removal_event` is called
     removed: Vec<StoreKey>,
 }
@@ -29,28 +29,28 @@ impl<N: PtReal> Default for BodyStorage<N> {
 }
 
 impl<N: PtReal> BodyStorage<N> {
-    pub fn insert_body(&mut self, body: Box<RigidBody<N>>) -> StoreKey {
-        self.storage.make_opaque(body)
+    pub fn insert_body(&mut self, body: Box<Body<N>>) -> StoreKey {
+        self.storage.insert(body)
     }
 
     pub fn drop_body(&mut self, key: StoreKey) {
-        self.storage.destroy(key);
+        self.storage.remove(key);
         self.removed.push(key);
     }
 
-    pub fn get_body(&self, key: StoreKey) -> Option<&Box<RigidBody<N>>> {
+    pub fn get_body(&self, key: StoreKey) -> Option<&Box<Body<N>>> {
         self.storage.get(key)
     }
 
-    pub fn get_body_mut(&mut self, key: StoreKey) -> Option<&mut Box<RigidBody<N>>> {
+    pub fn get_body_mut(&mut self, key: StoreKey) -> Option<&mut Box<Body<N>>> {
         self.storage.get_mut(key)
     }
 
-    pub fn iter(&self) -> Iter<'_, Box<RigidBody<N>>> {
+    pub fn iter(&self) -> Iter<'_, Box<Body<N>>> {
         self.storage.iter()
     }
 
-    pub fn iter_mut(&mut self) -> IterMut<'_, Box<RigidBody<N>>> {
+    pub fn iter_mut(&mut self) -> IterMut<'_, Box<Body<N>>> {
         self.storage.iter_mut()
     }
 }

@@ -8,7 +8,6 @@ use nphysics3d::object::{
 use crate::storage::{Storage, StoreKey};
 
 pub struct ColliderStorage<N: PtReal, BH: NpBodyHandle> {
-    // TODO use Box
     storage: Storage<Box<NpCollider<N, BH>>>,
     /// A list of inserted ID, this list is decremented only when the function `pop_inserted_event` is called
     inserted: Vec<StoreKey>,
@@ -34,13 +33,13 @@ impl<N: PtReal, BH: NpBodyHandle> Default for ColliderStorage<N, BH> {
 
 impl<N: PtReal, BH: NpBodyHandle> ColliderStorage<N, BH> {
     pub fn insert_collider(&mut self, collider: Box<NpCollider<N, BH>>) -> StoreKey {
-        let key = self.storage.make_opaque(collider);
+        let key = self.storage.insert(collider);
         self.inserted.push(key);
         key
     }
 
     pub fn drop_collider(&mut self, key: StoreKey) {
-        let res = self.storage.destroy(key);
+        let res = self.storage.remove(key);
         if let Some(data) = res {
             if let Some(d) = data.removal_data() {
                 self.removed.push((key, d));
@@ -132,7 +131,7 @@ impl<N: PtReal, BH: NpBodyHandle> ColliderSet<N, BH> for ColliderStorage<N, BH> 
     }
 
     fn remove(&mut self, to_remove: Self::Handle) -> Option<&mut NpColliderRemovalData<N, BH>> {
-        let collider = self.storage.destroy(to_remove)?;
+        let collider = self.storage.remove(to_remove)?;
         if let Some(data) = collider.removal_data() {
             self.removed.push((to_remove, data));
             self.removed.last_mut().map(|r| &mut r.1)

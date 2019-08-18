@@ -41,7 +41,7 @@ mod force_generator;
 mod force_generator_storage;
 mod joint;
 mod joint_storage;
-mod rigid_body;
+mod body;
 mod rigid_body_physics_server;
 mod shape;
 mod shape_physics_server;

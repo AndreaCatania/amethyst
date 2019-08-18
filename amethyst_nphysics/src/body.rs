@@ -11,13 +11,12 @@ use nphysics3d::object::{
 
 use crate::storage::StoreKey;
 
-// TODO rename to Body
 /// Store information about a body
 ///
 /// A body is:
-/// - Rigid Body (Disabled, Dynamic, Static, Kinematic)
-/// - Area
-pub struct RigidBody<N: PtReal> {
+/// - Rigid - RigidBody(Disabled, Dynamic, Static, Kinematic)
+/// - Area - RigidBody(Static)
+pub struct Body<N: PtReal> {
     pub self_key: Option<StoreKey>,
     pub np_body: Box<dyn NpBody<N>>,
     pub body_data: BodyData,
@@ -27,9 +26,10 @@ pub struct RigidBody<N: PtReal> {
     pub entity: Option<Entity>,
 }
 
-impl<N: PtReal> RigidBody<N> {
+impl<N: PtReal> Body<N> {
+    /// Creates a Rigid Body `Body`
     pub(crate) fn new_rigid_body(np_rigid_body: Box<NpRigidBody<N>>, world_key: StoreKey) -> Self {
-        RigidBody {
+        Body {
             self_key: None,
             np_body: np_rigid_body,
             body_data: BodyData::Rigid,
@@ -40,8 +40,9 @@ impl<N: PtReal> RigidBody<N> {
         }
     }
 
+    /// Creates an Area `Body`
     pub(crate) fn new_area(np_rigid_body: Box<NpRigidBody<N>>, world_key: StoreKey) -> Self {
-        RigidBody {
+        Body {
             self_key: None,
             np_body: np_rigid_body,
             body_data: BodyData::Area(Vec::new()),
@@ -52,10 +53,16 @@ impl<N: PtReal> RigidBody<N> {
         }
     }
 
+    /// Returns some with a rigid body reference if this body is a RigidBody.
+    ///
+    /// Note that the area is a RigidBody.
     pub fn rigid_body(&self) -> Option<&NpRigidBody<N>> {
         self.np_body.downcast_ref::<NpRigidBody<N>>()
     }
 
+    /// Returns some with a rigid body mut reference if this body is a RigidBody.
+    ///
+    /// Note that the area is a RigidBody.
     pub fn rigid_body_mut(&mut self) -> Option<&mut NpRigidBody<N>> {
         self.np_body.downcast_mut::<NpRigidBody<N>>()
     }

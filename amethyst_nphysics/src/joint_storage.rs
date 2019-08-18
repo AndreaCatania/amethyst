@@ -44,13 +44,13 @@ impl<N: PtReal, S: NpBodySet<N>> Default for JointStorage<N, S> {
 impl<N: PtReal, S: NpBodySet<N>> JointStorage<N, S> {
     pub fn insert(&mut self, joint: Box<Joint<N, S>>) -> StoreKey {
         let (part1, part2) = joint.np_joint.anchors();
-        let key = self.storage.make_opaque(joint);
+        let key = self.storage.insert(joint);
         self.inserted.push((key, part1, part2));
         key
     }
 
     pub fn drop(&mut self, key: StoreKey) {
-        let res = self.storage.destroy(key);
+        let res = self.storage.remove(key);
         if let Some(data) = res {
             let (part1, part2) = data.np_joint.anchors();
             self.inserted.push((key, part1, part2));
@@ -123,6 +123,6 @@ impl<N: PtReal, S: NpBodySet<N> + 'static> NpJointConstraintSet<N, S> for JointS
     }
 
     fn remove(&mut self, to_remove: Self::Handle) {
-        self.storage.destroy(to_remove);
+        self.storage.remove(to_remove);
     }
 }

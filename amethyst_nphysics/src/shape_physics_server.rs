@@ -7,7 +7,7 @@ use log::error;
 use nphysics3d::object::ColliderDesc as NpColliderDesc;
 
 use crate::{
-    area_physics_server::AreaNpServer, conversors::*, rigid_body::BodyData,
+    area_physics_server::AreaNpServer, conversors::*, body::BodyData,
     rigid_body_physics_server::RBodyNpServer, servers_storage::*, shape::RigidShape,
     storage::StoreKey,
 };
@@ -24,7 +24,7 @@ impl<N: PtReal> ShapeNpServer<N> {
     /// Drop a shape, return false if it can't be removed right now or it something failed.
     pub fn drop_shape(
         shape_tag: PhysicsShapeTag,
-        shapes_storage: &mut ShapeStorageWrite<N>,
+        shapes_storage: &mut ShapesStorageWrite<N>,
     ) -> bool {
         let shape_key = tag_to_store_key(shape_tag.0);
 
@@ -39,13 +39,13 @@ impl<N: PtReal> ShapeNpServer<N> {
             }
             false
         } else {
-            shapes_storage.destroy(shape_key);
+            shapes_storage.remove(shape_key);
             true
         }
     }
 
     /// Returns `true` if this shape is still in use.
-    pub fn has_dependency(shape_key: StoreKey, shapes_storage: &mut ShapeStorageWrite<N>) -> bool {
+    pub fn has_dependency(shape_key: StoreKey, shapes_storage: &mut ShapesStorageWrite<N>) -> bool {
         if let Some(shape) = shapes_storage.get_mut(shape_key) {
             if shape.bodies().len() > 0 {
                 return true;
@@ -61,7 +61,7 @@ impl<N: PtReal> ShapePhysicsServerTrait<N> for ShapeNpServer<N> {
         let shape = Box::new(RigidShape::new(shape_desc));
 
         let mut shapes_storage = self.storages.shapes_w();
-        let mut shape_key = (shapes_storage.make_opaque(shape));
+        let mut shape_key = (shapes_storage.insert(shape));
 
         let shape = shapes_storage.get_mut(shape_key).unwrap();
         shape.self_key = Some(shape_key);
@@ -70,7 +70,7 @@ impl<N: PtReal> ShapePhysicsServerTrait<N> for ShapeNpServer<N> {
     }
 
     fn update_shape(&mut self, shape_tag: PhysicsShapeTag, shape_desc: &ShapeDesc<N>) {
-        let mut bodies = self.storages.rbodies_w();
+        let mut bodies = self.storages.bodies_w();
         let mut colliders = self.storages.colliders_w();
         let mut shapes = self.storages.shapes_w();
 

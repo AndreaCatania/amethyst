@@ -31,10 +31,9 @@ impl<T> Storage<T> {
     }
 
     /// Takes an object and returns an opaque id.
-    /// This function takes also the ownership, so to drop an object you need to call the `drop`
+    /// This function takes also the ownership, so to drop an object you need to call the `remove`
     /// function with the ID of the object to delete.
-    // TODO rename to insert
-    pub fn make_opaque(&mut self, object: T) -> StoreKey {
+    pub fn insert(&mut self, object: T) -> StoreKey {
         // Reserve the memory if no more space
         if self.memory.len() == self.memory.capacity() {
             self.memory.reserve(self.growing_size);
@@ -55,9 +54,10 @@ impl<T> Storage<T> {
         self.memory.get_mut(key)
     }
 
-    /// Destroy an object and release the key for future use.
-    // TODO rename to remove
-    pub fn destroy(&mut self, key: StoreKey) -> Option<T> {
+    /// Remove an object and release the key for future use.
+    ///
+    /// Returns `Some` with the removed object, or `None` if nothing was removed.
+    pub fn remove(&mut self, key: StoreKey) -> Option<T> {
         self.memory.remove(key)
     }
 

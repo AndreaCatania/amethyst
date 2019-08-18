@@ -31,11 +31,11 @@ impl<N: PtReal, S: NpBodySet<N>> Default for ForceGeneratorStorage<N, S> {
 
 impl<N: PtReal, S: NpBodySet<N>> ForceGeneratorStorage<N, S> {
     pub fn insert(&mut self, force_generator: Box<ForceGenerator<N, S>>) -> StoreKey {
-        self.storage.make_opaque(force_generator)
+        self.storage.insert(force_generator)
     }
 
     pub fn drop(&mut self, key: StoreKey) {
-        self.storage.destroy(key);
+        self.storage.remove(key);
     }
 
     pub fn get_collider(&self, key: StoreKey) -> Option<&Box<ForceGenerator<N, S>>> {

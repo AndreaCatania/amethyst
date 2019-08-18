@@ -10,8 +10,8 @@ use core::borrow::BorrowMut;
 
 use crate::{
     conversors::*,
-    servers_storage::{ServersStorageType, WorldStorageWrite, RigidBodyStorageWrite, ColliderStorageWrite},
-    rigid_body::BodyData,
+    servers_storage::{ServersStorageType, WorldsStorageWrite, BodiesStorageWrite, CollidersStorageWrite},
+    body::BodyData,
     utils::*,
     world::World,
     AreaNpServer,
@@ -35,8 +35,8 @@ impl<N: PtReal> WorldNpServer<N> {
         WorldNpServer { storages }
     }
 
-    fn drop_world(world_tag: PhysicsWorldTag, worlds_storage: &mut WorldStorageWrite<N>) {
-        worlds_storage.destroy(tag_to_store_key(world_tag.0));
+    fn drop_world(world_tag: PhysicsWorldTag, worlds_storage: &mut WorldsStorageWrite<N>) {
+        worlds_storage.remove(tag_to_store_key(world_tag.0));
     }
 }
 
@@ -44,7 +44,7 @@ impl<N: PtReal> WorldNpServer<N> {
     fn garbage_collect(&self) {
         let mut gc = self.storages.gc.write().unwrap();
         let mut worlds_storage = self.storages.worlds_w();
-        let mut bodies_storage = self.storages.rbodies_w();
+        let mut bodies_storage = self.storages.bodies_w();
         let mut colliders_storage = self.storages.colliders_w();
         let mut shapes_storage = self.storages.shapes_w();
 
@@ -101,7 +101,7 @@ impl<N: PtReal> WorldNpServer<N> {
         }
     }
 
-    fn fetch_events(world: &mut World<N>, bodies: &mut RigidBodyStorageWrite<N>, colliders: &mut ColliderStorageWrite<N>) {
+    fn fetch_events(world: &mut World<N>, bodies: &mut BodiesStorageWrite<N>, colliders: &mut CollidersStorageWrite<N>) {
 
         // Clear old events
         for (i, b) in bodies.iter_mut() {
@@ -204,7 +204,7 @@ impl<N: PtReal> WorldPhysicsServerTrait<N> for WorldNpServer<N> {
 
         PhysicsHandle::new(
             PhysicsWorldTag(store_key_to_tag(
-                self.storages.worlds_w().make_opaque(Box::new(w)),
+                self.storages.worlds_w().insert(Box::new(w)),
             )),
             self.storages.gc.clone(),
         )
@@ -219,7 +219,7 @@ impl<N: PtReal> WorldPhysicsServerTrait<N> for WorldNpServer<N> {
         fail_cond!(world.is_none());
         let mut world = world.unwrap();
 
-        let mut bodies = self.storages.rbodies_w();
+        let mut bodies = self.storages.bodies_w();
         let mut colliders = self.storages.colliders_w();
         let mut joints = self.storages.joints_w();
         let mut force_generator = self.storages.force_generator_w();
