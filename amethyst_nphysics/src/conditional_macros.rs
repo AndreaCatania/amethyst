@@ -1,3 +1,13 @@
+#[macro_export]
+macro_rules! matches {
+    ($e:expr, $p:pat) => {
+        match $e {
+            $p => true,
+            _ => false,
+        }
+    }
+}
+
 /// These macros are used to assert the validity of some data, but instead to panics they stop
 /// the functions processing print a message on the console.
 ///

@@ -1,35 +1,31 @@
-
+use amethyst_phythyst::{objects::PhysicsBodyTag, PtReal};
 use nphysics3d::{
-    joint::{
-        JointConstraintSet as NpJointConstraintSet,
-        JointConstraint as NpJointConstraint,
-    },
-    object::{
-        BodyPartHandle as NpBodyPartHandle,
-        BodySet as NpBodySet,
-    }
-};
-use amethyst_phythyst::{
-    objects::PhysicsBodyTag,
-    PtReal
+    joint::{JointConstraint as NpJointConstraint, JointConstraintSet as NpJointConstraintSet},
+    object::{BodyPartHandle as NpBodyPartHandle, BodySet as NpBodySet},
 };
 
 use crate::{
     joint::Joint,
-    storage::{
-        Storage, StoreKey,
-    }
+    storage::{Storage, StoreKey},
 };
 
-pub struct JointStorage<N: PtReal, S: NpBodySet<N>>{
+pub struct JointStorage<N: PtReal, S: NpBodySet<N>> {
     storage: Storage<Box<Joint<N, S>>>,
     /// A list of inserted ID, this list is decremented only when the function `pop_inserted_event` is called
-    inserted: Vec<(StoreKey, NpBodyPartHandle<S::Handle>, NpBodyPartHandle<S::Handle>)>,
+    inserted: Vec<(
+        StoreKey,
+        NpBodyPartHandle<S::Handle>,
+        NpBodyPartHandle<S::Handle>,
+    )>,
     /// A list of removed ID, this list is decremented only when the function `pop_removal_event` is called
-    removed: Vec<(StoreKey, NpBodyPartHandle<S::Handle>, NpBodyPartHandle<S::Handle>)>,
+    removed: Vec<(
+        StoreKey,
+        NpBodyPartHandle<S::Handle>,
+        NpBodyPartHandle<S::Handle>,
+    )>,
 }
 
-impl<N: PtReal, S: NpBodySet<N>> JointStorage<N, S>{
+impl<N: PtReal, S: NpBodySet<N>> JointStorage<N, S> {
     pub fn new() -> Self {
         JointStorage {
             storage: Storage::new(5, 15),
@@ -45,7 +41,7 @@ impl<N: PtReal, S: NpBodySet<N>> Default for JointStorage<N, S> {
     }
 }
 
-impl<N:PtReal, S: NpBodySet<N>> JointStorage<N, S> {
+impl<N: PtReal, S: NpBodySet<N>> JointStorage<N, S> {
     pub fn insert(&mut self, joint: Box<Joint<N, S>>) -> StoreKey {
         let (part1, part2) = joint.np_joint.anchors();
         let key = self.storage.make_opaque(joint);
@@ -71,14 +67,13 @@ impl<N:PtReal, S: NpBodySet<N>> JointStorage<N, S> {
 }
 
 impl<N: PtReal, S: NpBodySet<N> + 'static> NpJointConstraintSet<N, S> for JointStorage<N, S> {
-
     type JointConstraint = dyn NpJointConstraint<N, S>;
     type Handle = StoreKey;
 
     fn get(&self, handle: Self::Handle) -> Option<&Self::JointConstraint> {
         if let Some(joint) = self.storage.get(handle) {
             Some(joint.np_joint.as_ref())
-        }else{
+        } else {
             None
         }
     }
@@ -86,7 +81,7 @@ impl<N: PtReal, S: NpBodySet<N> + 'static> NpJointConstraintSet<N, S> for JointS
     fn get_mut(&mut self, handle: Self::Handle) -> Option<&mut Self::JointConstraint> {
         if let Some(joint) = self.storage.get_mut(handle) {
             Some(joint.np_joint.as_mut())
-        }else{
+        } else {
             None
         }
     }
@@ -95,23 +90,35 @@ impl<N: PtReal, S: NpBodySet<N> + 'static> NpJointConstraintSet<N, S> for JointS
         self.storage.has(handle)
     }
 
-    fn foreach(&self, mut f: impl FnMut(Self::Handle, &Self::JointConstraint)){
-        for(i, c) in self.storage.iter() {
+    fn foreach(&self, mut f: impl FnMut(Self::Handle, &Self::JointConstraint)) {
+        for (i, c) in self.storage.iter() {
             f(i, c.np_joint.as_ref())
         }
     }
 
-    fn foreach_mut(&mut self, mut f: impl FnMut(Self::Handle, &mut Self::JointConstraint)){
-        for(i, c) in self.storage.iter_mut() {
+    fn foreach_mut(&mut self, mut f: impl FnMut(Self::Handle, &mut Self::JointConstraint)) {
+        for (i, c) in self.storage.iter_mut() {
             f(i, c.np_joint.as_mut())
         }
     }
 
-    fn pop_insertion_event(&mut self) -> Option<(Self::Handle, NpBodyPartHandle<S::Handle>, NpBodyPartHandle<S::Handle>)> {
+    fn pop_insertion_event(
+        &mut self,
+    ) -> Option<(
+        Self::Handle,
+        NpBodyPartHandle<S::Handle>,
+        NpBodyPartHandle<S::Handle>,
+    )> {
         self.inserted.pop()
     }
 
-    fn pop_removal_event(&mut self) -> Option<(Self::Handle, NpBodyPartHandle<S::Handle>, NpBodyPartHandle<S::Handle>)> {
+    fn pop_removal_event(
+        &mut self,
+    ) -> Option<(
+        Self::Handle,
+        NpBodyPartHandle<S::Handle>,
+        NpBodyPartHandle<S::Handle>,
+    )> {
         self.removed.pop()
     }
 

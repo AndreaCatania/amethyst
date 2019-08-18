@@ -9,8 +9,8 @@ use nalgebra::Vector3;
 use core::borrow::BorrowMut;
 
 use crate::{
-    servers_storage::{ServersStorageType, WorldStorageWrite},
     conversors::*,
+    servers_storage::{ServersStorageType, WorldStorageWrite},
     //utils::*,
     world::World,
     AreaNpServer,
@@ -18,14 +18,16 @@ use crate::{
     ShapeNpServer,
 };
 
-use nphysics3d::{utils::UserData as NpUserData, world::{GeometricalWorld, MechanicalWorld}};
+use nphysics3d::{
+    utils::UserData as NpUserData,
+    world::{GeometricalWorld, MechanicalWorld},
+};
 
 use ncollide3d::query::Proximity;
 
 pub struct WorldNpServer<N: PtReal> {
     storages: ServersStorageType<N>,
 }
-
 
 impl<N: PtReal> WorldNpServer<N> {
     pub fn new(storages: ServersStorageType<N>) -> WorldNpServer<N> {
@@ -42,7 +44,6 @@ impl<N: PtReal> WorldNpServer<N> {
         let mut gc = self.storages.gc.write().unwrap();
         let mut worlds_storage = self.storages.worlds_w();
         let mut bodies_storage = self.storages.rbodies_w();
-        let mut areas_storage = self.storages.areas_w();
         let mut colliders_storage = self.storages.colliders_w();
         let mut shapes_storage = self.storages.shapes_w();
 
@@ -63,7 +64,7 @@ impl<N: PtReal> WorldNpServer<N> {
             for area in gc.areas.iter() {
                 AreaNpServer::drop_area(
                     *area,
-                    &mut areas_storage,
+                    &mut bodies_storage,
                     &mut colliders_storage,
                     &mut shapes_storage,
                 );
@@ -98,7 +99,7 @@ impl<N: PtReal> WorldNpServer<N> {
             gc.worlds.clear();
         }
     }
-/*
+    /*
     fn fetch_events(&self, world: &mut NpWorld<N>) {
         let mut s = self.storages.areas_w();
 
@@ -194,11 +195,17 @@ impl<N: PtReal> WorldPhysicsServerTrait<N> for WorldNpServer<N> {
     fn create_world(&mut self) -> PhysicsHandle<PhysicsWorldTag> {
         let mut w = World::<N> {
             geometrical_world: GeometricalWorld::new(),
-            mechanical_world: MechanicalWorld::new(Vector3::new(N::from(0.0), N::from(-9.8), N::from(0.0))),
+            mechanical_world: MechanicalWorld::new(Vector3::new(
+                N::from(0.0),
+                N::from(-9.8),
+                N::from(0.0),
+            )),
         };
 
         PhysicsHandle::new(
-            PhysicsWorldTag(store_key_to_tag(self.storages.worlds_w().make_opaque(Box::new(w)))),
+            PhysicsWorldTag(store_key_to_tag(
+                self.storages.worlds_w().make_opaque(Box::new(w)),
+            )),
             self.storages.gc.clone(),
         )
     }
@@ -224,7 +231,7 @@ impl<N: PtReal> WorldPhysicsServerTrait<N> for WorldNpServer<N> {
             &mut *bodies,
             &mut *colliders,
             &mut *joints,
-            &mut *force_generator
+            &mut *force_generator,
         );
 
         //self.fetch_events(world);

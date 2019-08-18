@@ -38,7 +38,7 @@ pub struct AreaDesc {
     pub shape: PhysicsShapeTag, // TODO please remove this, and add an APi like for the RigidBody server
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, PartialEq, Debug)]
 pub enum OverlapEvent {
     Enter(PhysicsBodyTag, Option<Entity>),
     Exit(PhysicsBodyTag, Option<Entity>),

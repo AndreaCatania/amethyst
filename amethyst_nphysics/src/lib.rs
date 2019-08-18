@@ -29,29 +29,29 @@
 
 #[macro_use]
 mod conditional_macros;
-mod utils;
 pub mod conversors;
 pub mod storage;
+mod utils;
 #[macro_use]
 mod servers_storage;
-mod world;
-mod world_physics_server;
-mod rigid_body;
+mod area_physics_server;
 mod body_storage;
 mod collider_storage;
-mod joint;
-mod joint_storage;
 mod force_generator;
 mod force_generator_storage;
-mod shape;
+mod joint;
+mod joint_storage;
+mod rigid_body;
 mod rigid_body_physics_server;
-mod area_physics_server;
+mod shape;
 mod shape_physics_server;
+mod world;
+mod world_physics_server;
 
-use world_physics_server::WorldNpServer;
-use rigid_body_physics_server::RBodyNpServer;
 use area_physics_server::AreaNpServer;
+use rigid_body_physics_server::RBodyNpServer;
 use shape_physics_server::ShapeNpServer;
+use world_physics_server::WorldNpServer;
 
 use amethyst_phythyst::{
     servers::{

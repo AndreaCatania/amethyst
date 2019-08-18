@@ -1,9 +1,6 @@
-use nphysics3d::{
-    object::BodySet as NpBodySet,
-    joint::JointConstraint as NpJointConstraint
-};
 use amethyst_core::ecs::Entity;
-use amethyst_phythyst::{PtReal};
+use amethyst_phythyst::PtReal;
+use nphysics3d::{joint::JointConstraint as NpJointConstraint, object::BodySet as NpBodySet};
 
 use crate::storage::StoreKey;
 
@@ -13,7 +10,7 @@ pub struct Joint<N: PtReal, S: NpBodySet<N>> {
     pub world_key: StoreKey,
 }
 
-impl<N: PtReal, S: NpBodySet<N>> Joint<N, S>{
+impl<N: PtReal, S: NpBodySet<N>> Joint<N, S> {
     pub(crate) fn new(np_joint: Box<dyn NpJointConstraint<N, S>>, world_key: StoreKey) -> Self {
         Joint {
             self_key: None,

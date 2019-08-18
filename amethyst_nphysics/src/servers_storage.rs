@@ -1,22 +1,18 @@
 use std::sync::{Arc, RwLock, RwLockReadGuard, RwLockWriteGuard};
 
-use amethyst_phythyst::{
-    PtReal,
-    objects::*
-};
-use nphysics3d::object::{BodyHandle as NpBodyHandle, RigidBody as NpRigidBody};
+use amethyst_phythyst::{objects::*, PtReal};
 use nalgebra::RealField;
+use nphysics3d::object::{BodyHandle as NpBodyHandle, RigidBody as NpRigidBody};
 
 use crate::{
+    body_storage::BodyStorage,
     collider_storage::ColliderStorage,
+    force_generator_storage::ForceGeneratorStorage,
+    joint_storage::JointStorage,
     rigid_body::RigidBody,
     shape::RigidShape,
     storage::{Storage, StoreKey},
     world::World,
-    body_storage::BodyStorage,
-    joint_storage::JointStorage,
-    force_generator_storage::ForceGeneratorStorage,
-    area::Area,
 };
 
 pub type ServersStorageType<N> = Arc<ServersStorage<N>>;
@@ -29,8 +25,10 @@ pub type ColliderStorageWrite<'a, N> = RwLockWriteGuard<'a, ColliderStorage<N, S
 pub type ColliderStorageRead<'a, N> = RwLockReadGuard<'a, ColliderStorage<N, StoreKey>>;
 pub type JointStorageWrite<'a, N> = RwLockWriteGuard<'a, JointStorage<N, BodyStorage<N>>>;
 pub type JointStorageRead<'a, N> = RwLockReadGuard<'a, JointStorage<N, BodyStorage<N>>>;
-pub type ForceGeneratorStorageWrite<'a, N> = RwLockWriteGuard<'a, ForceGeneratorStorage<N, BodyStorage<N>>>;
-pub type ForceGeneratorStorageRead<'a, N> = RwLockReadGuard<'a, ForceGeneratorStorage<N, BodyStorage<N>>>;
+pub type ForceGeneratorStorageWrite<'a, N> =
+    RwLockWriteGuard<'a, ForceGeneratorStorage<N, BodyStorage<N>>>;
+pub type ForceGeneratorStorageRead<'a, N> =
+    RwLockReadGuard<'a, ForceGeneratorStorage<N, BodyStorage<N>>>;
 pub type ShapeStorageWrite<'a, N> = RwLockWriteGuard<'a, Storage<Box<RigidShape<N>>>>;
 pub type ShapeStorageRead<'a, N> = RwLockReadGuard<'a, Storage<Box<RigidShape<N>>>>;
 

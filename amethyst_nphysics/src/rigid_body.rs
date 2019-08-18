@@ -1,7 +1,13 @@
-
-use nphysics3d::object::{Body as NpBody, RigidBody as NpRigidBody, BodyHandle as NpBodyHandle, ColliderHandle as NpColliderHandle};
 use amethyst_core::ecs::Entity;
-use amethyst_phythyst::{PtReal, objects::*, servers::{BodyMode, OverlapEvent}};
+use amethyst_phythyst::{
+    objects::*,
+    servers::{BodyMode, OverlapEvent},
+    PtReal,
+};
+use nphysics3d::object::{
+    Body as NpBody, BodyHandle as NpBodyHandle, ColliderHandle as NpColliderHandle,
+    RigidBody as NpRigidBody,
+};
 
 use crate::storage::StoreKey;
 
@@ -56,7 +62,8 @@ impl<N: PtReal> RigidBody<N> {
 }
 
 /// Here are stored extra body information, depending on the body type
-pub enum BodyData{
+#[derive(Debug, PartialEq)]
+pub enum BodyData {
     Rigid,
     Area(Vec<OverlapEvent>),
 }

@@ -4,9 +4,7 @@ use amethyst_core::{
 };
 use nalgebra::{Isometry3, Transform3};
 
-use amethyst_phythyst::objects::{
-    PhysicsWorldTag, PhysicsBodyTag,
-};
+use amethyst_phythyst::objects::{PhysicsBodyTag, PhysicsWorldTag};
 
 use crate::storage::StoreKey;
 
@@ -125,7 +123,7 @@ pub fn tag_to_store_key(tag: std::num::NonZeroU64) -> StoreKey {
 /// assert_eq!(std::num::NonZeroU64::new(1).unwrap(), store_key_to_tag(sk));
 /// ```
 pub fn store_key_to_tag(key: StoreKey) -> std::num::NonZeroU64 {
-    key.map(|index, generation | std::num::NonZeroU64::new(
-        ( generation << 32 | (index as u64) ) + 1
-    ).unwrap())
+    key.map(|index, generation| {
+        std::num::NonZeroU64::new((generation << 32 | (index as u64)) + 1).unwrap()
+    })
 }

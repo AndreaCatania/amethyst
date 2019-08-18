@@ -1,15 +1,14 @@
-use nphysics3d::object::ColliderDesc as NpColliderDesc;
 use amethyst_phythyst::{
     objects::*,
     servers::{ShapeDesc, ShapePhysicsServerTrait},
     PtReal,
 };
+use nphysics3d::object::ColliderDesc as NpColliderDesc;
 
 use crate::{
     area_physics_server::AreaNpServer, conversors::*, rigid_body_physics_server::RBodyNpServer,
     servers_storage::*, shape::RigidShape, storage::StoreKey,
 };
-
 
 pub struct ShapeNpServer<N: PtReal> {
     storages: ServersStorageType<N>,
@@ -30,7 +29,6 @@ impl<N: PtReal> ShapeNpServer<N> {
         let safe_to_drop = !ShapeNpServer::has_dependency(shape_key, shapes_storage);
 
         if !safe_to_drop {
-
             if let Some(shape) = shapes_storage.get_mut(shape_key) {
                 if !shape.marked_for_drop {
                     shape.marked_for_drop = true;
@@ -38,26 +36,16 @@ impl<N: PtReal> ShapeNpServer<N> {
                 }
             }
             false
-        }else{
-
+        } else {
             shapes_storage.destroy(shape_key);
             true
         }
     }
 
     /// Returns `true` if this shape is still in use.
-    pub fn has_dependency(
-        shape_key: StoreKey,
-        shapes_storage: &mut ShapeStorageWrite<N>,
-    ) -> bool {
-
+    pub fn has_dependency(shape_key: StoreKey, shapes_storage: &mut ShapeStorageWrite<N>) -> bool {
         if let Some(shape) = shapes_storage.get_mut(shape_key) {
-
             if shape.bodies().len() > 0 {
-                return true;
-            }
-
-            if shape.areas().len() > 0 {
                 return true;
             }
         }

@@ -1,4 +1,8 @@
+use amethyst_core::ecs::Entity;
+use amethyst_phythyst::{objects::*, servers::*, PtReal};
 use log::error;
+use nalgebra::{Isometry3, Point, Vector, Vector3};
+use ncollide3d::shape::{Ball as NcBall, ShapeHandle as NcShapeHandle};
 use nphysics3d::{
     algebra::Velocity3,
     math::{Force, ForceType, Velocity},
@@ -8,13 +12,12 @@ use nphysics3d::{
         RigidBody as NpRigidBody, RigidBodyDesc as NpRigidBodyDesc,
     },
 };
-use ncollide3d::shape::{Ball as NcBall, ShapeHandle as NcShapeHandle};
-use nalgebra::{Isometry3, Point, Vector, Vector3};
-use amethyst_phythyst::{objects::*, servers::*, PtReal};
-use amethyst_core::ecs::Entity;
 
 use crate::{
-    conversors::*, rigid_body::RigidBody, servers_storage::*, shape::RigidShape, storage::StoreKey, utils::*,
+    conversors::*, rigid_body::{
+        BodyData, RigidBody
+    }, servers_storage::*, shape::RigidShape, storage::StoreKey,
+    utils::*,
 };
 
 pub struct RBodyNpServer<N: PtReal> {
@@ -37,7 +40,7 @@ impl<N: PtReal> RBodyNpServer<N> {
         shapes_storage: &mut ShapeStorageWrite<N>,
     ) {
         let body_key = tag_to_store_key(body_tag.0);
-        if let Some(body) = bodies_storage.get_body_mut(body_key){
+        if let Some(body) = bodies_storage.get_body_mut(body_key) {
             Self::remove_shape(body, shapes_storage, colliders_storage);
         }
         bodies_storage.drop_body(body_key);
@@ -60,11 +63,15 @@ impl<N: PtReal> RBodyNpServer<N> {
 
     /// Remove shape.
     /// Take care to unregister the shape and then drop the internal collider.
-    pub fn remove_shape(body: &mut RigidBody<N>, shapes: &mut ShapeStorageWrite<N>, colliders: &mut ColliderStorageWrite<N>) {
+    pub fn remove_shape(
+        body: &mut RigidBody<N>,
+        shapes: &mut ShapeStorageWrite<N>,
+        colliders: &mut ColliderStorageWrite<N>,
+    ) {
         if let Some(shape_key) = body.shape_key {
             if let Some(shape) = shapes.get_mut(shape_key) {
                 shape.unregister_body(body.self_key.unwrap());
-            }else{
+            } else {
                 error!("A body is associated with a shape, but the shape doesn't exist!");
             }
             body.shape_key = None;
@@ -78,9 +85,7 @@ impl<N: PtReal> RBodyNpServer<N> {
         collider_desc: &NpColliderDesc<N>,
         colliders: &mut ColliderStorageWrite<N>,
     ) {
-
-        let mut collider = collider_desc
-            .build(NpBodyPartHandle(body.self_key.unwrap(), 0));
+        let mut collider = collider_desc.build(NpBodyPartHandle(body.self_key.unwrap(), 0));
 
         RBodyNpServer::update_user_data(&mut collider, body);
 
@@ -107,9 +112,9 @@ impl<N: PtReal> RBodyNpServer<N> {
     /// Extract collider description from a rigid body
     pub fn extract_collider_desc(
         np_rigid_body: &mut NpRigidBody<N>,
-        collider_desc: &mut NpColliderDesc<N>,
+        np_collider_desc: &mut NpColliderDesc<N>,
     ) {
-        collider_desc.set_density(nalgebra::convert(1.0));
+        np_collider_desc.set_density(nalgebra::convert(1.0));
     }
 }
 
@@ -127,9 +132,8 @@ where
         world_tag: PhysicsWorldTag,
         body_desc: &RigidBodyDesc<N>,
     ) -> PhysicsHandle<PhysicsBodyTag> {
-
         let mut bodies_storage = self.storages.rbodies_w();
-        let mut colliders= self.storages.colliders_w();
+        let mut colliders = self.storages.colliders_w();
         let mut shape_storage = self.storages.shapes_w();
 
         // Create Rigid body
@@ -138,11 +142,17 @@ where
             .set_mass(body_desc.mass)
             .build();
 
-        let b_key = bodies_storage.insert_body(Box::new(RigidBody::new_rigid_body(Box::new(np_rigid_body), tag_to_store_key(world_tag.0))));
+        let b_key = bodies_storage.insert_body(Box::new(RigidBody::new_rigid_body(
+            Box::new(np_rigid_body),
+            tag_to_store_key(world_tag.0),
+        )));
         let body = bodies_storage.get_body_mut(b_key).unwrap();
         body.self_key = Some(b_key);
 
-        PhysicsHandle::new(PhysicsBodyTag(store_key_to_tag(b_key)), self.storages.gc.clone())
+        PhysicsHandle::new(
+            PhysicsBodyTag(store_key_to_tag(b_key)),
+            self.storages.gc.clone(),
+        )
     }
 
     fn set_entity(&self, body_tag: PhysicsBodyTag, entity: Option<Entity>) {
@@ -150,14 +160,14 @@ where
         let mut bodies = self.storages.rbodies_w();
 
         if let Some(body) = bodies.get_body_mut(body_key) {
+            fail_cond!(!matches!(body.body_data, BodyData::Rigid));
             body.entity = entity;
 
             if let Some(collider_key) = body.collider_key {
                 let mut colliders = self.storages.colliders_w();
                 if let Some(collider) = colliders.get_collider_mut(collider_key) {
-
                     RBodyNpServer::update_user_data(collider, body);
-                }else{
+                } else {
                     error!("A body is assigned to a collider, but the collider doesn't exist!")
                 }
             }
@@ -170,7 +180,7 @@ where
 
         if let Some(body) = bodies.get_body(body_key) {
             body.entity
-        }else{
+        } else {
             None
         }
     }
@@ -179,7 +189,7 @@ where
         let body_key = tag_to_store_key(body_tag.0);
         let mut bodies = self.storages.rbodies_w();
 
-        let shape_key = shape_tag.map(|tag|tag_to_store_key(tag.0));
+        let shape_key = shape_tag.map(|tag| tag_to_store_key(tag.0));
 
         if let Some(body) = bodies.get_body_mut(body_key) {
             if body.shape_key == shape_key {
@@ -197,17 +207,16 @@ where
             // Assign the new shape if shape_tag is Some
             if let Some(shape_key) = shape_key {
                 if let Some(shape) = shapes.get_mut(shape_key) {
-
                     // Create and attach the collider
-                    let mut collider_desc =
-                        NpColliderDesc::new(shape.shape_handle().clone()).density(nalgebra::convert(1.0));
+                    let mut collider_desc = NpColliderDesc::new(shape.shape_handle().clone())
+                        .density(nalgebra::convert(1.0));
 
                     RBodyNpServer::install_shape(body, shape, &collider_desc, &mut colliders);
-                }else{
+                } else {
                     error!("During the rigid body creation, was not possible to find the shape to assign");
                 }
             }
-        } else{
+        } else {
             error!("Body not found");
         }
     }
@@ -217,8 +226,9 @@ where
         let mut bodies = self.storages.rbodies_r();
 
         if let Some(body) = bodies.get_body(body_key) {
-            body.shape_key.map(|key|PhysicsShapeTag(store_key_to_tag(key)))
-        }else{
+            body.shape_key
+                .map(|key| PhysicsShapeTag(store_key_to_tag(key)))
+        } else {
             None
         }
     }
@@ -227,10 +237,10 @@ where
         let body_key = tag_to_store_key(body_tag.0);
         let mut bodies = self.storages.rbodies_w();
 
-        if let Some(body) = bodies.get_body_mut(body_key){
+        if let Some(body) = bodies.get_body_mut(body_key) {
             if let Some(body) = body.rigid_body_mut() {
                 body.set_position(TransfConversor::to_physics(transf));
-            }else{
+            } else {
                 error!("Failed to cast the body, to a Rigid Body!");
             }
         }
@@ -240,10 +250,10 @@ where
         let body_key = tag_to_store_key(body_tag.0);
         let mut bodies = self.storages.rbodies_r();
 
-        if let Some(body) = bodies.get_body(body_key){
+        if let Some(body) = bodies.get_body(body_key) {
             if let Some(body) = body.rigid_body() {
                 return TransfConversor::from_physics(body.position());
-            }else{
+            } else {
                 error!("Failed to cast the body, to a Rigid Body!");
             }
         }
@@ -254,7 +264,7 @@ where
         let body_key = tag_to_store_key(body_tag.0);
         let mut bodies = self.storages.rbodies_w();
 
-        if let Some(body) = bodies.get_body_mut(body_key){
+        if let Some(body) = bodies.get_body_mut(body_key) {
             body.np_body.clear_forces();
         }
     }
@@ -264,7 +274,8 @@ where
         let mut bodies = self.storages.rbodies_w();
 
         if let Some(body) = bodies.get_body_mut(body_key) {
-            body.np_body.apply_force(0, &Force::linear(*force), ForceType::Force, true);
+            body.np_body
+                .apply_force(0, &Force::linear(*force), ForceType::Force, true);
         }
     }
 
@@ -273,7 +284,8 @@ where
         let mut bodies = self.storages.rbodies_w();
 
         if let Some(body) = bodies.get_body_mut(body_key) {
-            body.np_body.apply_force(0, &Force::torque(*force), ForceType::Force, true);
+            body.np_body
+                .apply_force(0, &Force::torque(*force), ForceType::Force, true);
         }
     }
 
@@ -287,7 +299,13 @@ where
         let mut bodies = self.storages.rbodies_w();
 
         if let Some(body) = bodies.get_body_mut(body_key) {
-            body.np_body.apply_force_at_point(0, force, &Point::from(*position), ForceType::Force, true);
+            body.np_body.apply_force_at_point(
+                0,
+                force,
+                &Point::from(*position),
+                ForceType::Force,
+                true,
+            );
         }
     }
 
@@ -296,7 +314,8 @@ where
         let mut bodies = self.storages.rbodies_w();
 
         if let Some(body) = bodies.get_body_mut(body_key) {
-            body.np_body.apply_force(0, &Force::linear(*impulse), ForceType::Impulse, true);
+            body.np_body
+                .apply_force(0, &Force::linear(*impulse), ForceType::Impulse, true);
         }
     }
 
@@ -305,7 +324,8 @@ where
         let mut bodies = self.storages.rbodies_w();
 
         if let Some(body) = bodies.get_body_mut(body_key) {
-            body.np_body.apply_force(0, &Force::torque(*impulse), ForceType::Impulse, true);
+            body.np_body
+                .apply_force(0, &Force::torque(*impulse), ForceType::Impulse, true);
         }
     }
 
@@ -336,7 +356,7 @@ where
         if let Some(body) = bodies.get_body_mut(body_key) {
             if let Some(rb_body) = body.rigid_body_mut() {
                 rb_body.set_linear_velocity(*velocity);
-            }else{
+            } else {
                 error!("The tag is not associated to any RigidBody");
             }
         }
@@ -349,7 +369,7 @@ where
         if let Some(body) = bodies.get_body(body_key) {
             if let Some(rb_body) = body.rigid_body() {
                 return rb_body.velocity().linear;
-            }else{
+            } else {
                 error!("The tag is not associated to any RigidBody");
             }
         }
@@ -363,7 +383,7 @@ where
         if let Some(body) = bodies.get_body_mut(body_key) {
             if let Some(rb_body) = body.rigid_body_mut() {
                 rb_body.set_angular_velocity(*velocity);
-            }else{
+            } else {
                 error!("The tag is not associated to any RigidBody");
             }
         }
@@ -376,7 +396,7 @@ where
         if let Some(body) = bodies.get_body(body_key) {
             if let Some(rb_body) = body.rigid_body() {
                 return rb_body.velocity().angular;
-            }else{
+            } else {
                 error!("The tag is not associated to any RigidBody");
             }
         }

@@ -1,31 +1,21 @@
-
+use amethyst_phythyst::{objects::PhysicsBodyTag, PtReal};
 use nphysics3d::{
     force_generator::{
-        ForceGeneratorSet as NpForceGeneratorSet,
-        ForceGenerator as NpForceGenerator,
+        ForceGenerator as NpForceGenerator, ForceGeneratorSet as NpForceGeneratorSet,
     },
-    object::{
-        BodyPartHandle as NpBodyPartHandle,
-        BodySet as NpBodySet,
-    }
-};
-use amethyst_phythyst::{
-    objects::PhysicsBodyTag,
-    PtReal
+    object::{BodyPartHandle as NpBodyPartHandle, BodySet as NpBodySet},
 };
 
 use crate::{
     force_generator::ForceGenerator,
-    storage::{
-        Storage, StoreKey,
-    }
+    storage::{Storage, StoreKey},
 };
 
-pub struct ForceGeneratorStorage<N: PtReal, S: NpBodySet<N>>{
+pub struct ForceGeneratorStorage<N: PtReal, S: NpBodySet<N>> {
     storage: Storage<Box<ForceGenerator<N, S>>>,
 }
 
-impl<N: PtReal, S: NpBodySet<N>> ForceGeneratorStorage<N, S>{
+impl<N: PtReal, S: NpBodySet<N>> ForceGeneratorStorage<N, S> {
     pub fn new() -> Self {
         ForceGeneratorStorage {
             storage: Storage::new(5, 5),
@@ -39,7 +29,7 @@ impl<N: PtReal, S: NpBodySet<N>> Default for ForceGeneratorStorage<N, S> {
     }
 }
 
-impl<N:PtReal, S: NpBodySet<N>> ForceGeneratorStorage<N, S> {
+impl<N: PtReal, S: NpBodySet<N>> ForceGeneratorStorage<N, S> {
     pub fn insert(&mut self, force_generator: Box<ForceGenerator<N, S>>) -> StoreKey {
         self.storage.make_opaque(force_generator)
     }
@@ -57,15 +47,16 @@ impl<N:PtReal, S: NpBodySet<N>> ForceGeneratorStorage<N, S> {
     }
 }
 
-impl<N: PtReal, S: NpBodySet<N> + 'static> NpForceGeneratorSet<N, S> for ForceGeneratorStorage<N, S> {
-
+impl<N: PtReal, S: NpBodySet<N> + 'static> NpForceGeneratorSet<N, S>
+    for ForceGeneratorStorage<N, S>
+{
     type ForceGenerator = dyn NpForceGenerator<N, S>;
     type Handle = StoreKey;
 
     fn get(&self, handle: Self::Handle) -> Option<&Self::ForceGenerator> {
         if let Some(force_generator) = self.storage.get(handle) {
             Some(force_generator.np_force_generator.as_ref())
-        }else{
+        } else {
             None
         }
     }
@@ -73,7 +64,7 @@ impl<N: PtReal, S: NpBodySet<N> + 'static> NpForceGeneratorSet<N, S> for ForceGe
     fn get_mut(&mut self, handle: Self::Handle) -> Option<&mut Self::ForceGenerator> {
         if let Some(force_generator) = self.storage.get_mut(handle) {
             Some(force_generator.np_force_generator.as_mut())
-        }else{
+        } else {
             None
         }
     }
@@ -82,14 +73,14 @@ impl<N: PtReal, S: NpBodySet<N> + 'static> NpForceGeneratorSet<N, S> for ForceGe
         self.storage.has(handle)
     }
 
-    fn foreach(&self, mut f: impl FnMut(Self::Handle, &Self::ForceGenerator)){
-        for(i, c) in self.storage.iter() {
+    fn foreach(&self, mut f: impl FnMut(Self::Handle, &Self::ForceGenerator)) {
+        for (i, c) in self.storage.iter() {
             f(i, c.np_force_generator.as_ref())
         }
     }
 
-    fn foreach_mut(&mut self, mut f: impl FnMut(Self::Handle, &mut Self::ForceGenerator)){
-        for(i, c) in self.storage.iter_mut() {
+    fn foreach_mut(&mut self, mut f: impl FnMut(Self::Handle, &mut Self::ForceGenerator)) {
+        for (i, c) in self.storage.iter_mut() {
             f(i, c.np_force_generator.as_mut())
         }
     }

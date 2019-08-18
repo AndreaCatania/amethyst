@@ -1,6 +1,4 @@
-use generational_arena::{
-    Index, Arena, Iter, IterMut
-};
+use generational_arena::{Arena, Index, Iter, IterMut};
 
 pub type StoreKey = Index;
 
