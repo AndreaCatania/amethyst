@@ -10,7 +10,7 @@ use core::borrow::BorrowMut;
 
 use crate::{
     conversors::*,
-    servers_storage::{ServersStorageType, WorldStorageWrite},
+    servers_storage::{ServersStorageType, WorldStorageWrite, RigidBodyStorageWrite, ColliderStorageWrite},
     rigid_body::BodyData,
     utils::*,
     world::World,
@@ -101,9 +101,7 @@ impl<N: PtReal> WorldNpServer<N> {
         }
     }
 
-    fn fetch_events(&self, world: &mut World<N>) {
-        let mut bodies = self.storages.rbodies_w();
-        let mut colliders = self.storages.colliders_w();
+    fn fetch_events(world: &mut World<N>, bodies: &mut RigidBodyStorageWrite<N>, colliders: &mut ColliderStorageWrite<N>) {
 
         // Clear old events
         for (i, b) in bodies.iter_mut() {
@@ -236,6 +234,6 @@ impl<N: PtReal> WorldPhysicsServerTrait<N> for WorldNpServer<N> {
             &mut *force_generator,
         );
 
-        self.fetch_events(world);
+        Self::fetch_events(world, &mut bodies, &mut colliders);
     }
 }
