@@ -11,7 +11,8 @@ use core::borrow::BorrowMut;
 use crate::{
     conversors::*,
     servers_storage::{ServersStorageType, WorldStorageWrite},
-    //utils::*,
+    rigid_body::BodyData,
+    utils::*,
     world::World,
     AreaNpServer,
     RBodyNpServer,
@@ -99,21 +100,24 @@ impl<N: PtReal> WorldNpServer<N> {
             gc.worlds.clear();
         }
     }
-    /*
-    fn fetch_events(&self, world: &mut NpWorld<N>) {
-        let mut s = self.storages.areas_w();
 
-        {
-            // Clear old events
-            for area in s.iter_mut() {
-                area.1.overlap_events.clear();
+    fn fetch_events(&self, world: &mut World<N>) {
+        let mut bodies = self.storages.rbodies_w();
+        let mut colliders = self.storages.colliders_w();
+
+        // Clear old events
+        for (i, b) in bodies.iter_mut() {
+            match &mut b.body_data {
+                BodyData::Area(e) => {
+                    e.clear();
+                },
+                _ => {}
             }
         }
 
         {
             // Fetch new events
-
-            let events = world.proximity_events();
+            let events = world.geometrical_world.proximity_events();
             for e in events {
                 if e.prev_status == e.new_status {
                     continue;
@@ -143,52 +147,50 @@ impl<N: PtReal> WorldNpServer<N> {
                     }
                 };
 
-                let collider1 = world.collider(e.collider1).unwrap();
-                let collider2 = world.collider(e.collider2).unwrap();
+                let collider1 = colliders.get_collider(e.collider1).unwrap();
+                let collider2 = colliders.get_collider(e.collider2).unwrap();
 
-                let body_1_ud = collider1
+                let body_1_ud: &UserData = collider1
                     .user_data()
                     .unwrap()
                     .downcast_ref::<UserData>()
                     .unwrap();
-                let body_2_ud = collider2
+                let body_2_ud: &UserData = collider2
                     .user_data()
                     .unwrap()
                     .downcast_ref::<UserData>()
                     .unwrap();
 
-                let mut area_tag;
-                let mut body_tag;
-                let mut body_entity;
-
-                match body_1_ud.object_type() {
+                let (area_tag, body_key, body_entity) = match body_1_ud.object_type() {
+                    ObjectType::RigidBody => {
+                        (
+                            body_2_ud.store_key(),
+                            body_1_ud.store_key(),
+                            body_1_ud.entity()
+                        )
+                    }
                     ObjectType::Area => {
-                        area_tag = body_1_ud.store_tag();
-                        body_tag = body_2_ud.store_tag();
-                        body_entity = body_2_ud.entity();
+                        (
+                            body_1_ud.store_key(),
+                            body_2_ud.store_key(),
+                            body_2_ud.entity()
+                        )
                     }
-                    _ => {
-                        area_tag = body_2_ud.store_tag();
-                        body_tag = body_1_ud.store_tag();
-                        body_entity = body_1_ud.entity();
+                };
+
+                let area = bodies.get_body_mut(area_tag).unwrap();
+                if let BodyData::Area(e) = &mut area.body_data{
+                    if status == 0 {
+                        // Enter
+                        e.push(OverlapEvent::Enter(PhysicsBodyTag(store_key_to_tag(body_key)), body_entity));
+                    } else {
+                        // Exit
+                        e.push(OverlapEvent::Exit(PhysicsBodyTag(store_key_to_tag(body_key)), body_entity));
                     }
-                }
-
-                let area = s.get_mut(area_tag).unwrap();
-
-                if status == 0 {
-                    // Enter
-                    area.overlap_events
-                        .push(OverlapEvent::Enter(PhysicsBodyTag(body_tag), body_entity));
-                } else {
-                    // Exit
-                    area.overlap_events
-                        .push(OverlapEvent::Exit(PhysicsBodyTag(body_tag), body_entity));
                 }
             }
         }
     }
-    */
 }
 
 impl<N: PtReal> WorldPhysicsServerTrait<N> for WorldNpServer<N> {
@@ -234,7 +236,6 @@ impl<N: PtReal> WorldPhysicsServerTrait<N> for WorldNpServer<N> {
             &mut *force_generator,
         );
 
-        //self.fetch_events(world);
-        unimplemented!();
+        self.fetch_events(world);
     }
 }

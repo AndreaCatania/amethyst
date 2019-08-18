@@ -1,5 +1,6 @@
 use amethyst_phythyst::{objects::PhysicsBodyTag, PtReal};
 use nphysics3d::object::{Body as NpBody, BodySet};
+use generational_arena::{Iter, IterMut};
 
 use crate::{
     rigid_body::RigidBody,
@@ -43,6 +44,14 @@ impl<N: PtReal> BodyStorage<N> {
 
     pub fn get_body_mut(&mut self, key: StoreKey) -> Option<&mut Box<RigidBody<N>>> {
         self.storage.get_mut(key)
+    }
+
+    pub fn iter(&self) -> Iter<'_, Box<RigidBody<N>>> {
+        self.storage.iter()
+    }
+
+    pub fn iter_mut(&mut self) -> IterMut<'_, Box<RigidBody<N>>> {
+        self.storage.iter_mut()
     }
 }
 
