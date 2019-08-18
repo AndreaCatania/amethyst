@@ -15,7 +15,7 @@ pub trait RBodyPhysicsServerTrait<N: crate::PtReal> {
     /// The PhysicsHandle returned can be safely cloned.
     /// When all instances of this Handle are dropped the Body is Dropped automatically.
     fn create_body(
-        &mut self,
+        &self,
         world_tag: PhysicsWorldTag,
         body_desc: &RigidBodyDesc<N>,
     ) -> PhysicsHandle<PhysicsBodyTag>;

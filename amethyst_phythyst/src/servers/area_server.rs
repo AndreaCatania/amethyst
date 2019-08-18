@@ -10,7 +10,7 @@ pub trait AreaPhysicsServerTrait {
     /// The PhysicsHandle returned can be safely cloned.
     /// When all instances of this Handle are dropped the Area is Dropped automatically.
     fn create_area(
-        &mut self,
+        &self,
         world_tag: PhysicsWorldTag,
         area_desc: &AreaDesc,
     ) -> PhysicsHandle<PhysicsAreaTag>;
@@ -28,7 +28,7 @@ pub trait AreaPhysicsServerTrait {
     /// Set the transformation of the area
     fn set_body_transform(&self, area: PhysicsAreaTag, transf: &Isometry3<f32>);
 
-    // TODO pelase return an iterator and avoid to copy vectors around
+    // TODO please return an iterator and avoid to copy vectors around
     /// Returns the list of events occurred in the last step.
     /// Is mandatory check this array each sub step to be sure to not miss any event.
     fn overlap_events(&self, area_tag: PhysicsAreaTag) -> Vec<OverlapEvent>;

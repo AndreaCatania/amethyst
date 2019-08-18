@@ -130,7 +130,7 @@ where
     N: PtReal,
 {
     fn create_body(
-        &mut self,
+        &self,
         world_tag: PhysicsWorldTag,
         body_desc: &RigidBodyDesc<N>,
     ) -> PhysicsHandle<PhysicsBodyTag> {

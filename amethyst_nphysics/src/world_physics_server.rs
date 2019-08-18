@@ -192,7 +192,7 @@ impl<N: PtReal> WorldNpServer<N> {
 }
 
 impl<N: PtReal> WorldPhysicsServerTrait<N> for WorldNpServer<N> {
-    fn create_world(&mut self) -> PhysicsHandle<PhysicsWorldTag> {
+    fn create_world(&self) -> PhysicsHandle<PhysicsWorldTag> {
         let mut w = World::<N> {
             geometrical_world: GeometricalWorld::new(),
             mechanical_world: MechanicalWorld::new(Vector3::new(

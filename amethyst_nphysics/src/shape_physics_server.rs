@@ -57,7 +57,7 @@ impl<N: PtReal> ShapeNpServer<N> {
 }
 
 impl<N: PtReal> ShapePhysicsServerTrait<N> for ShapeNpServer<N> {
-    fn create_shape(&mut self, shape_desc: &ShapeDesc<N>) -> PhysicsHandle<PhysicsShapeTag> {
+    fn create_shape(&self, shape_desc: &ShapeDesc<N>) -> PhysicsHandle<PhysicsShapeTag> {
         let shape = Box::new(RigidShape::new(shape_desc));
 
         let mut shapes_storage = self.storages.shapes_w();
@@ -69,7 +69,7 @@ impl<N: PtReal> ShapePhysicsServerTrait<N> for ShapeNpServer<N> {
         PhysicsHandle::new(PhysicsShapeTag(store_key_to_tag(shape_key)), self.storages.gc.clone())
     }
 
-    fn update_shape(&mut self, shape_tag: PhysicsShapeTag, shape_desc: &ShapeDesc<N>) {
+    fn update_shape(&self, shape_tag: PhysicsShapeTag, shape_desc: &ShapeDesc<N>) {
         let mut bodies = self.storages.bodies_w();
         let mut colliders = self.storages.colliders_w();
         let mut shapes = self.storages.shapes_w();

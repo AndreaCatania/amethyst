@@ -123,7 +123,7 @@ where
     N: PtReal,
 {
     fn create_area(
-        &mut self,
+        &self,
         world_tag: PhysicsWorldTag,
         area_desc: &AreaDesc,
     ) -> PhysicsHandle<PhysicsAreaTag> {

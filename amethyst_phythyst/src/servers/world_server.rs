@@ -7,7 +7,7 @@ pub trait WorldPhysicsServerTrait<N> {
     /// Create the World and return its Handle.
     /// The PhysicsHandle returned can be safely cloned.
     /// When all instances of this Handle are dropped the world is Dropped automatically.
-    fn create_world(&mut self) -> PhysicsHandle<PhysicsWorldTag>;
+    fn create_world(&self) -> PhysicsHandle<PhysicsWorldTag>;
 
     /// This function is responsible to perform the stepping of the world.
     /// This must be called at a fixed rate
