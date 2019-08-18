@@ -61,14 +61,17 @@ pub use physics_time::PhysicsTime;
 pub trait PtReal: amethyst_core::math::RealField + From<f32> + Into<f32> {}
 impl PtReal for f32 {}
 
-/// This trait is used to initialize the physics servers.
+/// This trait, is used to create a `PhysicsWorld` object, which contains the physics servers.
 ///
-/// The physics servers are easy to use interfaces, that allow to control a physic backend using a
+/// The physics servers are, easy to use interfaces, that allow to control a physic backend using a
 /// unified set of APIs.
+///
 /// Check the available servers [here](./servers/index.html).
 ///
-/// A physical backed, is where the actual servers functionality is implemented.
+/// Is it possible to access the servers from the `PhysicsWorld` object.
+///
+/// Note that a physical backed, is where the actual servers functionality is implemented.
 pub trait PhysicsBackend<N: crate::PtReal> {
-    /// Returns the Backend servers.
-    fn create_servers() -> servers::PhysicsServers<N>;
+    /// Returns the `PhysicsWorld`.
+    fn create_world() -> servers::PhysicsWorld<N>;
 }

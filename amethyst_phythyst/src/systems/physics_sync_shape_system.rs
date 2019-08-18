@@ -1,6 +1,8 @@
 use amethyst_core::ecs::{prelude::*, storage::ComponentEvent, ReaderId};
 
-use crate::prelude::*;
+use crate::{
+    prelude::*
+};
 
 /// Thanks to this `System`, it is enough to set a shape as a `Component` of an `Entity`, to use it
 /// as a rigid body shape.
@@ -23,12 +25,12 @@ impl<N: crate::PtReal> Default for PhysicsSyncShapeSystem<N> {
 
 impl<'a, N: crate::PtReal> System<'a> for PhysicsSyncShapeSystem<N> {
     type SystemData = (
-        ReadExpect<'a, RBodyPhysicsServer<N>>,
+        ReadExpect<'a, PhysicsWorld<N>>,
         ReadStorage<'a, PhysicsHandle<PhysicsBodyTag>>,
         ReadStorage<'a, PhysicsHandle<PhysicsShapeTag>>,
     );
 
-    fn run(&mut self, (body_server, bodies, shapes): Self::SystemData) {
+    fn run(&mut self, (physics_world, bodies, shapes): Self::SystemData) {
         // Synchronize the `Shapes` with `RigidBodies`
         // Contains the entity ID of which need to update the shape information
         let dirty_shapes = {
@@ -56,12 +58,12 @@ impl<'a, N: crate::PtReal> System<'a> for PhysicsSyncShapeSystem<N> {
 
         // Insert or Update shape to `RigidBody`
         for (body, shape, _) in (&bodies, &shapes, &dirty_shapes).join() {
-            body_server.0.set_shape(body.get(), Some(shape.get()));
+            physics_world.rigid_body_server().set_shape(body.get(), Some(shape.get()));
         }
 
         // Remove shape to `RigidBody`
         for (body, _, _) in (&bodies, !&shapes, &dirty_shapes).join() {
-            body_server.0.set_shape(body.get(), None);
+            physics_world.rigid_body_server().set_shape(body.get(), None);
         }
     }
 

@@ -36,7 +36,6 @@ macro_rules! define_opaque_object {
     };
 }
 
-define_opaque_object!(PhysicsWorldTag, World, worlds);
 define_opaque_object!(PhysicsBodyTag, Rigid_Body, bodies);
 define_opaque_object!(PhysicsAreaTag, Area, areas);
 define_opaque_object!(PhysicsShapeTag, Shape, shapes);
@@ -142,7 +141,6 @@ impl<T: PhysicsTag> std::ops::Drop for PhysicsTagContainer<T> {
 ///
 /// Considering the above the GC seems a better way.
 pub struct PhysicsGarbageCollector {
-    pub worlds: Vec<PhysicsWorldTag>,
     pub bodies: Vec<PhysicsBodyTag>,
     pub areas: Vec<PhysicsAreaTag>,
     pub shapes: Vec<PhysicsShapeTag>,
@@ -151,7 +149,6 @@ pub struct PhysicsGarbageCollector {
 impl Default for PhysicsGarbageCollector {
     fn default() -> Self {
         PhysicsGarbageCollector {
-            worlds: Vec::new(),
             bodies: Vec::new(),
             areas: Vec::new(),
             shapes: Vec::new(),

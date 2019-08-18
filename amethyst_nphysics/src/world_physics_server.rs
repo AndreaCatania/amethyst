@@ -1,49 +1,53 @@
+use std::sync::RwLock;
+
 use amethyst_phythyst::{
     objects::*,
     servers::{OverlapEvent, WorldPhysicsServerTrait},
     PtReal,
 };
-
 use nalgebra::Vector3;
-
 use core::borrow::BorrowMut;
-
-use crate::{
-    conversors::*,
-    servers_storage::{ServersStorageType, WorldsStorageWrite, BodiesStorageWrite, CollidersStorageWrite},
-    body::BodyData,
-    utils::*,
-    world::World,
-    AreaNpServer,
-    RBodyNpServer,
-    ShapeNpServer,
-};
-
 use nphysics3d::{
     utils::UserData as NpUserData,
     world::{GeometricalWorld, MechanicalWorld},
 };
-
 use ncollide3d::query::Proximity;
 
+use crate::{
+    conversors::*,
+    servers_storage::{ServersStorageType, BodiesStorageWrite, CollidersStorageWrite},
+    body::BodyData,
+    utils::*,
+    AreaNpServer,
+    RBodyNpServer,
+    ShapeNpServer,
+    storage::StoreKey,
+    body_storage::BodyStorage,
+};
+
 pub struct WorldNpServer<N: PtReal> {
-    storages: ServersStorageType<N>,
+    pub storages: ServersStorageType<N>,
+    pub geometrical_world: RwLock<GeometricalWorld<N, StoreKey, StoreKey>>,
+    pub mechanical_world: RwLock<MechanicalWorld<N, BodyStorage<N>, StoreKey>>,
 }
 
 impl<N: PtReal> WorldNpServer<N> {
     pub fn new(storages: ServersStorageType<N>) -> WorldNpServer<N> {
-        WorldNpServer { storages }
-    }
-
-    fn drop_world(world_tag: PhysicsWorldTag, worlds_storage: &mut WorldsStorageWrite<N>) {
-        worlds_storage.remove(tag_to_store_key(world_tag.0));
+        WorldNpServer {
+            storages,
+            geometrical_world: RwLock::new(GeometricalWorld::new()),
+            mechanical_world: RwLock::new(MechanicalWorld::new(Vector3::new(
+                N::from(0.0),
+                N::from(-9.8),
+                N::from(0.0),
+            ))),
+        }
     }
 }
 
 impl<N: PtReal> WorldNpServer<N> {
     fn garbage_collect(&self) {
         let mut gc = self.storages.gc.write().unwrap();
-        let mut worlds_storage = self.storages.worlds_w();
         let mut bodies_storage = self.storages.bodies_w();
         let mut colliders_storage = self.storages.colliders_w();
         let mut shapes_storage = self.storages.shapes_w();
@@ -91,17 +95,13 @@ impl<N: PtReal> WorldNpServer<N> {
                 gc.shapes.retain(|&s| !removed_shape.contains(&s));
             }
         }
-
-        {
-            for w in gc.worlds.iter() {
-                WorldNpServer::drop_world(*w, &mut worlds_storage);
-            }
-
-            gc.worlds.clear();
-        }
     }
 
-    fn fetch_events(world: &mut World<N>, bodies: &mut BodiesStorageWrite<N>, colliders: &mut CollidersStorageWrite<N>) {
+    fn fetch_events(
+        g_world: &mut GeometricalWorld<N, StoreKey, StoreKey>,
+        m_world: &mut MechanicalWorld<N, BodyStorage<N>, StoreKey>,
+        bodies: &mut BodiesStorageWrite<N>,
+        colliders: &mut CollidersStorageWrite<N>) {
 
         // Clear old events
         for (i, b) in bodies.iter_mut() {
@@ -115,7 +115,7 @@ impl<N: PtReal> WorldNpServer<N> {
 
         {
             // Fetch new events
-            let events = world.geometrical_world.proximity_events();
+            let events = g_world.proximity_events();
             for e in events {
                 if e.prev_status == e.new_status {
                     continue;
@@ -192,32 +192,12 @@ impl<N: PtReal> WorldNpServer<N> {
 }
 
 impl<N: PtReal> WorldPhysicsServerTrait<N> for WorldNpServer<N> {
-    fn create_world(&self) -> PhysicsHandle<PhysicsWorldTag> {
-        let mut w = World::<N> {
-            geometrical_world: GeometricalWorld::new(),
-            mechanical_world: MechanicalWorld::new(Vector3::new(
-                N::from(0.0),
-                N::from(-9.8),
-                N::from(0.0),
-            )),
-        };
 
-        PhysicsHandle::new(
-            PhysicsWorldTag(store_key_to_tag(
-                self.storages.worlds_w().insert(Box::new(w)),
-            )),
-            self.storages.gc.clone(),
-        )
-    }
-
-    fn step(&self, world_tag: PhysicsWorldTag, delta_time: N) {
-        let world_key = tag_to_store_key(world_tag.0);
+    fn step(&self, delta_time: N) {
         self.garbage_collect();
 
-        let mut w = self.storages.worlds_w();
-        let world = w.get_mut(world_key);
-        fail_cond!(world.is_none());
-        let mut world = world.unwrap();
+        let mut mw = self.mechanical_world.write().unwrap();
+        let mut gw = self.geometrical_world.write().unwrap();
 
         let mut bodies = self.storages.bodies_w();
         let mut colliders = self.storages.colliders_w();
@@ -225,15 +205,15 @@ impl<N: PtReal> WorldPhysicsServerTrait<N> for WorldNpServer<N> {
         let mut force_generator = self.storages.force_generator_w();
 
         //// TODO this is not completely free. So perform it only when needed.
-        world.mechanical_world.set_timestep(delta_time);
-        world.mechanical_world.step(
-            &mut world.geometrical_world,
+        mw.set_timestep(delta_time);
+        mw.step(
+            &mut *gw,
             &mut *bodies,
             &mut *colliders,
             &mut *joints,
             &mut *force_generator,
         );
 
-        Self::fetch_events(world, &mut bodies, &mut colliders);
+        Self::fetch_events(&mut *gw, &mut *mw, &mut bodies, &mut colliders);
     }
 }

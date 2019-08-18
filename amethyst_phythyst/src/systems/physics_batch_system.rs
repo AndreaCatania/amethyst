@@ -7,7 +7,7 @@ use amethyst_core::{
     Time,
 };
 
-use crate::{objects::*, servers::WorldPhysicsServer, PhysicsTime, PtReal};
+use crate::{objects::*, PhysicsTime, PtReal};
 
 /// This `Batch` is a used to dispatch the physics `System`s.
 ///

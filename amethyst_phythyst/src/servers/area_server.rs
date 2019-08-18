@@ -2,7 +2,7 @@ use crate::objects::*;
 use amethyst_core::ecs::Entity;
 use nalgebra::{Isometry3, RealField};
 
-/// This is the interface that contains all the functionalities that an area have.
+/// This is the interface that contains all the area functionalities,
 ///
 /// The object that implement this interface is wrapped by the `AreaServer`.
 pub trait AreaPhysicsServerTrait {
@@ -11,7 +11,6 @@ pub trait AreaPhysicsServerTrait {
     /// When all instances of this Handle are dropped the Area is Dropped automatically.
     fn create_area(
         &self,
-        world_tag: PhysicsWorldTag,
         area_desc: &AreaDesc,
     ) -> PhysicsHandle<PhysicsAreaTag>;
 

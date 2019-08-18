@@ -49,8 +49,7 @@ impl<N: crate::PtReal> PhysicsSyncTransformSystem<N> {
 impl<'a, N: crate::PtReal> System<'a> for PhysicsSyncTransformSystem<N> {
     type SystemData = (
         Entities<'a>,
-        ReadExpect<'a, RBodyPhysicsServer<N>>,
-        ReadExpect<'a, AreaPhysicsServer>,
+        ReadExpect<'a, PhysicsWorld<N>>,
         WriteStorage<'a, Transform>,
         ReadStorage<'a, PhysicsHandle<PhysicsBodyTag>>,
         ReadStorage<'a, PhysicsHandle<PhysicsAreaTag>>,
@@ -59,7 +58,7 @@ impl<'a, N: crate::PtReal> System<'a> for PhysicsSyncTransformSystem<N> {
 
     fn run(
         &mut self,
-        (entities, rbody_server, area_server, mut transforms, bodies, areas, parents): Self::SystemData,
+        (entities, physics_world, mut transforms, bodies, areas, parents): Self::SystemData,
     ) {
         let mut edited_transforms;
         {
@@ -115,12 +114,12 @@ impl<'a, N: crate::PtReal> System<'a> for PhysicsSyncTransformSystem<N> {
         for (transform, rb_tag, _, _) in
             (&transforms, &bodies, !&parents, &edited_transforms).join()
         {
-            rbody_server.set_body_transform(rb_tag.get(), transform.isometry());
+            physics_world.rigid_body_server().set_body_transform(rb_tag.get(), transform.isometry());
         }
 
         for (transform, a_tag, _, _) in (&transforms, &areas, !&parents, &edited_transforms).join()
         {
-            area_server.set_body_transform(a_tag.get(), transform.isometry());
+            physics_world.area_server().set_body_transform(a_tag.get(), transform.isometry());
         }
 
         // Set transform to physics with parents
@@ -130,7 +129,7 @@ impl<'a, N: crate::PtReal> System<'a> for PhysicsSyncTransformSystem<N> {
         {
             let computed_trs =
                 transform.isometry() * Self::compute_transform(parent, &transforms, &parents);
-            rbody_server.set_body_transform(rb_tag.get(), &computed_trs);
+            physics_world.rigid_body_server().set_body_transform(rb_tag.get(), &computed_trs);
         }
 
         for (transform, a_tag, parent, _) in
@@ -138,7 +137,7 @@ impl<'a, N: crate::PtReal> System<'a> for PhysicsSyncTransformSystem<N> {
         {
             let computed_trs =
                 transform.isometry() * Self::compute_transform(parent, &transforms, &parents);
-            area_server.set_body_transform(a_tag.get(), &computed_trs);
+            physics_world.area_server().set_body_transform(a_tag.get(), &computed_trs);
         }
 
         // Sync transform back to Amethyst.
@@ -150,7 +149,7 @@ impl<'a, N: crate::PtReal> System<'a> for PhysicsSyncTransformSystem<N> {
             match transforms.get_mut(entity) {
                 Some(transform) => {
                     // TODO please avoid much copies by sending the mutable reference directly
-                    transform.set_isometry(rbody_server.body_transform(rb.get()));
+                    transform.set_isometry(physics_world.rigid_body_server().body_transform(rb.get()));
                 }
                 _ => {}
             }

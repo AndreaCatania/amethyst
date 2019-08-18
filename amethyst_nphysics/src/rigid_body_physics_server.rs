@@ -131,7 +131,6 @@ where
 {
     fn create_body(
         &self,
-        world_tag: PhysicsWorldTag,
         body_desc: &RigidBodyDesc<N>,
     ) -> PhysicsHandle<PhysicsBodyTag> {
         let mut bodies_storage = self.storages.bodies_w();
@@ -146,7 +145,6 @@ where
 
         let b_key = bodies_storage.insert_body(Box::new(Body::new_rigid_body(
             Box::new(np_rigid_body),
-            tag_to_store_key(world_tag.0),
         )));
         let body = bodies_storage.get_body_mut(b_key).unwrap();
         body.self_key = Some(b_key);

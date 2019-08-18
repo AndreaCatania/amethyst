@@ -124,7 +124,6 @@ where
 {
     fn create_area(
         &self,
-        world_tag: PhysicsWorldTag,
         area_desc: &AreaDesc,
     ) -> PhysicsHandle<PhysicsAreaTag> {
         // TODO later I want to split these in two different APIs, so I'm developing them already separated.
@@ -141,8 +140,7 @@ where
                 .build();
 
             let a_key = bodies_storage.insert_body(Box::new(Body::new_area(
-                Box::new(np_rigid_body),
-                tag_to_store_key(world_tag.0),
+                Box::new(np_rigid_body)
             )));
             let area = bodies_storage.get_body_mut(a_key).unwrap();
             area.self_key = Some(a_key);

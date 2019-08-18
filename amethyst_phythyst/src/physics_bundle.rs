@@ -8,7 +8,7 @@ use log::info;
 
 use crate::{
     prelude::*,
-    servers::PhysicsServers,
+    servers::PhysicsWorld,
     systems::{
         PhysicsBatchSystem, PhysicsStepperSystem, PhysicsSyncShapeSystem,
         PhysicsSyncTransformSystem,
@@ -264,7 +264,6 @@ impl<'a, 'b, N: crate::PtReal, B: crate::PhysicsBackend<N>> PhysicsBundle<'a, 'b
 
 /// This is used only to perform the setup of these storages.
 type PhysicsSetupStorages<'a> = (
-    ReadStorage<'a, PhysicsHandle<PhysicsWorldTag>>,
     ReadStorage<'a, PhysicsHandle<PhysicsBodyTag>>,
     ReadStorage<'a, PhysicsHandle<PhysicsAreaTag>>,
     ReadStorage<'a, PhysicsHandle<PhysicsShapeTag>>,
@@ -282,16 +281,8 @@ where
     ) -> Result<(), Error> {
         PhysicsSetupStorages::setup(world);
 
-        {
-            let (mut world_server, rb_server, area_server, shape_server) = B::create_servers();
-            let physics_world = world_server.create_world();
-            world.insert(world_server);
-            world.insert(rb_server);
-            world.insert(area_server);
-            world.insert(shape_server);
-            world.insert(self.physics_time);
-            world.insert(physics_world);
-        }
+        world.insert(B::create_world());
+        world.insert(self.physics_time);
 
         let mut physics_builder = self.physics_builder;
 

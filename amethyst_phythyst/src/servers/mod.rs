@@ -1,63 +1,13 @@
-//! The servers are the `Phythyst` interface, that is possible to use in order to control a physics
-//! engine.
+//! The servers are the `Phythyst` interfaces, that is possible to use in order to control ary physics
+//! engine that implements them.
 //!
 //! Each server controls a specific part of the physics engine, and they are:
 //! - [World Server](trait.WorldPhysicsServerTrait.html)
 //! - [RBody Server](trait.RBodyPhysicsServerTrait.html)
 //! - [Area Server](trait.AreaPhysicsServerTrait.html)
 //! - [Shape Server](trait.ShapePhysicsServerTrait.html)
-
-macro_rules! define_server {
-    ($x:ident, $y:ident) => {
-        /// This is a wrapper to the object that provide access to the $y functionalities.
-        ///
-        /// Check the function `amethyst_nphysics::create_physics` doc to see how.
-        pub struct $x(pub Box<dyn $y>);
-
-        unsafe impl Send for $x {}
-        unsafe impl Sync for $x {}
-
-        impl std::ops::Deref for $x {
-            type Target = Box<dyn $y>;
-
-            fn deref(&self) -> &Box<dyn $y> {
-                &self.0
-            }
-        }
-
-        impl std::ops::DerefMut for $x {
-            fn deref_mut(&mut self) -> &mut Box<dyn $y> {
-                &mut self.0
-            }
-        }
-    };
-}
-
-macro_rules! define_server_generic {
-    ($x:ident, $y:ident) => {
-        /// This is a wrapper to the object that provide access to the $y functionalities.
-        ///
-        /// Check the function `amethyst_nphysics::create_physics` doc to see how.
-        pub struct $x<N>(pub Box<dyn $y<N>>);
-
-        unsafe impl<N> Send for $x<N> {}
-        unsafe impl<N> Sync for $x<N> {}
-
-        impl<N> std::ops::Deref for $x<N> {
-            type Target = Box<dyn $y<N>>;
-
-            fn deref(&self) -> &Box<dyn $y<N>> {
-                &self.0
-            }
-        }
-
-        impl<N> std::ops::DerefMut for $x<N> {
-            fn deref_mut(&mut self) -> &mut Box<dyn $y<N>> {
-                &mut self.0
-            }
-        }
-    };
-}
+//!
+//! Is it possible to access them trough the `PhysicsWorld`.
 
 mod area_server;
 mod body_server;
@@ -69,14 +19,48 @@ pub use body_server::{BodyMode, RBodyPhysicsServerTrait, RigidBodyDesc};
 pub use shape_server::{ShapeDesc, ShapePhysicsServerTrait};
 pub use world_server::WorldPhysicsServerTrait;
 
-define_server_generic!(WorldPhysicsServer, WorldPhysicsServerTrait);
-define_server_generic!(RBodyPhysicsServer, RBodyPhysicsServerTrait);
-define_server!(AreaPhysicsServer, AreaPhysicsServerTrait);
-define_server_generic!(ShapePhysicsServer, ShapePhysicsServerTrait);
+/// This struct contains all the servers that can be used to control a `PhysicsEngine`.
+///
+/// The `PhysicsWorld` is safe to be sent through threads because internally each `Backend` make sure
+/// to access each data in thread safe.
+pub struct PhysicsWorld<N>{
+    world_server: Box<dyn WorldPhysicsServerTrait<N>>,
+    rigid_body_server: Box<dyn RBodyPhysicsServerTrait<N>>,
+    area_server: Box<dyn AreaPhysicsServerTrait>,
+    shape_server: Box<dyn ShapePhysicsServerTrait<N>>,
+}
 
-pub type PhysicsServers<N> = (
-    WorldPhysicsServer<N>,
-    RBodyPhysicsServer<N>,
-    AreaPhysicsServer,
-    ShapePhysicsServer<N>,
-);
+impl<N> PhysicsWorld<N> {
+    pub fn new(
+        world_server: Box<dyn WorldPhysicsServerTrait<N>>,
+        rigid_body_server: Box<dyn RBodyPhysicsServerTrait<N>>,
+        area_server: Box<dyn AreaPhysicsServerTrait>,
+        shape_server: Box<dyn ShapePhysicsServerTrait<N>>,
+    ) -> Self {
+        PhysicsWorld {
+            world_server,
+            rigid_body_server,
+            area_server,
+            shape_server,
+        }
+    }
+
+    pub fn world_server(&self) -> &dyn WorldPhysicsServerTrait<N> {
+        self.world_server.as_ref()
+    }
+
+    pub fn rigid_body_server(&self) -> &dyn RBodyPhysicsServerTrait<N> {
+        self.rigid_body_server.as_ref()
+    }
+
+    pub fn area_server(&self) -> &dyn AreaPhysicsServerTrait {
+        self.area_server.as_ref()
+    }
+
+    pub fn shape_server(&self) -> &dyn ShapePhysicsServerTrait<N> {
+        self.shape_server.as_ref()
+    }
+}
+
+unsafe impl<N> Send for PhysicsWorld<N> {}
+unsafe impl<N> Sync for PhysicsWorld<N> {}

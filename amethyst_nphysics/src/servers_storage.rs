@@ -12,13 +12,10 @@ use crate::{
     body::Body,
     shape::RigidShape,
     storage::{Storage, StoreKey},
-    world::World,
 };
 
 pub type ServersStorageType<N> = Arc<ServersStorage<N>>;
 
-pub type WorldsStorageWrite<'a, N> = RwLockWriteGuard<'a, Storage<Box<World<N>>>>;
-pub type WorldsStorageRead<'a, N> = RwLockReadGuard<'a, Storage<Box<World<N>>>>;
 pub type BodiesStorageWrite<'a, N> = RwLockWriteGuard<'a, BodyStorage<N>>;
 pub type BodiesStorageRead<'a, N> = RwLockReadGuard<'a, BodyStorage<N>>;
 pub type CollidersStorageWrite<'a, N> = RwLockWriteGuard<'a, ColliderStorage<N, StoreKey>>;
@@ -50,7 +47,6 @@ pub type ShapesStorageRead<'a, N> = RwLockReadGuard<'a, Storage<Box<RigidShape<N
 /// A solution to this problem would be support add multithreading support on NPhysics
 pub struct ServersStorage<N: PtReal> {
     pub(crate) gc: Arc<RwLock<PhysicsGarbageCollector>>,
-    worlds: Arc<RwLock<Storage<Box<World<N>>>>>,
     bodies: Arc<RwLock<BodyStorage<N>>>,
     colliders: Arc<RwLock<ColliderStorage<N, StoreKey>>>,
     joints: Arc<RwLock<JointStorage<N, BodyStorage<N>>>>,
@@ -62,7 +58,6 @@ impl<N: PtReal> ServersStorage<N> {
     pub fn new() -> ServersStorageType<N> {
         Arc::new(ServersStorage {
             gc: Arc::new(RwLock::new(PhysicsGarbageCollector::default())),
-            worlds: Arc::new(RwLock::new(Storage::new(1, 1))),
             bodies: Arc::new(RwLock::new(BodyStorage::default())),
             colliders: Arc::new(RwLock::new(ColliderStorage::default())),
             joints: Arc::new(RwLock::new(JointStorage::default())),
@@ -73,14 +68,6 @@ impl<N: PtReal> ServersStorage<N> {
 }
 
 impl<N: PtReal> ServersStorage<N> {
-    pub fn worlds_w(&self) -> WorldsStorageWrite<N> {
-        self.worlds.write().unwrap()
-    }
-
-    pub fn worlds_r(&self) -> WorldsStorageRead<N> {
-        self.worlds.read().unwrap()
-    }
-
     pub fn bodies_w(&self) -> BodiesStorageWrite<N> {
         self.bodies.write().unwrap()
     }

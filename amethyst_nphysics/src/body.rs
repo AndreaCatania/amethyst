@@ -20,7 +20,6 @@ pub struct Body<N: PtReal> {
     pub self_key: Option<StoreKey>,
     pub np_body: Box<dyn NpBody<N>>,
     pub body_data: BodyData,
-    pub world_key: StoreKey,
     pub collider_key: Option<StoreKey>,
     pub shape_key: Option<StoreKey>,
     pub entity: Option<Entity>,
@@ -28,12 +27,11 @@ pub struct Body<N: PtReal> {
 
 impl<N: PtReal> Body<N> {
     /// Creates a Rigid Body `Body`
-    pub(crate) fn new_rigid_body(np_rigid_body: Box<NpRigidBody<N>>, world_key: StoreKey) -> Self {
+    pub(crate) fn new_rigid_body(np_rigid_body: Box<NpRigidBody<N>>) -> Self {
         Body {
             self_key: None,
             np_body: np_rigid_body,
             body_data: BodyData::Rigid,
-            world_key,
             collider_key: None,
             shape_key: None,
             entity: None,
@@ -41,12 +39,11 @@ impl<N: PtReal> Body<N> {
     }
 
     /// Creates an Area `Body`
-    pub(crate) fn new_area(np_rigid_body: Box<NpRigidBody<N>>, world_key: StoreKey) -> Self {
+    pub(crate) fn new_area(np_rigid_body: Box<NpRigidBody<N>>) -> Self {
         Body {
             self_key: None,
             np_body: np_rigid_body,
             body_data: BodyData::Area(Vec::new()),
-            world_key,
             collider_key: None,
             shape_key: None,
             entity: None,

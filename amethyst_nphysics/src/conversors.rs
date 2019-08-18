@@ -4,8 +4,6 @@ use amethyst_core::{
 };
 use nalgebra::{Isometry3, Transform3};
 
-use amethyst_phythyst::objects::{PhysicsBodyTag, PhysicsWorldTag};
-
 use crate::storage::StoreKey;
 
 pub(crate) struct VecConversor;

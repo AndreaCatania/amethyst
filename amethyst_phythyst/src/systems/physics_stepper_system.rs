@@ -4,7 +4,7 @@ use amethyst_core::{
     Time,
 };
 
-use crate::{objects::*, servers::WorldPhysicsServer, PhysicsTime};
+use crate::{objects::*, servers::PhysicsWorld, PhysicsTime};
 
 /// This `System` simply step the physics.
 pub struct PhysicsStepperSystem<N: crate::PtReal> {
@@ -22,11 +22,10 @@ impl<N: crate::PtReal> PhysicsStepperSystem<N> {
 impl<'a, N: crate::PtReal> System<'a> for PhysicsStepperSystem<N> {
     type SystemData = (
         ReadExpect<'a, PhysicsTime>,
-        ReadExpect<'a, PhysicsHandle<PhysicsWorldTag>>,
-        WriteExpect<'a, WorldPhysicsServer<N>>,
+        ReadExpect<'a, PhysicsWorld<N>>,
     );
 
-    fn run(&mut self, (physics_time, physics_world, mut world_server): Self::SystemData) {
-        world_server.step(physics_world.get(), physics_time.sub_step_seconds.into());
+    fn run(&mut self, (physics_time, physics_world): Self::SystemData) {
+        physics_world.world_server().step(physics_time.sub_step_seconds.into());
     }
 }

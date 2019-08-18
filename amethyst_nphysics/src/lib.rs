@@ -45,7 +45,6 @@ mod body;
 mod rigid_body_physics_server;
 mod shape;
 mod shape_physics_server;
-mod world;
 mod world_physics_server;
 
 use area_physics_server::AreaNpServer;
@@ -55,8 +54,7 @@ use world_physics_server::WorldNpServer;
 
 use amethyst_phythyst::{
     servers::{
-        AreaPhysicsServer, PhysicsServers, RBodyPhysicsServer, ShapePhysicsServer,
-        WorldPhysicsServer,
+        AreaPhysicsServerTrait, RBodyPhysicsServerTrait, ShapePhysicsServerTrait, PhysicsWorld,
     },
     PtReal,
 };
@@ -68,14 +66,14 @@ impl<N> amethyst_phythyst::PhysicsBackend<N> for NPhysicsBackend
 where
     N: PtReal,
 {
-    fn create_servers() -> PhysicsServers<N> {
+    fn create_world() -> PhysicsWorld<N> {
         let storages = servers_storage::ServersStorage::new();
 
-        (
-            WorldPhysicsServer(Box::new(WorldNpServer::new(storages.clone()))),
-            RBodyPhysicsServer(Box::new(RBodyNpServer::new(storages.clone()))),
-            AreaPhysicsServer(Box::new(AreaNpServer::new(storages.clone()))),
-            ShapePhysicsServer(Box::new(ShapeNpServer::new(storages.clone()))),
+        PhysicsWorld::new(
+            Box::new(WorldNpServer::new(storages.clone())),
+            Box::new(RBodyNpServer::new(storages.clone())),
+            Box::new(AreaNpServer::new(storages.clone())),
+            Box::new(ShapeNpServer::new(storages.clone())),
         )
     }
 }
