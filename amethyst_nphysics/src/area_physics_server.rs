@@ -1,14 +1,15 @@
-use log::error;
 use amethyst_core::ecs::Entity;
 use amethyst_phythyst::{
     objects::*,
     servers::{AreaDesc, AreaPhysicsServerTrait, OverlapEvent},
     PtReal,
 };
+use log::error;
 use nalgebra::Isometry3;
 use nphysics3d::object::{
     BodyPartHandle as NpBodyPartHandle, BodyStatus as NpBodyStatus, Collider as NpCollider,
-    ColliderDesc as NpColliderDesc, ColliderHandle as NpColliderHandle, RigidBodyDesc as NpRigidBodyDesc,
+    ColliderDesc as NpColliderDesc, ColliderHandle as NpColliderHandle, RigidBody as NpRigidBody,
+    RigidBodyDesc as NpRigidBodyDesc,
 };
 
 use crate::{
@@ -108,13 +109,12 @@ impl<N: PtReal> AreaNpServer<N> {
         ))));
     }
 
-    pub fn copy_collider_desc(
-        np_collider: &mut NpCollider<N, StoreKey>,
+    pub fn extract_collider_desc(
+        np_rigid_body: &NpRigidBody<N>,
         collider_desc: &mut NpColliderDesc<N>,
     ) {
         collider_desc
-            .set_is_sensor(true)
-            .set_position(*np_collider.position()); // TODO this should be not more required
+            .set_is_sensor(true);
     }
 }
 
@@ -202,7 +202,6 @@ where
             if let Some(collider_key) = area.collider_key {
                 let mut colliders = self.storages.colliders_w();
                 if let Some(collider) = colliders.get_collider_mut(collider_key) {
-
                     AreaNpServer::update_user_data(collider, area);
                 } else {
                     error!("A body is assigned to a collider, but the collider doesn't exist!")
@@ -238,8 +237,7 @@ where
     fn overlap_events(&self, area_tag: PhysicsAreaTag) -> Vec<OverlapEvent> {
         let area_key = tag_to_store_key(area_tag.0);
         let s = self.storages.rbodies_r();
-        if let Some(area) = s.get_body(area_key){
-
+        if let Some(area) = s.get_body(area_key) {
             if let BodyData::Area(e) = &area.body_data {
                 return e.to_vec();
             }

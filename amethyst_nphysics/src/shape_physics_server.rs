@@ -3,11 +3,13 @@ use amethyst_phythyst::{
     servers::{ShapeDesc, ShapePhysicsServerTrait},
     PtReal,
 };
+use log::error;
 use nphysics3d::object::ColliderDesc as NpColliderDesc;
 
 use crate::{
-    area_physics_server::AreaNpServer, conversors::*, rigid_body_physics_server::RBodyNpServer,
-    servers_storage::*, shape::RigidShape, storage::StoreKey,
+    area_physics_server::AreaNpServer, conversors::*, rigid_body::BodyData,
+    rigid_body_physics_server::RBodyNpServer, servers_storage::*, shape::RigidShape,
+    storage::StoreKey,
 };
 
 pub struct ShapeNpServer<N: PtReal> {
@@ -54,82 +56,49 @@ impl<N: PtReal> ShapeNpServer<N> {
     }
 }
 
-/*
 impl<N: PtReal> ShapePhysicsServerTrait<N> for ShapeNpServer<N> {
     fn create_shape(&mut self, shape_desc: &ShapeDesc<N>) -> PhysicsHandle<PhysicsShapeTag> {
         let shape = Box::new(RigidShape::new(shape_desc));
 
         let mut shapes_storage = self.storages.shapes_w();
-        let mut shape_tag = PhysicsShapeTag(shapes_storage.make_opaque(shape));
+        let mut shape_key = (shapes_storage.make_opaque(shape));
 
-        let shape = shapes_storage.get_mut(*shape_tag).unwrap();
-        shape.self_tag = Some(shape_tag);
+        let shape = shapes_storage.get_mut(shape_key).unwrap();
+        shape.self_key = Some(shape_key);
 
-        PhysicsHandle::new(shape_tag, self.storages.gc.clone())
+        PhysicsHandle::new(PhysicsShapeTag(store_key_to_tag(shape_key)), self.storages.gc.clone())
     }
 
     fn update_shape(&mut self, shape_tag: PhysicsShapeTag, shape_desc: &ShapeDesc<N>) {
-        let mut worlds_storage = self.storages.worlds_w();
-        let mut bodies_storage = self.storages.rbodies_w();
-        let mut areas_storage = self.storages.areas_w();
-        let mut shapes_storage = self.storages.shapes_w();
+        let mut bodies = self.storages.rbodies_w();
+        let mut colliders = self.storages.colliders_w();
+        let mut shapes = self.storages.shapes_w();
 
-        let shape = storage_safe_get_mut!(shapes_storage, shape_tag);
+        let shape_key = tag_to_store_key(shape_tag.0);
+        if let Some(shape) = shapes.get_mut(shape_key) {
+            shape.update(shape_desc);
 
-        shape.update(shape_desc);
+            let b_keys = shape.bodies();
+            for body_key in b_keys {
+                if let Some(body) = bodies.get_body_mut(*body_key) {
+                    let mut collider_desc = NpColliderDesc::new(shape.shape_handle().clone());
 
-        // Phase 1. Update the shapes of all bodies.
-        {
-            let bodies = shape.bodies();
-            for body_tag in bodies {
-                let body = bodies_storage.get_mut(**body_tag);
-                if let Some(body) = body {
-                    let np_world = worlds_storage.get_mut(*body.world_tag);
-                    if let Some(np_world) = np_world {
-                        RBodyNpServer::drop_collider(body, np_world);
-
-                        if let Some(np_body) = np_world.rigid_body_mut(body.body_handle) {
-                            let mut collider_desc =
-                                NpColliderDesc::new(shape.shape_handle().clone());
-                            RBodyNpServer::extract_collider_desc(np_body, &mut collider_desc);
-
-                            RBodyNpServer::install_collider(
-                                body,
-                                np_body.part_handle(),
-                                np_world,
-                                &collider_desc,
-                            );
+                    match &body.body_data {
+                        BodyData::Rigid => {
+                            RBodyNpServer::drop_collider(body, &mut colliders);
+                            RBodyNpServer::extract_collider_desc(body.rigid_body().unwrap(), &mut collider_desc);
+                            RBodyNpServer::install_collider(body, &collider_desc, &mut colliders);
+                        }
+                        BodyData::Area(e) => {
+                            AreaNpServer::drop_collider(body, &mut colliders);
+                            AreaNpServer::extract_collider_desc(body.rigid_body().unwrap(), &mut collider_desc);
+                            AreaNpServer::install_collider(body, &collider_desc, &mut colliders);
                         }
                     }
                 }
             }
-        }
-
-        // Phase 2. Update the shapes of all areas.
-        {
-            let areas = shape.areas();
-            for area_tag in areas {
-                let area = areas_storage.get_mut(**area_tag);
-                if let Some(area) = area {
-                    let np_world = worlds_storage.get_mut(*area.world_tag);
-                    if let Some(np_world) = np_world {
-                        let mut collider_desc = NpColliderDesc::new(shape.shape_handle().clone());
-
-                        if let Some(np_collider) =
-                            np_world.collider_mut(area.collider_handle.unwrap())
-                        {
-                            AreaNpServer::copy_collider_desc(np_collider, &mut collider_desc);
-                        } else {
-                            panic!("Just found an area without collider. This must never happen. Please report this.");
-                        }
-
-                        AreaNpServer::destroy_collider(area, np_world);
-
-                        AreaNpServer::set_collider(area, *area_tag, np_world, &collider_desc);
-                    }
-                }
-            }
+        } else {
+            error!("Shape not found!");
         }
     }
 }
-*/

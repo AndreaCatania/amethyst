@@ -14,9 +14,11 @@ use nphysics3d::{
 };
 
 use crate::{
-    conversors::*, rigid_body::{
-        BodyData, RigidBody
-    }, servers_storage::*, shape::RigidShape, storage::StoreKey,
+    conversors::*,
+    rigid_body::{BodyData, RigidBody},
+    servers_storage::*,
+    shape::RigidShape,
+    storage::StoreKey,
     utils::*,
 };
 
@@ -111,7 +113,7 @@ impl<N: PtReal> RBodyNpServer<N> {
 
     /// Extract collider description from a rigid body
     pub fn extract_collider_desc(
-        np_rigid_body: &mut NpRigidBody<N>,
+        np_rigid_body: &NpRigidBody<N>,
         np_collider_desc: &mut NpColliderDesc<N>,
     ) {
         np_collider_desc.set_density(nalgebra::convert(1.0));

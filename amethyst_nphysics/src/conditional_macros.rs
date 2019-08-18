@@ -5,7 +5,7 @@ macro_rules! matches {
             $p => true,
             _ => false,
         }
-    }
+    };
 }
 
 /// These macros are used to assert the validity of some data, but instead to panics they stop
