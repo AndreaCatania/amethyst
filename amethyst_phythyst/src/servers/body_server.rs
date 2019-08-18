@@ -14,10 +14,7 @@ pub trait RBodyPhysicsServerTrait<N: crate::PtReal> {
     /// Create a Rigid Body and return its handle.
     /// The PhysicsHandle returned can be safely cloned.
     /// When all instances of this Handle are dropped the Body is Dropped automatically.
-    fn create_body(
-        &self,
-        body_desc: &RigidBodyDesc<N>,
-    ) -> PhysicsHandle<PhysicsBodyTag>;
+    fn create_body(&self, body_desc: &RigidBodyDesc<N>) -> PhysicsHandle<PhysicsBodyTag>;
 
     /// Set the entity which holds this body.
     fn set_entity(&self, body_tag: PhysicsBodyTag, index: Option<Entity>);

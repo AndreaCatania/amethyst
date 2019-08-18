@@ -14,8 +14,8 @@ use nphysics3d::{
 };
 
 use crate::{
+    body::{Body, BodyData},
     conversors::*,
-    body::{BodyData, Body},
     servers_storage::*,
     shape::RigidShape,
     storage::StoreKey,
@@ -129,10 +129,7 @@ impl<N> RBodyPhysicsServerTrait<N> for RBodyNpServer<N>
 where
     N: PtReal,
 {
-    fn create_body(
-        &self,
-        body_desc: &RigidBodyDesc<N>,
-    ) -> PhysicsHandle<PhysicsBodyTag> {
+    fn create_body(&self, body_desc: &RigidBodyDesc<N>) -> PhysicsHandle<PhysicsBodyTag> {
         let mut bodies_storage = self.storages.bodies_w();
         let mut colliders = self.storages.colliders_w();
         let mut shape_storage = self.storages.shapes_w();
@@ -143,9 +140,8 @@ where
             .set_mass(body_desc.mass)
             .build();
 
-        let b_key = bodies_storage.insert_body(Box::new(Body::new_rigid_body(
-            Box::new(np_rigid_body),
-        )));
+        let b_key =
+            bodies_storage.insert_body(Box::new(Body::new_rigid_body(Box::new(np_rigid_body))));
         let body = bodies_storage.get_body_mut(b_key).unwrap();
         body.self_key = Some(b_key);
 

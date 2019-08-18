@@ -13,9 +13,9 @@ use nphysics3d::object::{
 };
 
 use crate::{
+    body::{Body, BodyData},
     conditional_macros,
     conversors::*,
-    body::{BodyData, Body},
     servers_storage::*,
     shape::RigidShape,
     storage::StoreKey,
@@ -113,8 +113,7 @@ impl<N: PtReal> AreaNpServer<N> {
         np_rigid_body: &NpRigidBody<N>,
         collider_desc: &mut NpColliderDesc<N>,
     ) {
-        collider_desc
-            .set_is_sensor(true);
+        collider_desc.set_is_sensor(true);
     }
 }
 
@@ -122,10 +121,7 @@ impl<N> AreaPhysicsServerTrait for AreaNpServer<N>
 where
     N: PtReal,
 {
-    fn create_area(
-        &self,
-        area_desc: &AreaDesc,
-    ) -> PhysicsHandle<PhysicsAreaTag> {
+    fn create_area(&self, area_desc: &AreaDesc) -> PhysicsHandle<PhysicsAreaTag> {
         // TODO later I want to split these in two different APIs, so I'm developing them already separated.
 
         let ph = {
@@ -139,9 +135,8 @@ where
                 .set_mass(N::from(0.0f32))
                 .build();
 
-            let a_key = bodies_storage.insert_body(Box::new(Body::new_area(
-                Box::new(np_rigid_body)
-            )));
+            let a_key =
+                bodies_storage.insert_body(Box::new(Body::new_area(Box::new(np_rigid_body))));
             let area = bodies_storage.get_body_mut(a_key).unwrap();
             area.self_key = Some(a_key);
 

@@ -1,8 +1,6 @@
 use amethyst_core::ecs::{prelude::*, storage::ComponentEvent, ReaderId};
 
-use crate::{
-    prelude::*
-};
+use crate::prelude::*;
 
 /// Thanks to this `System`, it is enough to set a shape as a `Component` of an `Entity`, to use it
 /// as a rigid body shape.
@@ -58,12 +56,16 @@ impl<'a, N: crate::PtReal> System<'a> for PhysicsSyncShapeSystem<N> {
 
         // Insert or Update shape to `RigidBody`
         for (body, shape, _) in (&bodies, &shapes, &dirty_shapes).join() {
-            physics_world.rigid_body_server().set_shape(body.get(), Some(shape.get()));
+            physics_world
+                .rigid_body_server()
+                .set_shape(body.get(), Some(shape.get()));
         }
 
         // Remove shape to `RigidBody`
         for (body, _, _) in (&bodies, !&shapes, &dirty_shapes).join() {
-            physics_world.rigid_body_server().set_shape(body.get(), None);
+            physics_world
+                .rigid_body_server()
+                .set_shape(body.get(), None);
         }
     }
 

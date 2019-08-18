@@ -9,10 +9,7 @@ pub trait AreaPhysicsServerTrait {
     /// Create an Area and return its handle.
     /// The PhysicsHandle returned can be safely cloned.
     /// When all instances of this Handle are dropped the Area is Dropped automatically.
-    fn create_area(
-        &self,
-        area_desc: &AreaDesc,
-    ) -> PhysicsHandle<PhysicsAreaTag>;
+    fn create_area(&self, area_desc: &AreaDesc) -> PhysicsHandle<PhysicsAreaTag>;
 
     /// Set the entity which holds this body.
     fn set_entity(&self, area_tag: PhysicsAreaTag, index: Option<Entity>);

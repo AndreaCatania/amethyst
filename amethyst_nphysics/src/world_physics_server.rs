@@ -5,24 +5,22 @@ use amethyst_phythyst::{
     servers::{OverlapEvent, WorldPhysicsServerTrait},
     PtReal,
 };
-use nalgebra::Vector3;
 use core::borrow::BorrowMut;
+use nalgebra::Vector3;
+use ncollide3d::query::Proximity;
 use nphysics3d::{
     utils::UserData as NpUserData,
     world::{GeometricalWorld, MechanicalWorld},
 };
-use ncollide3d::query::Proximity;
 
 use crate::{
-    conversors::*,
-    servers_storage::{ServersStorageType, BodiesStorageWrite, CollidersStorageWrite},
     body::BodyData,
-    utils::*,
-    AreaNpServer,
-    RBodyNpServer,
-    ShapeNpServer,
-    storage::StoreKey,
     body_storage::BodyStorage,
+    conversors::*,
+    servers_storage::{BodiesStorageWrite, CollidersStorageWrite, ServersStorageType},
+    storage::StoreKey,
+    utils::*,
+    AreaNpServer, RBodyNpServer, ShapeNpServer,
 };
 
 pub struct WorldNpServer<N: PtReal> {
@@ -101,14 +99,14 @@ impl<N: PtReal> WorldNpServer<N> {
         g_world: &mut GeometricalWorld<N, StoreKey, StoreKey>,
         m_world: &mut MechanicalWorld<N, BodyStorage<N>, StoreKey>,
         bodies: &mut BodiesStorageWrite<N>,
-        colliders: &mut CollidersStorageWrite<N>) {
-
+        colliders: &mut CollidersStorageWrite<N>,
+    ) {
         // Clear old events
         for (i, b) in bodies.iter_mut() {
             match &mut b.body_data {
                 BodyData::Area(e) => {
                     e.clear();
-                },
+                }
                 _ => {}
             }
         }
@@ -160,30 +158,32 @@ impl<N: PtReal> WorldNpServer<N> {
                     .unwrap();
 
                 let (area_tag, body_key, body_entity) = match body_1_ud.object_type() {
-                    ObjectType::RigidBody => {
-                        (
-                            body_2_ud.store_key(),
-                            body_1_ud.store_key(),
-                            body_1_ud.entity()
-                        )
-                    }
-                    ObjectType::Area => {
-                        (
-                            body_1_ud.store_key(),
-                            body_2_ud.store_key(),
-                            body_2_ud.entity()
-                        )
-                    }
+                    ObjectType::RigidBody => (
+                        body_2_ud.store_key(),
+                        body_1_ud.store_key(),
+                        body_1_ud.entity(),
+                    ),
+                    ObjectType::Area => (
+                        body_1_ud.store_key(),
+                        body_2_ud.store_key(),
+                        body_2_ud.entity(),
+                    ),
                 };
 
                 let area = bodies.get_body_mut(area_tag).unwrap();
-                if let BodyData::Area(e) = &mut area.body_data{
+                if let BodyData::Area(e) = &mut area.body_data {
                     if status == 0 {
                         // Enter
-                        e.push(OverlapEvent::Enter(PhysicsBodyTag(store_key_to_tag(body_key)), body_entity));
+                        e.push(OverlapEvent::Enter(
+                            PhysicsBodyTag(store_key_to_tag(body_key)),
+                            body_entity,
+                        ));
                     } else {
                         // Exit
-                        e.push(OverlapEvent::Exit(PhysicsBodyTag(store_key_to_tag(body_key)), body_entity));
+                        e.push(OverlapEvent::Exit(
+                            PhysicsBodyTag(store_key_to_tag(body_key)),
+                            body_entity,
+                        ));
                     }
                 }
             }
@@ -192,7 +192,6 @@ impl<N: PtReal> WorldNpServer<N> {
 }
 
 impl<N: PtReal> WorldPhysicsServerTrait<N> for WorldNpServer<N> {
-
     fn step(&self, delta_time: N) {
         self.garbage_collect();
 

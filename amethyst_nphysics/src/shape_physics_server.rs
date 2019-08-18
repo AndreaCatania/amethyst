@@ -7,7 +7,7 @@ use log::error;
 use nphysics3d::object::ColliderDesc as NpColliderDesc;
 
 use crate::{
-    area_physics_server::AreaNpServer, conversors::*, body::BodyData,
+    area_physics_server::AreaNpServer, body::BodyData, conversors::*,
     rigid_body_physics_server::RBodyNpServer, servers_storage::*, shape::RigidShape,
     storage::StoreKey,
 };
@@ -66,7 +66,10 @@ impl<N: PtReal> ShapePhysicsServerTrait<N> for ShapeNpServer<N> {
         let shape = shapes_storage.get_mut(shape_key).unwrap();
         shape.self_key = Some(shape_key);
 
-        PhysicsHandle::new(PhysicsShapeTag(store_key_to_tag(shape_key)), self.storages.gc.clone())
+        PhysicsHandle::new(
+            PhysicsShapeTag(store_key_to_tag(shape_key)),
+            self.storages.gc.clone(),
+        )
     }
 
     fn update_shape(&self, shape_tag: PhysicsShapeTag, shape_desc: &ShapeDesc<N>) {
@@ -86,12 +89,18 @@ impl<N: PtReal> ShapePhysicsServerTrait<N> for ShapeNpServer<N> {
                     match &body.body_data {
                         BodyData::Rigid => {
                             RBodyNpServer::drop_collider(body, &mut colliders);
-                            RBodyNpServer::extract_collider_desc(body.rigid_body().unwrap(), &mut collider_desc);
+                            RBodyNpServer::extract_collider_desc(
+                                body.rigid_body().unwrap(),
+                                &mut collider_desc,
+                            );
                             RBodyNpServer::install_collider(body, &collider_desc, &mut colliders);
                         }
                         BodyData::Area(e) => {
                             AreaNpServer::drop_collider(body, &mut colliders);
-                            AreaNpServer::extract_collider_desc(body.rigid_body().unwrap(), &mut collider_desc);
+                            AreaNpServer::extract_collider_desc(
+                                body.rigid_body().unwrap(),
+                                &mut collider_desc,
+                            );
                             AreaNpServer::install_collider(body, &collider_desc, &mut colliders);
                         }
                     }

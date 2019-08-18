@@ -23,7 +23,7 @@ pub use world_server::WorldPhysicsServerTrait;
 ///
 /// The `PhysicsWorld` is safe to be sent through threads because internally each `Backend` make sure
 /// to access each data in thread safe.
-pub struct PhysicsWorld<N>{
+pub struct PhysicsWorld<N> {
     world_server: Box<dyn WorldPhysicsServerTrait<N>>,
     rigid_body_server: Box<dyn RBodyPhysicsServerTrait<N>>,
     area_server: Box<dyn AreaPhysicsServerTrait>,

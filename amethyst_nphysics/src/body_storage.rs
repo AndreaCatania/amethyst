@@ -1,6 +1,6 @@
 use amethyst_phythyst::{objects::PhysicsBodyTag, PtReal};
-use nphysics3d::object::{Body as NpBody, BodySet};
 use generational_arena::{Iter, IterMut};
+use nphysics3d::object::{Body as NpBody, BodySet};
 
 use crate::{
     body::Body,

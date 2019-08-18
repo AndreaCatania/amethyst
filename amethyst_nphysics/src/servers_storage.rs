@@ -5,11 +5,11 @@ use nalgebra::RealField;
 use nphysics3d::object::{BodyHandle as NpBodyHandle, RigidBody as NpRigidBody};
 
 use crate::{
+    body::Body,
     body_storage::BodyStorage,
     collider_storage::ColliderStorage,
     force_generator_storage::ForceGeneratorStorage,
     joint_storage::JointStorage,
-    body::Body,
     shape::RigidShape,
     storage::{Storage, StoreKey},
 };

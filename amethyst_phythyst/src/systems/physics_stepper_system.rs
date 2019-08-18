@@ -20,12 +20,11 @@ impl<N: crate::PtReal> PhysicsStepperSystem<N> {
 }
 
 impl<'a, N: crate::PtReal> System<'a> for PhysicsStepperSystem<N> {
-    type SystemData = (
-        ReadExpect<'a, PhysicsTime>,
-        ReadExpect<'a, PhysicsWorld<N>>,
-    );
+    type SystemData = (ReadExpect<'a, PhysicsTime>, ReadExpect<'a, PhysicsWorld<N>>);
 
     fn run(&mut self, (physics_time, physics_world): Self::SystemData) {
-        physics_world.world_server().step(physics_time.sub_step_seconds.into());
+        physics_world
+            .world_server()
+            .step(physics_time.sub_step_seconds.into());
     }
 }

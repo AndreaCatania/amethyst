@@ -35,13 +35,13 @@ mod utils;
 #[macro_use]
 mod servers_storage;
 mod area_physics_server;
+mod body;
 mod body_storage;
 mod collider_storage;
 mod force_generator;
 mod force_generator_storage;
 mod joint;
 mod joint_storage;
-mod body;
 mod rigid_body_physics_server;
 mod shape;
 mod shape_physics_server;
@@ -54,7 +54,7 @@ use world_physics_server::WorldNpServer;
 
 use amethyst_phythyst::{
     servers::{
-        AreaPhysicsServerTrait, RBodyPhysicsServerTrait, ShapePhysicsServerTrait, PhysicsWorld,
+        AreaPhysicsServerTrait, PhysicsWorld, RBodyPhysicsServerTrait, ShapePhysicsServerTrait,
     },
     PtReal,
 };
