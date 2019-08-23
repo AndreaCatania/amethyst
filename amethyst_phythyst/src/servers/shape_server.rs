@@ -23,7 +23,14 @@ pub enum ShapeDesc<N: crate::PtReal> {
     Cube {
         half_extents: Vector3<N>,
     },
-    Cylinder{half_height: N, radius: N},
+    Capsule {
+        half_height: N,
+        radius: N,
+    },
+    Cylinder {
+        half_height: N,
+        radius: N,
+    },
     /// The plane is a shape with infinite size. The normal of the plane is Y+.
     /// Usually this shape is used as world margin.
     Plane,
