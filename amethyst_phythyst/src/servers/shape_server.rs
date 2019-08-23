@@ -37,6 +37,10 @@ pub enum ShapeDesc<N: crate::PtReal> {
     Convex {
         points: Vec<Point3<N>>,
     },
+    TriMesh {
+        points: Vec<Point3<N>>,
+        indices: Vec<Point3<usize>>,
+    },
     Compound {
         shapes: Vec<(Isometry3<N>, ShapeDesc<N>)>,
     },
