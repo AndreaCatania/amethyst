@@ -1,6 +1,6 @@
 use crate::objects::*;
 use amethyst_core::components::Transform;
-use nalgebra::{RealField, Vector3};
+use nalgebra::{Point3, RealField, Vector3};
 
 /// This is the interface used to manipulate the shapes
 /// The object that implement this interface is implemented by `ShapePhysicsServer`.
@@ -26,5 +26,8 @@ pub enum ShapeDesc<N: crate::PtReal> {
     /// The plane is a shape with infinite size. The normal of the plane is Y+.
     /// Usually this shape is used as world margin.
     Plane,
+    Convex {
+        points: Vec<Point3<N>>,
+    },
     //Cylinder{half_height: N, radius: N},
 }

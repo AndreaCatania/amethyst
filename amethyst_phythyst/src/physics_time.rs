@@ -53,7 +53,7 @@ impl PhysicsTime {
     pub fn delta_seconds(&self) -> f32 {
         self.delta_seconds
     }
-    
+
     /// Set the physics frames per seconds.
     pub fn with_frames_per_second(mut self, frames_per_seconds: u32) -> Self {
         self.set_frames_per_seconds(frames_per_seconds);
