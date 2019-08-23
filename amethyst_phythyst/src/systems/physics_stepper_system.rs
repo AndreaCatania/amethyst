@@ -25,6 +25,6 @@ impl<'a, N: crate::PtReal> System<'a> for PhysicsStepperSystem<N> {
     fn run(&mut self, (physics_time, physics_world): Self::SystemData) {
         physics_world
             .world_server()
-            .step(physics_time.sub_step_seconds.into());
+            .step(physics_time.delta_seconds.into());
     }
 }

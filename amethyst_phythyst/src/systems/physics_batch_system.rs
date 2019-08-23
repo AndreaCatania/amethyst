@@ -56,7 +56,7 @@ impl<'a, N: PtReal> System<'a> for PhysicsBatchSystem<'_, '_, N> {
             // Avoid spiral performance degradation
             physics_time._time_bank = physics_time._time_bank.min(physics_time._max_bank_size);
 
-            physics_time._time_bank >= physics_time.sub_step_seconds
+            physics_time._time_bank >= physics_time.delta_seconds
         };
 
         if want_to_dispatch {

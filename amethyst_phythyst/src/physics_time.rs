@@ -21,7 +21,7 @@
 pub struct PhysicsTime {
     /// The time used to advance the physics.
     /// The default is 60 frames per second : 1 / 60
-    pub(crate) sub_step_seconds: f32,
+    pub(crate) delta_seconds: f32,
 
     /// This is the maximum number of sub steps, to avoid spiral performance drop.
     /// Default is 8
@@ -39,7 +39,7 @@ pub struct PhysicsTime {
 impl Default for PhysicsTime {
     fn default() -> Self {
         let t = PhysicsTime {
-            sub_step_seconds: 0.0,
+            delta_seconds: 0.0,
             max_sub_steps: 0,
             _max_bank_size: 0.0,
             _time_bank: 0.0,
@@ -49,6 +49,11 @@ impl Default for PhysicsTime {
 }
 
 impl PhysicsTime {
+    /// Get the physics delta seconds
+    pub fn delta_seconds(&self) -> f32 {
+        self.delta_seconds
+    }
+    
     /// Set the physics frames per seconds.
     pub fn with_frames_per_second(mut self, frames_per_seconds: u32) -> Self {
         self.set_frames_per_seconds(frames_per_seconds);
@@ -57,7 +62,7 @@ impl PhysicsTime {
 
     /// Set the physics frames per seconds.
     pub fn set_frames_per_seconds(&mut self, frames_per_seconds: u32) {
-        self.set_sub_step_seconds(1.0 / frames_per_seconds as f32);
+        self.set_delta_seconds(1.0 / frames_per_seconds as f32);
     }
 
     /// Set the physics max sub steps.
@@ -86,19 +91,14 @@ impl PhysicsTime {
     }
 
     /// Set the sub step seconds, this function is used internally.
-    fn set_sub_step_seconds(&mut self, sub_step_seconds: f32) {
-        self.sub_step_seconds = sub_step_seconds;
+    fn set_delta_seconds(&mut self, delta_seconds: f32) {
+        self.delta_seconds = delta_seconds;
         self.update_max_bank_size();
-    }
-
-    /// Get the seb step seconds
-    pub fn sub_step_seconds(&self) -> f32 {
-        self.sub_step_seconds
     }
 
     /// Updates the max bank size according to the actual frame per second and the allowed sub steps.
     /// This function is used internally.
     fn update_max_bank_size(&mut self) {
-        self._max_bank_size = self.sub_step_seconds * self.max_sub_steps as f32;
+        self._max_bank_size = self.delta_seconds * self.max_sub_steps as f32;
     }
 }
