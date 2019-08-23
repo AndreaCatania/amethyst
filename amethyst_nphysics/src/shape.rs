@@ -2,6 +2,7 @@ use amethyst_phythyst::{objects::*, servers::ShapeDesc, PtReal};
 use nalgebra::{convert, Point3, Unit, Vector3};
 use ncollide3d::shape::{
     Ball as NcBall, Compound as NcCompound, ConvexHull as NcConvexHull, Cuboid as NcCuboid,
+    Cylinder as NcCylinder,
     Plane as NcPlane, ShapeHandle as NcShapeHandle,
 };
 
@@ -58,6 +59,10 @@ impl<N: PtReal> RigidShape<N> {
         match shape_desc {
             ShapeDesc::Sphere { radius } => NcShapeHandle::new(NcBall::new(*radius)),
             ShapeDesc::Cube { half_extents } => NcShapeHandle::new(NcCuboid::new(*half_extents)),
+            ShapeDesc::Cylinder{half_height, radius} => {
+                unimplemented!();
+                //NcShapeHandle::new(NcCylinder::new(*half_height, *radius))
+            },
             ShapeDesc::Plane => NcShapeHandle::new(NcPlane::new(Unit::new_normalize(
                 Vector3::new(convert(0.0), convert(1.0), convert(0.0)),
             ))),
@@ -71,7 +76,7 @@ impl<N: PtReal> RigidShape<N> {
                     .map(|v| (v.0, RigidShape::generate_handle(&v.1)))
                     .collect();
                 NcShapeHandle::new(NcCompound::new(computed_shapes))
-            } //ShapeDesc::Cylinder{half_height, radius} => NcShapeHandle::new( NcCylinder::new(*half_height, *radius) ),
+            }
         }
     }
 }
