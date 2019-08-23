@@ -1,6 +1,6 @@
 use crate::objects::*;
 use amethyst_core::components::Transform;
-use nalgebra::{Point3, RealField, Vector3};
+use nalgebra::{Isometry3, Point3, RealField, Vector3};
 
 /// This is the interface used to manipulate the shapes
 /// The object that implement this interface is implemented by `ShapePhysicsServer`.
@@ -28,6 +28,9 @@ pub enum ShapeDesc<N: crate::PtReal> {
     Plane,
     Convex {
         points: Vec<Point3<N>>,
+    },
+    Compound {
+        shapes: Vec<(Isometry3<N>, ShapeDesc<N>)>,
     },
     //Cylinder{half_height: N, radius: N},
 }

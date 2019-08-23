@@ -1,8 +1,8 @@
 use amethyst_phythyst::{objects::*, servers::ShapeDesc, PtReal};
 use nalgebra::{convert, Point3, Unit, Vector3};
 use ncollide3d::shape::{
-    Ball as NcBall, ConvexHull as NcConvexHull, Cuboid as NcCuboid, Plane as NcPlane,
-    ShapeHandle as NcShapeHandle,
+    Ball as NcBall, Compound as NcCompound, ConvexHull as NcConvexHull, Cuboid as NcCuboid,
+    Plane as NcPlane, ShapeHandle as NcShapeHandle,
 };
 
 use crate::storage::StoreKey;
@@ -64,7 +64,14 @@ impl<N: PtReal> RigidShape<N> {
             ShapeDesc::Convex { points } => NcShapeHandle::new(
                 NcConvexHull::try_from_points(&points)
                     .expect("Was not possible to construct the ConvexHull from the passed points."),
-            ), //ShapeDesc::Cylinder{half_height, radius} => NcShapeHandle::new( NcCylinder::new(*half_height, *radius) ),
+            ),
+            ShapeDesc::Compound { shapes } => {
+                let computed_shapes = shapes
+                    .iter()
+                    .map(|v| (v.0, RigidShape::generate_handle(&v.1)))
+                    .collect();
+                NcShapeHandle::new(NcCompound::new(computed_shapes))
+            } //ShapeDesc::Cylinder{half_height, radius} => NcShapeHandle::new( NcCylinder::new(*half_height, *radius) ),
         }
     }
 }
