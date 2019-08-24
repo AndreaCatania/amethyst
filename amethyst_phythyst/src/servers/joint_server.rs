@@ -5,7 +5,6 @@ use crate::objects::*;
 
 /// Trait that defines the *Joint* server capabilities.
 pub trait JointPhysicsServerTrait<N: crate::PtReal> {
-
     /// Creates a new joint.
     ///
     /// The parameter `initial_position` is used to calculates the body offset to the joint.
@@ -14,7 +13,11 @@ pub trait JointPhysicsServerTrait<N: crate::PtReal> {
     /// `PhysicsHandle<PhysicsJointTag>` returned, to the two `Entities` that you want to constraint.
     ///
     /// To remove this joint, is necessary to drop all its handles.
-    fn create_joint(&self, desc: &JointDesc, initial_position: Isometry3<N>) -> PhysicsHandle<PhysicsJointTag>;
+    fn create_joint(
+        &self,
+        desc: &JointDesc,
+        initial_position: Isometry3<N>,
+    ) -> PhysicsHandle<PhysicsJointTag>;
 
     /// Sets the rigid body handles, and creates the actual joint.
     /// Can't be called twice on the same `PhysicsJointTag`.
@@ -24,7 +27,12 @@ pub trait JointPhysicsServerTrait<N: crate::PtReal> {
     ///
     /// So, you have to just create the joint using the function `create_joint`.
     /// To drop a joint, all the handles, must be dropped.
-    fn init_with_rigid_bodies(&self, joint: PhysicsJointTag, body_0: PhysicsRigidBodyTag, body_1: PhysicsRigidBodyTag);
+    fn init_with_rigid_bodies(
+        &self,
+        joint: PhysicsJointTag,
+        body_0: PhysicsRigidBodyTag,
+        body_1: PhysicsRigidBodyTag,
+    );
 }
 
 /// Joint description, used during the joint creation.

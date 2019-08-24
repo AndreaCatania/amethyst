@@ -27,27 +27,8 @@
 )]
 #![warn(clippy::all)]
 
-#[macro_use]
-mod conditional_macros;
-pub mod conversors;
-pub mod storage;
-mod utils;
-#[macro_use]
-mod servers_storage;
-mod area_physics_server;
-mod body;
-mod body_storage;
-mod collider_storage;
-mod force_generator;
-mod force_generator_storage;
-mod joint;
-mod joint_storage;
-mod rigid_body_physics_server;
-mod shape;
-mod shape_physics_server;
-mod world_physics_server;
-
 use area_physics_server::AreaNpServer;
+use joint_physics_server::JointNpServer;
 use rigid_body_physics_server::RBodyNpServer;
 use shape_physics_server::ShapeNpServer;
 use world_physics_server::WorldNpServer;
@@ -69,6 +50,28 @@ where
             Box::new(RBodyNpServer::new(storages.clone())),
             Box::new(AreaNpServer::new(storages.clone())),
             Box::new(ShapeNpServer::new(storages.clone())),
+            Box::new(JointNpServer::new(storages.clone())),
         )
     }
 }
+
+#[macro_use]
+mod conditional_macros;
+#[macro_use]
+mod servers_storage;
+mod area_physics_server;
+mod body;
+mod body_storage;
+mod collider_storage;
+mod conversors;
+mod force_generator;
+mod force_generator_storage;
+mod joint;
+mod joint_physics_server;
+mod joint_storage;
+mod rigid_body_physics_server;
+mod shape;
+mod shape_physics_server;
+mod storage;
+mod utils;
+mod world_physics_server;

@@ -23,11 +23,11 @@ use crate::{
 };
 
 pub struct AreaNpServer<N: PtReal> {
-    storages: ServersStorageType<N>,
+    storages: ServersStorages<N>,
 }
 
 impl<N: PtReal> AreaNpServer<N> {
-    pub fn new(storages: ServersStorageType<N>) -> Self {
+    pub fn new(storages: ServersStorages<N>) -> Self {
         AreaNpServer { storages }
     }
 }

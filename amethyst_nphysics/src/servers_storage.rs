@@ -14,7 +14,7 @@ use crate::{
     storage::{Storage, StoreKey},
 };
 
-pub type ServersStorageType<N> = Arc<ServersStorage<N>>;
+pub type ServersStorages<N> = Arc<ServersStorage<N>>;
 
 pub type BodiesStorageWrite<'a, N> = RwLockWriteGuard<'a, BodyStorage<N>>;
 pub type BodiesStorageRead<'a, N> = RwLockReadGuard<'a, BodyStorage<N>>;
@@ -55,7 +55,7 @@ pub struct ServersStorage<N: PtReal> {
 }
 
 impl<N: PtReal> ServersStorage<N> {
-    pub fn new() -> ServersStorageType<N> {
+    pub fn new() -> ServersStorages<N> {
         Arc::new(ServersStorage {
             gc: Arc::new(RwLock::new(PhysicsGarbageCollector::default())),
             bodies: Arc::new(RwLock::new(BodyStorage::default())),

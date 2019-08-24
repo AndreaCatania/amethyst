@@ -13,11 +13,11 @@ use crate::{
 };
 
 pub struct ShapeNpServer<N: PtReal> {
-    storages: ServersStorageType<N>,
+    storages: ServersStorages<N>,
 }
 
 impl<N: PtReal> ShapeNpServer<N> {
-    pub fn new(storages: ServersStorageType<N>) -> Self {
+    pub fn new(storages: ServersStorages<N>) -> Self {
         ShapeNpServer { storages }
     }
 

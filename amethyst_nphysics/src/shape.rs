@@ -55,7 +55,7 @@ impl<N: PtReal> RigidShape<N> {
 
     pub fn is_concave(&self) -> bool {
         match &self.shape_desc {
-            ShapeDesc::TriMesh {points,indices} => true,
+            ShapeDesc::TriMesh { points, indices } => true,
             _ => false,
         }
     }

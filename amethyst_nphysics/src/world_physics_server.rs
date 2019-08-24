@@ -13,20 +13,20 @@ use crate::{
     body::BodyData,
     body_storage::BodyStorage,
     conversors::*,
-    servers_storage::{BodiesStorageWrite, CollidersStorageWrite, ServersStorageType},
+    servers_storage::{BodiesStorageWrite, CollidersStorageWrite, ServersStorages},
     storage::StoreKey,
     utils::*,
     AreaNpServer, RBodyNpServer, ShapeNpServer,
 };
 
 pub struct WorldNpServer<N: PtReal> {
-    pub storages: ServersStorageType<N>,
+    pub storages: ServersStorages<N>,
     pub geometrical_world: RwLock<GeometricalWorld<N, StoreKey, StoreKey>>,
     pub mechanical_world: RwLock<MechanicalWorld<N, BodyStorage<N>, StoreKey>>,
 }
 
 impl<N: PtReal> WorldNpServer<N> {
-    pub fn new(storages: ServersStorageType<N>) -> WorldNpServer<N> {
+    pub fn new(storages: ServersStorages<N>) -> WorldNpServer<N> {
         WorldNpServer {
             storages,
             geometrical_world: RwLock::new(GeometricalWorld::new()),

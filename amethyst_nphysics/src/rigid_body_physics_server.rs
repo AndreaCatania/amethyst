@@ -21,11 +21,11 @@ use crate::{
 };
 
 pub struct RBodyNpServer<N: PtReal> {
-    storages: ServersStorageType<N>,
+    storages: ServersStorages<N>,
 }
 
 impl<N: PtReal> RBodyNpServer<N> {
-    pub fn new(storages: ServersStorageType<N>) -> Self {
+    pub fn new(storages: ServersStorages<N>) -> Self {
         RBodyNpServer { storages }
     }
 }
@@ -56,7 +56,7 @@ impl<N: PtReal> RBodyNpServer<N> {
     ) {
         if shape.is_concave() {
             collider_desc.set_density(nalgebra::zero());
-        }else{
+        } else {
             collider_desc.set_density(nalgebra::one());
         }
 
@@ -123,7 +123,7 @@ impl<N: PtReal> RBodyNpServer<N> {
     ) {
         if shape.is_concave() {
             np_collider_desc.set_density(nalgebra::zero());
-        }else{
+        } else {
             np_collider_desc.set_density(nalgebra::one());
         }
     }
