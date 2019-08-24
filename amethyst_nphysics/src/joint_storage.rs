@@ -76,6 +76,21 @@ impl<N: PtReal, S: NpBodySet<N>> JointStorage<N, S> {
         }
     }
 
+    /// Notify that a NPhysics joint is just removed.
+    ///
+    /// This function must be called each time a NPhysics joint is removed.
+    ///
+    /// An NPhysics joint can be removed anytime.
+    pub fn notify_joint_removed(&mut self, key: StoreKey) {
+        let j = self.storage.get(key);
+        if let Some(j) = j {
+            if let Some(j) = &j.np_joint {
+                let (part1, part2) = j.anchors();
+                self.removed.push((key, part1, part2));
+            }
+        }
+    }
+
     pub fn get_collider(&self, key: StoreKey) -> Option<&Box<Joint<N, S>>> {
         self.storage.get(key)
     }
