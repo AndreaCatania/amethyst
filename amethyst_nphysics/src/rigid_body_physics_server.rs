@@ -5,8 +5,9 @@ use nalgebra::{Isometry3, Point, Vector3};
 use nphysics3d::{
     math::{Force, ForceType},
     object::{
-        BodyPartHandle as NpBodyPartHandle, Collider as NpCollider, ColliderDesc as NpColliderDesc,
-        RigidBody as NpRigidBody, RigidBodyDesc as NpRigidBodyDesc,
+        Body as NpBody, BodyPartHandle as NpBodyPartHandle, BodyStatus as NpBodyStatus,
+        Collider as NpCollider, ColliderDesc as NpColliderDesc, RigidBody as NpRigidBody,
+        RigidBodyDesc as NpRigidBodyDesc,
     },
 };
 
@@ -50,10 +51,16 @@ impl<N: PtReal> RBodyNpServer<N> {
     pub fn install_shape<'w>(
         body: &mut Body<N>,
         shape: &mut RigidShape<N>,
-        collider_desc: &NpColliderDesc<N>,
+        mut collider_desc: NpColliderDesc<N>,
         colliders: &mut CollidersStorageWrite<N>,
     ) {
-        Self::install_collider(body, collider_desc, colliders);
+        if shape.is_concave() {
+            collider_desc.set_density(nalgebra::zero());
+        }else{
+            collider_desc.set_density(nalgebra::one());
+        }
+
+        Self::install_collider(body, &collider_desc, colliders);
 
         // Collider registration
         shape.register_body(body.self_key.unwrap());
@@ -111,9 +118,14 @@ impl<N: PtReal> RBodyNpServer<N> {
     /// Extract collider description from a rigid body
     pub fn extract_collider_desc(
         np_rigid_body: &NpRigidBody<N>,
+        shape: &Box<RigidShape<N>>,
         np_collider_desc: &mut NpColliderDesc<N>,
     ) {
-        np_collider_desc.set_density(nalgebra::convert(1.0));
+        if shape.is_concave() {
+            np_collider_desc.set_density(nalgebra::zero());
+        }else{
+            np_collider_desc.set_density(nalgebra::one());
+        }
     }
 }
 
@@ -198,10 +210,9 @@ where
             if let Some(shape_key) = shape_key {
                 if let Some(shape) = shapes.get_mut(shape_key) {
                     // Create and attach the collider
-                    let mut collider_desc = NpColliderDesc::new(shape.shape_handle().clone())
-                        .density(nalgebra::convert(1.0));
+                    let collider_desc = NpColliderDesc::new(shape.shape_handle().clone());
 
-                    RBodyNpServer::install_shape(body, shape, &collider_desc, &mut colliders);
+                    RBodyNpServer::install_shape(body, shape, collider_desc, &mut colliders);
                 } else {
                     error!("During the rigid body creation, was not possible to find the shape to assign");
                 }

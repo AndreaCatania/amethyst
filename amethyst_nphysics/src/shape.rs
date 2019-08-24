@@ -3,7 +3,7 @@ use nalgebra::{convert, Point3, Unit, Vector3};
 use ncollide3d::shape::{
     Ball as NcBall, Capsule as NcCapsule, Compound as NcCompound, ConvexHull as NcConvexHull,
     Cuboid as NcCuboid, Cylinder as NcCylinder, Plane as NcPlane, ShapeHandle as NcShapeHandle,
-    TriMesh as NcTriMesh
+    TriMesh as NcTriMesh,
 };
 
 use crate::storage::StoreKey;
@@ -52,6 +52,13 @@ impl<N: PtReal> RigidShape<N> {
     pub fn bodies(&self) -> &Vec<StoreKey> {
         &self.bodies
     }
+
+    pub fn is_concave(&self) -> bool {
+        match &self.shape_desc {
+            ShapeDesc::TriMesh {points,indices} => true,
+            _ => false,
+        }
+    }
 }
 
 impl<N: PtReal> RigidShape<N> {
@@ -77,9 +84,9 @@ impl<N: PtReal> RigidShape<N> {
                 NcConvexHull::try_from_points(&points)
                     .expect("Was not possible to construct the ConvexHull from the passed points."),
             ),
-            ShapeDesc::TriMesh {points, indices} => {
+            ShapeDesc::TriMesh { points, indices } => {
                 NcShapeHandle::new(NcTriMesh::new(points.clone(), indices.clone(), None))
-            },
+            }
             ShapeDesc::Compound { shapes } => {
                 let computed_shapes = shapes
                     .iter()

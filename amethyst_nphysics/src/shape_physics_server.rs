@@ -88,6 +88,7 @@ impl<N: PtReal> ShapePhysicsServerTrait<N> for ShapeNpServer<N> {
                             RBodyNpServer::drop_collider(body, &mut colliders);
                             RBodyNpServer::extract_collider_desc(
                                 body.rigid_body().unwrap(),
+                                shape,
                                 &mut collider_desc,
                             );
                             RBodyNpServer::install_collider(body, &collider_desc, &mut colliders);
@@ -96,6 +97,7 @@ impl<N: PtReal> ShapePhysicsServerTrait<N> for ShapeNpServer<N> {
                             AreaNpServer::drop_collider(body, &mut colliders);
                             AreaNpServer::extract_collider_desc(
                                 body.rigid_body().unwrap(),
+                                shape,
                                 &mut collider_desc,
                             );
                             AreaNpServer::install_collider(body, &collider_desc, &mut colliders);

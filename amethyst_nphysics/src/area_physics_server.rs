@@ -111,9 +111,11 @@ impl<N: PtReal> AreaNpServer<N> {
 
     pub fn extract_collider_desc(
         np_rigid_body: &NpRigidBody<N>,
-        collider_desc: &mut NpColliderDesc<N>,
+        shape: &Box<RigidShape<N>>,
+        np_collider_desc: &mut NpColliderDesc<N>,
     ) {
-        collider_desc.set_is_sensor(true);
+        np_collider_desc.set_density(nalgebra::zero());
+        np_collider_desc.set_is_sensor(true);
     }
 }
 
