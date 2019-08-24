@@ -16,27 +16,37 @@ pub trait JointPhysicsServerTrait<N: crate::PtReal> {
     fn create_joint(
         &self,
         desc: &JointDesc,
-        initial_position: Isometry3<N>,
+        initial_position: &Isometry3<N>,
     ) -> PhysicsHandle<PhysicsJointTag>;
 
-    /// Sets the rigid body handles, and creates the actual joint.
-    /// Can't be called twice on the same `PhysicsJointTag`.
+    /// Insert the rigid body to the joint, and in case creates the actual joint.
+    /// It doesn't accept more than two handles per time.
     ///
     /// This function is called automatically when a `PhysicsHandle<PhysicsJointTag>` is assigned to
-    /// two `Entities` that both have a `PhysicsHandle<PhysicsRigidBodyTag>`.
+    /// an `Entity` that has a `PhysicsHandle<PhysicsRigidBodyTag>`.
     ///
     /// So, you have to just create the joint using the function `create_joint`.
-    /// To drop a joint, all the handles, must be dropped.
-    fn init_with_rigid_bodies(
+    fn insert_rigid_body(
         &self,
         joint: PhysicsJointTag,
-        body_0: PhysicsRigidBodyTag,
-        body_1: PhysicsRigidBodyTag,
+        body: PhysicsRigidBodyTag,
+    );
+
+    /// Remove the rigid body to the joint.
+    ///
+    /// This function is called automatically when a `PhysicsHandle<PhysicsJointTag>` is removed from
+    /// an `Entity`.
+    ///
+    /// To drop a joint, you simply need to drop the handle.
+    fn remove_rigid_body(
+        &self,
+        joint: PhysicsJointTag,
+        body: PhysicsRigidBodyTag,
     );
 }
 
 /// Joint description, used during the joint creation.
-#[derive(Clone, Debug)]
+#[derive(Copy, Clone, Debug)]
 pub enum JointDesc {
     Fixed,
 }

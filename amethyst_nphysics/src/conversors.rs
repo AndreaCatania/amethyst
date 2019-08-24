@@ -2,7 +2,9 @@ use amethyst_core::{
     components::Transform,
     math::{Quaternion, Translation3, UnitQuaternion, Vector3, Vector4},
 };
-use amethyst_phythyst::objects::{PhysicsAreaTag, PhysicsRigidBodyTag, PhysicsShapeTag};
+use amethyst_phythyst::objects::{
+    PhysicsAreaTag, PhysicsJointTag, PhysicsRigidBodyTag, PhysicsShapeTag,
+};
 use nalgebra::{Isometry3, Transform3};
 
 use crate::storage::StoreKey;
@@ -145,4 +147,10 @@ opaque_conversors!(
     shape_tag_to_store_key,
     store_key_to_shape_tag,
     test_conversors_physics_shape_tag
+);
+opaque_conversors!(
+    PhysicsJointTag,
+    joint_tag_to_store_key,
+    store_key_to_joint_tag,
+    test_conversors_physics_joint_tag
 );

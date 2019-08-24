@@ -7,10 +7,11 @@ use amethyst_error::Error;
 use log::info;
 
 use crate::{
+    objects::PhysicsSetupStorages,
     prelude::*,
     servers::PhysicsWorld,
     systems::{
-        PhysicsBatchSystem, PhysicsStepperSystem, PhysicsSyncShapeSystem,
+        PhysicsBatchSystem, PhysicsStepperSystem, PhysicsSyncJointSystem, PhysicsSyncShapeSystem,
         PhysicsSyncTransformSystem,
     },
     PhysicsTime,
@@ -394,13 +395,6 @@ impl<'a, 'b, N: crate::PtReal, B: crate::PhysicsBackend<N>> PhysicsBundle<'a, 'b
     );
 }
 
-/// This is used only to perform the setup of these storages.
-type PhysicsSetupStorages<'a> = (
-    ReadStorage<'a, PhysicsHandle<PhysicsRigidBodyTag>>,
-    ReadStorage<'a, PhysicsHandle<PhysicsAreaTag>>,
-    ReadStorage<'a, PhysicsHandle<PhysicsShapeTag>>,
-);
-
 impl<N, B> SystemBundle<'static, 'static> for PhysicsBundle<'static, 'static, N, B>
 where
     N: crate::PtReal,
@@ -416,28 +410,36 @@ where
         world.insert(B::create_world());
         world.insert(self.physics_time);
 
-        let mut physics_builder = self.physics_builder;
+        let physics_builder = {
+            let mut physics_builder = self.physics_builder;
 
-        // Register PRE physics operations
-        self.pre_physics_dispatcher_operations
-            .into_iter()
-            .try_for_each(|operation| operation.exec(world, &mut physics_builder))
-            .unwrap_or_else(|e| panic!("Failed to setup the pre physics systems. Error: {}", e));
+            // Register PRE physics operations
+            self.pre_physics_dispatcher_operations
+                .into_iter()
+                .try_for_each(|operation| operation.exec(world, &mut physics_builder))
+                .unwrap_or_else(|e| {
+                    panic!("Failed to setup the pre physics systems. Error: {}", e)
+                });
 
-        // Register IN physics operations
-        physics_builder.add_barrier();
-        physics_builder.add(PhysicsStepperSystem::<N>::new(), "", &[]);
-        self.in_physics_dispatcher_operations
-            .into_iter()
-            .try_for_each(|operation| operation.exec(world, &mut physics_builder))
-            .unwrap_or_else(|e| panic!("Failed to setup the in physics systems. Error: {}", e));
+            // Register IN physics operations
+            physics_builder.add_barrier();
+            physics_builder.add(PhysicsStepperSystem::<N>::new(), "", &[]);
+            self.in_physics_dispatcher_operations
+                .into_iter()
+                .try_for_each(|operation| operation.exec(world, &mut physics_builder))
+                .unwrap_or_else(|e| panic!("Failed to setup the in physics systems. Error: {}", e));
 
-        // Register POST physics operations
-        physics_builder.add_barrier();
-        self.post_physics_dispatcher_operations
-            .into_iter()
-            .try_for_each(|operation| operation.exec(world, &mut physics_builder))
-            .unwrap_or_else(|e| panic!("Failed to setup the post physics systems. Error: {}", e));
+            // Register POST physics operations
+            physics_builder.add_barrier();
+            self.post_physics_dispatcher_operations
+                .into_iter()
+                .try_for_each(|operation| operation.exec(world, &mut physics_builder))
+                .unwrap_or_else(|e| {
+                    panic!("Failed to setup the post physics systems. Error: {}", e)
+                });
+
+            physics_builder
+        };
 
         builder.add(
             PhysicsSyncShapeSystem::<N>::default(),
@@ -449,10 +451,15 @@ where
             "physics_sync_transform",
             &[],
         );
+        builder.add(
+            PhysicsSyncJointSystem::<N>::default(),
+            "physics_sync_joint",
+            &[],
+        );
         builder.add_batch::<PhysicsBatchSystem<N>>(
             physics_builder,
             "physics_batch",
-            &["physics_sync_entity", "physics_sync_transform"],
+            &["physics_sync_entity", "physics_sync_transform", "physics_sync_joint"],
         );
 
         info!("Physics bundle registered.");

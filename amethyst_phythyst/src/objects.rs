@@ -57,6 +57,16 @@ define_opaque_object!(PhysicsAreaTag, areas);
 define_opaque_object!(PhysicsShapeTag, shapes);
 define_opaque_object!(PhysicsJointTag, joints);
 
+/// This is used only to perform the setup of these storages.
+///
+/// The setup happens in the `PhysicsBundle`.
+pub(crate) type PhysicsSetupStorages<'a> = (
+    amethyst_core::ecs::ReadStorage<'a, PhysicsHandle<PhysicsRigidBodyTag>>,
+    amethyst_core::ecs::ReadStorage<'a, PhysicsHandle<PhysicsAreaTag>>,
+    amethyst_core::ecs::ReadStorage<'a, PhysicsHandle<PhysicsShapeTag>>,
+    amethyst_core::ecs::ReadStorage<'a, PhysicsHandle<PhysicsJointTag>>,
+);
+
 /// This trait must be implemented for each structure that want to use the PhysicsHandle.
 pub trait PhysicsTag: Copy + std::fmt::Debug + Sync + Send + Sized + 'static {
     fn request_resource_removal(&mut self, gc: &mut PhysicsGarbageCollector);
@@ -120,14 +130,14 @@ impl<T: PhysicsTag> Component for PhysicsHandle<T> {
 }
 
 /// This container holds both the Tag and the garbage collector.
-/// When this container is dropped it request the dropping of the resource to the GC.
+/// When this container is dropped it requests the dropping of the resource to the GC.
 ///
-/// The reason why the task to signal the resource dropping got assigned to the container
-/// is because in this way is possible to pass just the ID of the resource to the server APIs
-/// avoiding so useless copy of the GC pointer.
+/// Thanks to the container, we can have many `PhysicsHandle` which all points to the same data.
+/// This mechanism, make sure to avoid too much useless copy and give a simple way to notify the GC
+/// only once, even if there are more handles of a resource.
 ///
-/// The code that execute the signaling operation is implemented per PhysicsTag to allow custom
-/// signaling depending on the tag.
+/// The function `request_resource_removal`, that notify the GC is implemented per `PhysicsTag` to
+/// allow custom signaling operations depending on the tag type.
 struct PhysicsTagContainer<T: PhysicsTag> {
     tag: T,
     garbage_collector: Arc<RwLock<PhysicsGarbageCollector>>,

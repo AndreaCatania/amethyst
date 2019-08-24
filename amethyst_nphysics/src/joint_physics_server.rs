@@ -5,7 +5,7 @@ use amethyst_phythyst::{
 };
 use nalgebra::Isometry3;
 
-use crate::servers_storage::ServersStorages;
+use crate::{conversors::*, joint::Joint, servers_storage::ServersStorages};
 
 pub struct JointNpServer<N: PtReal> {
     storages: ServersStorages<N>,
@@ -21,16 +21,25 @@ impl<N: PtReal> JointPhysicsServerTrait<N> for JointNpServer<N> {
     fn create_joint(
         &self,
         desc: &JointDesc,
-        initial_position: Isometry3<N>,
+        initial_position: &Isometry3<N>,
     ) -> PhysicsHandle<PhysicsJointTag> {
-        unimplemented!();
+        let mut joints = self.storages.joints_w();
+        let key = joints.insert(Box::new(Joint::new(*desc, initial_position.clone())));
+        PhysicsHandle::new(store_key_to_joint_tag(key), self.storages.gc.clone())
     }
 
-    fn init_with_rigid_bodies(
+    fn insert_rigid_body(
         &self,
         joint: PhysicsJointTag,
-        body_0: PhysicsRigidBodyTag,
-        body_1: PhysicsRigidBodyTag,
+        body: PhysicsRigidBodyTag,
+    ) {
+
+    }
+
+    fn remove_rigid_body(
+        &self,
+        joint: PhysicsJointTag,
+        body: PhysicsRigidBodyTag,
     ) {
 
     }

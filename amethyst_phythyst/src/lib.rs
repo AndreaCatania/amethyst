@@ -44,7 +44,6 @@
 )]
 #![warn(clippy::all)]
 
-mod physics_bundle;
 mod physics_time;
 mod systems;
 
@@ -52,8 +51,8 @@ pub mod objects;
 pub mod prelude;
 pub mod servers;
 
-pub use physics_bundle::PhysicsBundle;
 pub use physics_time::PhysicsTime;
+pub use systems::PhysicsBundle;
 
 /// Phythyst real
 // TODO Add f64?
