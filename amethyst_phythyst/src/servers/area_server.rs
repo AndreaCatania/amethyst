@@ -1,6 +1,7 @@
-use crate::objects::*;
 use amethyst_core::ecs::Entity;
 use nalgebra::{Isometry3, RealField};
+
+use crate::objects::*;
 
 /// This is the interface that contains all the area functionalities,
 ///

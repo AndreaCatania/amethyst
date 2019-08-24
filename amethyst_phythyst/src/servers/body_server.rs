@@ -1,6 +1,7 @@
-use crate::objects::*;
 use amethyst_core::ecs::Entity;
 use nalgebra::{Isometry3, RealField, Vector3};
+
+use crate::objects::*;
 
 /// This is the interface that contains all functionalities to manipulate
 /// - RigidBody

@@ -1,6 +1,7 @@
-use crate::objects::*;
 use amethyst_core::components::Transform;
 use nalgebra::{Isometry3, Point3, RealField, Vector3};
+
+use crate::objects::*;
 
 /// This is the interface used to manipulate the shapes
 /// The object that implement this interface is implemented by `ShapePhysicsServer`.

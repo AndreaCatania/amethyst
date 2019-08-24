@@ -9,13 +9,9 @@
 //!
 //! Is it possible to access them trough the `PhysicsWorld`.
 
-mod area_server;
-mod body_server;
-mod shape_server;
-mod world_server;
-
-pub use area_server::*;
+pub use area_server::{AreaDesc, AreaPhysicsServerTrait, OverlapEvent};
 pub use body_server::{BodyMode, RBodyPhysicsServerTrait, RigidBodyDesc};
+pub use joint_server::{JointDesc, JointPhysicsServerTrait};
 pub use shape_server::{ShapeDesc, ShapePhysicsServerTrait};
 pub use world_server::WorldPhysicsServerTrait;
 
@@ -28,6 +24,7 @@ pub struct PhysicsWorld<N> {
     rigid_body_server: Box<dyn RBodyPhysicsServerTrait<N>>,
     area_server: Box<dyn AreaPhysicsServerTrait>,
     shape_server: Box<dyn ShapePhysicsServerTrait<N>>,
+    joint_server: Box<dyn JointPhysicsServerTrait<N>>,
 }
 
 impl<N> PhysicsWorld<N> {
@@ -36,12 +33,14 @@ impl<N> PhysicsWorld<N> {
         rigid_body_server: Box<dyn RBodyPhysicsServerTrait<N>>,
         area_server: Box<dyn AreaPhysicsServerTrait>,
         shape_server: Box<dyn ShapePhysicsServerTrait<N>>,
+        joint_server: Box<dyn JointPhysicsServerTrait<N>>,
     ) -> Self {
         PhysicsWorld {
             world_server,
             rigid_body_server,
             area_server,
             shape_server,
+            joint_server,
         }
     }
 
@@ -60,7 +59,17 @@ impl<N> PhysicsWorld<N> {
     pub fn shape_server(&self) -> &dyn ShapePhysicsServerTrait<N> {
         self.shape_server.as_ref()
     }
+
+    pub fn joint_server(&self) -> &dyn JointPhysicsServerTrait<N> {
+        self.joint_server.as_ref()
+    }
 }
 
 unsafe impl<N> Send for PhysicsWorld<N> {}
 unsafe impl<N> Sync for PhysicsWorld<N> {}
+
+mod area_server;
+mod body_server;
+mod joint_server;
+mod shape_server;
+mod world_server;

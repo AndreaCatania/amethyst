@@ -55,6 +55,7 @@ macro_rules! define_opaque_object {
 define_opaque_object!(PhysicsRigidBodyTag, bodies);
 define_opaque_object!(PhysicsAreaTag, areas);
 define_opaque_object!(PhysicsShapeTag, shapes);
+define_opaque_object!(PhysicsJointTag, joints);
 
 /// This trait must be implemented for each structure that want to use the PhysicsHandle.
 pub trait PhysicsTag: Copy + std::fmt::Debug + Sync + Send + Sized + 'static {
@@ -160,6 +161,7 @@ pub struct PhysicsGarbageCollector {
     pub bodies: Vec<PhysicsRigidBodyTag>,
     pub areas: Vec<PhysicsAreaTag>,
     pub shapes: Vec<PhysicsShapeTag>,
+    pub joints: Vec<PhysicsJointTag>,
 }
 
 impl Default for PhysicsGarbageCollector {
@@ -168,6 +170,7 @@ impl Default for PhysicsGarbageCollector {
             bodies: Vec::new(),
             areas: Vec::new(),
             shapes: Vec::new(),
+            joints: Vec::new(),
         }
     }
 }
