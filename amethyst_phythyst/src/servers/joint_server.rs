@@ -26,11 +26,7 @@ pub trait JointPhysicsServerTrait<N: crate::PtReal> {
     /// an `Entity` that has a `PhysicsHandle<PhysicsRigidBodyTag>`.
     ///
     /// So, you have to just create the joint using the function `create_joint`.
-    fn insert_rigid_body(
-        &self,
-        joint: PhysicsJointTag,
-        body: PhysicsRigidBodyTag,
-    );
+    fn insert_rigid_body(&self, joint: PhysicsJointTag, body: PhysicsRigidBodyTag);
 
     /// Remove the rigid body to the joint.
     ///
@@ -38,11 +34,7 @@ pub trait JointPhysicsServerTrait<N: crate::PtReal> {
     /// an `Entity`.
     ///
     /// To drop a joint, you simply need to drop the handle.
-    fn remove_rigid_body(
-        &self,
-        joint: PhysicsJointTag,
-        body: PhysicsRigidBodyTag,
-    );
+    fn remove_rigid_body(&self, joint: PhysicsJointTag, body: PhysicsRigidBodyTag);
 }
 
 /// Joint description, used during the joint creation.

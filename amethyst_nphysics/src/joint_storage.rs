@@ -91,11 +91,11 @@ impl<N: PtReal, S: NpBodySet<N>> JointStorage<N, S> {
         }
     }
 
-    pub fn get_collider(&self, key: StoreKey) -> Option<&Box<Joint<N, S>>> {
+    pub fn get_joint(&self, key: StoreKey) -> Option<&Box<Joint<N, S>>> {
         self.storage.get(key)
     }
 
-    pub fn get_collider_mut(&mut self, key: StoreKey) -> Option<&mut Box<Joint<N, S>>> {
+    pub fn get_joint_mut(&mut self, key: StoreKey) -> Option<&mut Box<Joint<N, S>>> {
         self.storage.get_mut(key)
     }
 }

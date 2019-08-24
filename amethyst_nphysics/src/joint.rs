@@ -9,6 +9,8 @@ pub struct Joint<N: PtReal, S: NpBodySet<N>> {
     pub joint_desc: JointDesc,
     pub initial_isometry: Isometry3<N>,
     pub np_joint: Option<Box<dyn NpJointConstraint<N, S>>>,
+    pub body_0: Option<(StoreKey, usize)>, // Body key, Part id
+    pub body_1: Option<(StoreKey, usize)>, // Body key, Part id
 }
 
 impl<N: PtReal, S: NpBodySet<N>> Joint<N, S> {
@@ -18,6 +20,8 @@ impl<N: PtReal, S: NpBodySet<N>> Joint<N, S> {
             joint_desc,
             initial_isometry,
             np_joint: None,
+            body_0: None,
+            body_1: None,
         }
     }
 }

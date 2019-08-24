@@ -10,7 +10,11 @@ pub struct PhysicsSyncJointSystem<N: crate::PtReal> {
     rbodies_event_reader: Option<ReaderId<ComponentEvent>>,
     joints_event_reader: Option<ReaderId<ComponentEvent>>,
     /// List of all joints used. In this way is possible to remove them correctly.
-    joints: Vec<(u32/*EntityIndex*/, PhysicsJointTag, PhysicsRigidBodyTag)>,
+    joints: Vec<(
+        u32, /*EntityIndex*/
+        PhysicsJointTag,
+        PhysicsRigidBodyTag,
+    )>,
 }
 
 impl<N: crate::PtReal> Default for PhysicsSyncJointSystem<N> {
@@ -54,7 +58,7 @@ impl<'a, N: crate::PtReal> System<'a> for PhysicsSyncJointSystem<N> {
                 ComponentEvent::Inserted(index) => {
                     inserted_to_entities.add(*index);
                 }
-                ComponentEvent::Modified(index) =>{
+                ComponentEvent::Modified(index) => {
                     removed_from_entities.add(*index);
                     inserted_to_entities.add(*index);
                 }

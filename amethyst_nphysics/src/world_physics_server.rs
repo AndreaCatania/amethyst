@@ -89,6 +89,8 @@ impl<N: PtReal> WorldNpServer<N> {
                 gc.shapes.retain(|&s| !removed_shape.contains(&s));
             }
         }
+
+        unimplemented!("Please implement joint cleanup!");
     }
 
     fn fetch_events(

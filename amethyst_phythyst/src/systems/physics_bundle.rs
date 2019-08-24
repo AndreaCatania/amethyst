@@ -459,7 +459,11 @@ where
         builder.add_batch::<PhysicsBatchSystem<N>>(
             physics_builder,
             "physics_batch",
-            &["physics_sync_entity", "physics_sync_transform", "physics_sync_joint"],
+            &[
+                "physics_sync_entity",
+                "physics_sync_transform",
+                "physics_sync_joint",
+            ],
         );
 
         info!("Physics bundle registered.");
