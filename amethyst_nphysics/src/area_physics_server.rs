@@ -217,15 +217,11 @@ where
     }
 
     fn set_body_transform(&self, area_tag: PhysicsAreaTag, transf: &Isometry3<f32>) {
-        let area_key = area_tag_to_store_key(area_tag);
+        let body_key = area_tag_to_store_key(area_tag);
         let mut bodies = self.storages.bodies_w();
 
-        if let Some(area) = bodies.get_body_mut(area_key) {
-            if let Some(body) = area.rigid_body_mut() {
-                body.set_position(TransfConversor::to_physics(transf));
-            } else {
-                error!("Failed to cast the body, to a Rigid Body!");
-            }
+        if let Some(body) = bodies.get_body_mut(body_key) {
+            body.set_body_transform(&TransfConversor::to_physics(transf));
         }
     }
 

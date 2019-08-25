@@ -238,11 +238,7 @@ where
         let mut bodies = self.storages.bodies_w();
 
         if let Some(body) = bodies.get_body_mut(body_key) {
-            if let Some(body) = body.rigid_body_mut() {
-                body.set_position(TransfConversor::to_physics(transf));
-            } else {
-                error!("Failed to cast the body, to a Rigid Body!");
-            }
+            body.set_body_transform(&TransfConversor::to_physics(transf));
         }
     }
 
@@ -251,13 +247,10 @@ where
         let mut bodies = self.storages.bodies_r();
 
         if let Some(body) = bodies.get_body(body_key) {
-            if let Some(body) = body.rigid_body() {
-                return TransfConversor::from_physics(body.position());
-            } else {
-                error!("Failed to cast the body, to a Rigid Body!");
-            }
+            TransfConversor::from_physics(body.body_transform())
+        }else{
+            Isometry3::identity()
         }
-        Isometry3::identity()
     }
 
     fn clear_forces(&self, body_tag: PhysicsRigidBodyTag) {

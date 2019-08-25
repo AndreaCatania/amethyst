@@ -1,4 +1,6 @@
-use amethyst_core::ecs::Entity;
+use amethyst_core::{
+    math::Isometry3, ecs::Entity
+};
 use amethyst_phythyst::{
     objects::*,
     servers::{BodyMode, OverlapEvent},
@@ -62,6 +64,32 @@ impl<N: PtReal> Body<N> {
     /// Note that the area is a RigidBody.
     pub fn rigid_body_mut(&mut self) -> Option<&mut NpRigidBody<N>> {
         self.np_body.downcast_mut::<NpRigidBody<N>>()
+    }
+
+    /// Set body transform.
+    pub fn set_body_transform(&mut self, transf: &Isometry3<N>) {
+        match self.body_data {
+            BodyData::Rigid | BodyData::Area(_) => {
+                if let Some(body) = self.rigid_body_mut() {
+                    body.set_position(*transf);
+                } else {
+                    panic!("Failed to cast the body, to a Rigid Body!");
+                }
+            }
+        }
+    }
+
+    /// Get body transform.
+    pub fn body_transform(&self) -> &Isometry3<N> {
+        match self.body_data {
+            BodyData::Rigid | BodyData::Area(_) => {
+                if let Some(body) = self.rigid_body() {
+                    body.position()
+                } else {
+                    panic!("Failed to cast the body, to a Rigid Body!");
+                }
+            }
+        }
     }
 }
 
