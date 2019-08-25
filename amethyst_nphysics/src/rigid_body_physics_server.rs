@@ -31,7 +31,7 @@ impl<N: PtReal> RBodyNpServer<N> {
 }
 
 // This is a collection of function that can be used by other servers to perform some common
-// operations on areas.
+// operations on the areas.
 impl<N: PtReal> RBodyNpServer<N> {
     pub fn drop_body(
         body_tag: PhysicsRigidBodyTag,
@@ -125,6 +125,12 @@ impl<N: PtReal> RBodyNpServer<N> {
             np_collider_desc.set_density(nalgebra::zero());
         } else {
             np_collider_desc.set_density(nalgebra::one());
+        }
+    }
+
+    pub fn active_body(body_key: StoreKey, bodies: &mut BodiesStorageWrite<N>) {
+        if let Some(body) = bodies.get_body_mut(body_key) {
+            body.activate();
         }
     }
 }
@@ -248,7 +254,7 @@ where
 
         if let Some(body) = bodies.get_body(body_key) {
             TransfConversor::from_physics(body.body_transform())
-        }else{
+        } else {
             Isometry3::identity()
         }
     }

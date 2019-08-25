@@ -66,7 +66,7 @@ impl<N: PtReal, S: NpBodySet<N>> JointStorage<N, S> {
         }
     }
 
-    pub fn drop(&mut self, key: StoreKey) {
+    pub fn drop_joint(&mut self, key: StoreKey) {
         let res = self.storage.remove(key);
         if let Some(data) = res {
             if let Some(joint) = &data.np_joint {

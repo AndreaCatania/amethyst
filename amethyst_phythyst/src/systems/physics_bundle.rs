@@ -454,7 +454,7 @@ where
         builder.add(
             PhysicsSyncJointSystem::<N>::default(),
             "physics_sync_joint",
-            &[],
+            &["physics_sync_transform"],
         );
         builder.add_batch::<PhysicsBatchSystem<N>>(
             physics_builder,

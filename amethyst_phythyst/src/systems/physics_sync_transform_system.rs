@@ -85,7 +85,7 @@ impl<'a, N: crate::PtReal> System<'a> for PhysicsSyncTransformSystem<N> {
                     // The problem with this is that due to this issue is not yet possible do it:
                     // https://github.com/amethyst/amethyst/issues/1795
                     //
-                    ComponentEvent::Inserted(index) | ComponentEvent::Modified(index) => {
+                    ComponentEvent::Inserted(index) /*| ComponentEvent::Modified(index) */ => {
                         edited_transforms.add(*index);
                     }
                     _ => {}

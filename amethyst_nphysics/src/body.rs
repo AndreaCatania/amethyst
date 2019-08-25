@@ -1,6 +1,4 @@
-use amethyst_core::{
-    math::Isometry3, ecs::Entity
-};
+use amethyst_core::{ecs::Entity, math::Isometry3};
 use amethyst_phythyst::{
     objects::*,
     servers::{BodyMode, OverlapEvent},
@@ -64,6 +62,10 @@ impl<N: PtReal> Body<N> {
     /// Note that the area is a RigidBody.
     pub fn rigid_body_mut(&mut self) -> Option<&mut NpRigidBody<N>> {
         self.np_body.downcast_mut::<NpRigidBody<N>>()
+    }
+
+    pub fn activate(&mut self) {
+        self.np_body.activate();
     }
 
     /// Set body transform.

@@ -16,7 +16,7 @@ use crate::{
     servers_storage::{BodiesStorageWrite, CollidersStorageWrite, ServersStorages},
     storage::StoreKey,
     utils::*,
-    AreaNpServer, RBodyNpServer, ShapeNpServer,
+    AreaNpServer, JointNpServer, RBodyNpServer, ShapeNpServer,
 };
 
 pub struct WorldNpServer<N: PtReal> {
@@ -45,6 +45,7 @@ impl<N: PtReal> WorldNpServer<N> {
         let mut bodies_storage = self.storages.bodies_w();
         let mut colliders_storage = self.storages.colliders_w();
         let mut shapes_storage = self.storages.shapes_w();
+        let mut joints_storage = self.storages.joints_w();
 
         {
             for rb in gc.bodies.iter() {
@@ -90,7 +91,13 @@ impl<N: PtReal> WorldNpServer<N> {
             }
         }
 
-        unimplemented!("Please implement joint cleanup!");
+        // Remove joints
+        {
+            for j_tag in gc.joints.iter() {
+                JointNpServer::drop_joint(*j_tag, &mut joints_storage, &mut bodies_storage);
+            }
+            gc.joints.clear();
+        }
     }
 
     fn fetch_events(
