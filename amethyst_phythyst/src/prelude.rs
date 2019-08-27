@@ -10,4 +10,5 @@ pub use crate::{
         PhysicsWorld, RBodyPhysicsServerTrait, RigidBodyDesc, ShapeDesc, ShapePhysicsServerTrait,
         WorldPhysicsServerTrait,
     },
+    PhysicsTime,
 };
