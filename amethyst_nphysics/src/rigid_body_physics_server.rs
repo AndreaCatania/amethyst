@@ -298,7 +298,7 @@ where
         let mut bodies = self.storages.bodies_w();
 
         if let Some(body) = bodies.get_body_mut(body_key) {
-            body.np_body.apply_force_at_point(
+            body.np_body.apply_force_at_local_point(
                 0,
                 force,
                 &Point::from(*position),
@@ -395,6 +395,24 @@ where
         if let Some(body) = bodies.get_body(body_key) {
             if let Some(rb_body) = body.rigid_body() {
                 return rb_body.velocity().angular;
+            } else {
+                error!("The tag is not associated to any RigidBody");
+            }
+        }
+        Vector3::zeros()
+    }
+
+    fn linear_velocity_at_position(
+        &self,
+        body_tag: PhysicsRigidBodyTag,
+        position: &Vector3<N>,
+    ) -> Vector3<N> {
+        let body_key = rigid_tag_to_store_key(body_tag);
+        let mut bodies = self.storages.bodies_r();
+
+        if let Some(body) = bodies.get_body(body_key) {
+            if let Some(rb_body) = body.rigid_body() {
+                return rb_body.velocity().shift(&position).linear;
             } else {
                 error!("The tag is not associated to any RigidBody");
             }

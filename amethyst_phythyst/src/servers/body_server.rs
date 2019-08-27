@@ -84,6 +84,13 @@ pub trait RBodyPhysicsServerTrait<N: crate::PtReal> {
 
     /// Get the angular velocity of the body
     fn angular_velocity(&self, body: PhysicsRigidBodyTag) -> Vector3<N>;
+
+    /// Returns the linear velocity at a give position
+    fn linear_velocity_at_position(
+        &self,
+        body: PhysicsRigidBodyTag,
+        position: &Vector3<N>,
+    ) -> Vector3<N>;
 }
 
 /// This structure holds all information about the Rigid body before it is created.
