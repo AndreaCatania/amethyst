@@ -122,19 +122,20 @@ impl<'a, N: crate::PtReal> System<'a> for PhysicsSyncTransformSystem<N> {
             // Rigid bodies
             for (transform, rb_tag, _, _) in
                 (&transforms, &bodies, !&parents, &edited_transforms).join()
-                {
-                    physics_world
-                        .rigid_body_server()
-                        .set_body_transform(rb_tag.get(), transform.isometry());
-                }
+            {
+                physics_world
+                    .rigid_body_server()
+                    .set_body_transform(rb_tag.get(), transform.isometry());
+            }
 
             // Areas
-            for (transform, a_tag, _, _) in (&transforms, &areas, !&parents, &edited_transforms).join()
-                {
-                    physics_world
-                        .area_server()
-                        .set_body_transform(a_tag.get(), transform.isometry());
-                }
+            for (transform, a_tag, _, _) in
+                (&transforms, &areas, !&parents, &edited_transforms).join()
+            {
+                physics_world
+                    .area_server()
+                    .set_body_transform(a_tag.get(), transform.isometry());
+            }
         }
 
         // Set transform to physics with parents
@@ -142,26 +143,26 @@ impl<'a, N: crate::PtReal> System<'a> for PhysicsSyncTransformSystem<N> {
             // Rigid bodies
             for (transform, rb_tag, parent, _) in
                 (&transforms, &bodies, &parents, &edited_transforms).join()
-                {
-                    // TODO please change the transform in order to not recompute this each change
-                    let computed_trs =
-                        transform.isometry() * Self::compute_transform(parent, &transforms, &parents);
-                    physics_world
-                        .rigid_body_server()
-                        .set_body_transform(rb_tag.get(), &computed_trs);
-                }
+            {
+                // TODO please change the transform in order to not recompute this each change
+                let computed_trs =
+                    transform.isometry() * Self::compute_transform(parent, &transforms, &parents);
+                physics_world
+                    .rigid_body_server()
+                    .set_body_transform(rb_tag.get(), &computed_trs);
+            }
 
             // Areas
             for (transform, a_tag, parent, _) in
                 (&transforms, &areas, &parents, &edited_transforms).join()
-                {
-                    // TODO please change the transform in order to not recompute this each change
-                    let computed_trs =
-                        transform.isometry() * Self::compute_transform(parent, &transforms, &parents);
-                    physics_world
-                        .area_server()
-                        .set_body_transform(a_tag.get(), &computed_trs);
-                }
+            {
+                // TODO please change the transform in order to not recompute this each change
+                let computed_trs =
+                    transform.isometry() * Self::compute_transform(parent, &transforms, &parents);
+                physics_world
+                    .area_server()
+                    .set_body_transform(a_tag.get(), &computed_trs);
+            }
         }
 
         // Sync physics engine transform back to Amethyst.

@@ -42,6 +42,18 @@ pub trait RBodyPhysicsServerTrait<N: crate::PtReal> {
     /// Get the actual transformation of the body
     fn body_transform(&self, body_tag: PhysicsRigidBodyTag) -> Isometry3<f32>;
 
+    /// Set the friction of the body
+    fn set_body_friction(&self, body_tag: PhysicsRigidBodyTag, friction: N);
+
+    /// Get the friction of the body
+    fn body_friction(&self, body_tag: PhysicsRigidBodyTag) -> N;
+
+    /// Set the bounciness of the body
+    fn set_body_bounciness(&self, body_tag: PhysicsRigidBodyTag, bounciness: N);
+
+    /// Get the bounciness of the body
+    fn body_bounciness(&self, body_tag: PhysicsRigidBodyTag) -> N;
+
     /// Clear forces
     fn clear_forces(&self, body: PhysicsRigidBodyTag);
 
@@ -98,6 +110,8 @@ pub trait RBodyPhysicsServerTrait<N: crate::PtReal> {
 pub struct RigidBodyDesc<N> {
     pub mode: BodyMode,
     pub mass: N,
+    pub friction: N,
+    pub bounciness: N,
 }
 
 /// The mode of a body.

@@ -4,9 +4,12 @@ use amethyst_phythyst::{
     servers::{BodyMode, OverlapEvent},
     PtReal,
 };
-use nphysics3d::object::{
-    Body as NpBody, BodyHandle as NpBodyHandle, ColliderHandle as NpColliderHandle,
-    RigidBody as NpRigidBody,
+use nphysics3d::{
+    material::{BasicMaterial, MaterialHandle},
+    object::{
+        Body as NpBody, BodyHandle as NpBodyHandle, ColliderHandle as NpColliderHandle,
+        RigidBody as NpRigidBody,
+    },
 };
 
 use crate::storage::StoreKey;
@@ -23,11 +26,16 @@ pub struct Body<N: PtReal> {
     pub collider_key: Option<StoreKey>,
     pub shape_key: Option<StoreKey>,
     pub entity: Option<Entity>,
+    pub material_handle: MaterialHandle<N>, // TODO share this material across many bodies
 }
 
 impl<N: PtReal> Body<N> {
     /// Creates a Rigid Body `Body`
-    pub(crate) fn new_rigid_body(np_rigid_body: Box<NpRigidBody<N>>) -> Self {
+    pub(crate) fn new_rigid_body(
+        np_rigid_body: Box<NpRigidBody<N>>,
+        friction: N,
+        bounciness: N,
+    ) -> Self {
         Body {
             self_key: None,
             np_body: np_rigid_body,
@@ -35,11 +43,12 @@ impl<N: PtReal> Body<N> {
             collider_key: None,
             shape_key: None,
             entity: None,
+            material_handle: MaterialHandle::new(BasicMaterial::new(bounciness, friction)),
         }
     }
 
     /// Creates an Area `Body`
-    pub(crate) fn new_area(np_rigid_body: Box<NpRigidBody<N>>) -> Self {
+    pub(crate) fn new_area(np_rigid_body: Box<NpRigidBody<N>>, friction: N, bounciness: N) -> Self {
         Body {
             self_key: None,
             np_body: np_rigid_body,
@@ -47,6 +56,7 @@ impl<N: PtReal> Body<N> {
             collider_key: None,
             shape_key: None,
             entity: None,
+            material_handle: MaterialHandle::new(BasicMaterial::new(bounciness, friction)),
         }
     }
 

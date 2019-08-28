@@ -137,8 +137,11 @@ where
                 .set_mass(N::from(0.0f32))
                 .build();
 
-            let a_key =
-                bodies_storage.insert_body(Box::new(Body::new_area(Box::new(np_rigid_body))));
+            let a_key = bodies_storage.insert_body(Box::new(Body::new_area(
+                Box::new(np_rigid_body),
+                nalgebra::zero(),
+                nalgebra::zero(),
+            )));
             let area = bodies_storage.get_body_mut(a_key).unwrap();
             area.self_key = Some(a_key);
 

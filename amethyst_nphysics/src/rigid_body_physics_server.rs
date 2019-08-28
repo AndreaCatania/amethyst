@@ -3,6 +3,7 @@ use amethyst_phythyst::{objects::*, servers::*, PtReal};
 use log::error;
 use nalgebra::{Isometry3, Point, Vector3};
 use nphysics3d::{
+    material::{BasicMaterial, MaterialHandle},
     math::{Force, ForceType},
     object::{
         Body as NpBody, BodyPartHandle as NpBodyPartHandle, BodyStatus as NpBodyStatus,
@@ -59,6 +60,8 @@ impl<N: PtReal> RBodyNpServer<N> {
         } else {
             collider_desc.set_density(nalgebra::one());
         }
+
+        collider_desc.set_material(body.material_handle.clone());
 
         Self::install_collider(body, &collider_desc, colliders);
 
@@ -155,8 +158,11 @@ where
             .set_mass(body_desc.mass)
             .build();
 
-        let b_key =
-            bodies_storage.insert_body(Box::new(Body::new_rigid_body(Box::new(np_rigid_body))));
+        let b_key = bodies_storage.insert_body(Box::new(Body::new_rigid_body(
+            Box::new(np_rigid_body),
+            body_desc.friction,
+            body_desc.bounciness,
+        )));
         let body = bodies_storage.get_body_mut(b_key).unwrap();
         body.self_key = Some(b_key);
 
@@ -257,6 +263,22 @@ where
         } else {
             Isometry3::identity()
         }
+    }
+
+    fn set_body_friction(&self, body_tag: PhysicsRigidBodyTag, friction: N) {
+        unimplemented!("Make sure to have a sharable material instead");
+    }
+
+    fn body_friction(&self, body_tag: PhysicsRigidBodyTag) -> N {
+        unimplemented!();
+    }
+
+    fn set_body_bounciness(&self, body_tag: PhysicsRigidBodyTag, bounciness: N) {
+        unimplemented!("Make sure to have a sharable material instead");
+    }
+
+    fn body_bounciness(&self, body_tag: PhysicsRigidBodyTag) -> N {
+        unimplemented!();
     }
 
     fn clear_forces(&self, body_tag: PhysicsRigidBodyTag) {
