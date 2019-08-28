@@ -12,7 +12,7 @@ use crate::{
     servers::PhysicsWorld,
     systems::{
         PhysicsBatchSystem, PhysicsStepperSystem, PhysicsSyncJointSystem, PhysicsSyncShapeSystem,
-        PhysicsSyncTransformSystem,
+        PhysicsSyncTransformSystem, PhysicsSyncEntitySystem,
     },
     PhysicsTime,
 };
@@ -441,6 +441,11 @@ where
             physics_builder
         };
 
+        builder.add(
+            PhysicsSyncEntitySystem::<N>::default(),
+            "physics_sync_entity",
+            &[],
+        );
         builder.add(
             PhysicsSyncShapeSystem::<N>::default(),
             "physics_sync_shape",
