@@ -8,6 +8,14 @@ use amethyst_core::{
     transform::components::{Parent, Transform},
 };
 
+/// This `System` runs once per frame, and synchronize the `Transform` component.
+/// The `Transform` `component` is used to position an entity inside the world, and it can be modified
+/// by any `System` at any time.
+/// - When this `system` detects a `Transform` modification, it submits the new position to the physics engine.
+/// - For all other entities, the physics engine position is copied on the `Transform`.
+///
+/// This `System` runs at the beginning of the Physics Frame, in order to allow the rendering to run
+/// in parallel with the the *physics engine* stepping.
 pub struct PhysicsSyncTransformSystem<N: crate::PtReal> {
     phantom_data: std::marker::PhantomData<N>,
     transf_event_reader: Option<ReaderId<ComponentEvent>>,
@@ -60,8 +68,7 @@ impl<'a, N: crate::PtReal> System<'a> for PhysicsSyncTransformSystem<N> {
         &mut self,
         (entities, physics_world, mut transforms, bodies, areas, parents): Self::SystemData,
     ) {
-        let mut edited_transforms;
-        {
+        let edited_transforms = {
             let trs_events = transforms
                 .channel()
                 .read(self.transf_event_reader.as_mut().unwrap());
@@ -72,7 +79,7 @@ impl<'a, N: crate::PtReal> System<'a> for PhysicsSyncTransformSystem<N> {
                 .channel()
                 .read(self.areas_event_reader.as_mut().unwrap());
 
-            edited_transforms = BitSet::with_capacity(
+            let mut edited_transforms = BitSet::with_capacity(
                 (trs_events.len() + bodies_events.len() + area_events.len()) as u32,
             );
 
@@ -107,50 +114,58 @@ impl<'a, N: crate::PtReal> System<'a> for PhysicsSyncTransformSystem<N> {
                     _ => {}
                 }
             }
-        }
+            edited_transforms
+        };
 
         // Set transform to physics with no parents
-
-        for (transform, rb_tag, _, _) in
-            (&transforms, &bodies, !&parents, &edited_transforms).join()
         {
-            physics_world
-                .rigid_body_server()
-                .set_body_transform(rb_tag.get(), transform.isometry());
-        }
+            // Rigid bodies
+            for (transform, rb_tag, _, _) in
+                (&transforms, &bodies, !&parents, &edited_transforms).join()
+                {
+                    physics_world
+                        .rigid_body_server()
+                        .set_body_transform(rb_tag.get(), transform.isometry());
+                }
 
-        for (transform, a_tag, _, _) in (&transforms, &areas, !&parents, &edited_transforms).join()
-        {
-            physics_world
-                .area_server()
-                .set_body_transform(a_tag.get(), transform.isometry());
+            // Areas
+            for (transform, a_tag, _, _) in (&transforms, &areas, !&parents, &edited_transforms).join()
+                {
+                    physics_world
+                        .area_server()
+                        .set_body_transform(a_tag.get(), transform.isometry());
+                }
         }
 
         // Set transform to physics with parents
-
-        for (transform, rb_tag, parent, _) in
-            (&transforms, &bodies, &parents, &edited_transforms).join()
         {
-            let computed_trs =
-                transform.isometry() * Self::compute_transform(parent, &transforms, &parents);
-            physics_world
-                .rigid_body_server()
-                .set_body_transform(rb_tag.get(), &computed_trs);
+            // Rigid bodies
+            for (transform, rb_tag, parent, _) in
+                (&transforms, &bodies, &parents, &edited_transforms).join()
+                {
+                    // TODO please change the transform in order to not recompute this each change
+                    let computed_trs =
+                        transform.isometry() * Self::compute_transform(parent, &transforms, &parents);
+                    physics_world
+                        .rigid_body_server()
+                        .set_body_transform(rb_tag.get(), &computed_trs);
+                }
+
+            // Areas
+            for (transform, a_tag, parent, _) in
+                (&transforms, &areas, &parents, &edited_transforms).join()
+                {
+                    // TODO please change the transform in order to not recompute this each change
+                    let computed_trs =
+                        transform.isometry() * Self::compute_transform(parent, &transforms, &parents);
+                    physics_world
+                        .area_server()
+                        .set_body_transform(a_tag.get(), &computed_trs);
+                }
         }
 
-        for (transform, a_tag, parent, _) in
-            (&transforms, &areas, &parents, &edited_transforms).join()
-        {
-            let computed_trs =
-                transform.isometry() * Self::compute_transform(parent, &transforms, &parents);
-            physics_world
-                .area_server()
-                .set_body_transform(a_tag.get(), &computed_trs);
-        }
-
-        // Sync transform back to Amethyst.
-        // Note that the transformation are modified in this way to avoid to mutate the
-        // Transform component entirely.
+        // Sync physics engine transform back to Amethyst.
+        // NOTE: that the transformation are modified in this way to avoid to mutate the Transform component entirely.
         // TODO find a way to update only moving things and not always all
         let transf_mask = transforms.mask().clone();
         for (entity, rb, _) in (&entities, &bodies, &transf_mask & !&edited_transforms).join() {

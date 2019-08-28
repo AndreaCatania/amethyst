@@ -443,7 +443,7 @@ where
 
         builder.add(
             PhysicsSyncShapeSystem::<N>::default(),
-            "physics_sync_entity",
+            "physics_sync_shape",
             &[],
         );
         builder.add(
@@ -460,7 +460,7 @@ where
             physics_builder,
             "physics_batch",
             &[
-                "physics_sync_entity",
+                "physics_sync_shape",
                 "physics_sync_transform",
                 "physics_sync_joint",
             ],
