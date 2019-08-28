@@ -220,4 +220,14 @@ impl<N: PtReal> WorldPhysicsServerTrait<N> for WorldNpServer<N> {
 
         Self::fetch_events(&mut *gw, &mut *mw, &mut bodies, &mut colliders);
     }
+
+    fn set_gravity(&self, gravity: &Vector3<N>){
+        let mut mw = self.mechanical_world.write().unwrap();
+        mw.gravity = *gravity;
+    }
+
+    fn gravity(&self) -> Vector3<N>{
+        let mw = self.mechanical_world.read().unwrap();
+        mw.gravity
+    }
 }
