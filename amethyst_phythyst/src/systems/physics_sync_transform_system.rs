@@ -125,7 +125,7 @@ impl<'a, N: crate::PtReal> System<'a> for PhysicsSyncTransformSystem<N> {
             {
                 physics_world
                     .rigid_body_server()
-                    .set_body_transform(rb_tag.get(), transform.isometry());
+                    .set_body_transform__amethyst(rb_tag.get(), transform.isometry());
             }
 
             // Areas
@@ -134,7 +134,7 @@ impl<'a, N: crate::PtReal> System<'a> for PhysicsSyncTransformSystem<N> {
             {
                 physics_world
                     .area_server()
-                    .set_body_transform(a_tag.get(), transform.isometry());
+                    .set_body_transform__amethyst(a_tag.get(), transform.isometry());
             }
         }
 
@@ -144,24 +144,26 @@ impl<'a, N: crate::PtReal> System<'a> for PhysicsSyncTransformSystem<N> {
             for (transform, rb_tag, parent, _) in
                 (&transforms, &bodies, &parents, &edited_transforms).join()
             {
-                // TODO please change the transform in order to not recompute this each change
+                // TODO please use the hierarchy to not recompute the transform many times or convert
+                // the global matrix to Isometry that at this stage is already computed
                 let computed_trs =
                     transform.isometry() * Self::compute_transform(parent, &transforms, &parents);
                 physics_world
                     .rigid_body_server()
-                    .set_body_transform(rb_tag.get(), &computed_trs);
+                    .set_body_transform__amethyst(rb_tag.get(), &computed_trs);
             }
 
             // Areas
             for (transform, a_tag, parent, _) in
                 (&transforms, &areas, &parents, &edited_transforms).join()
             {
-                // TODO please change the transform in order to not recompute this each change
+                // TODO please use the hierarchy to not recompute the transform many times or convert
+                // the global matrix to Isometry that at this stage is already computed
                 let computed_trs =
                     transform.isometry() * Self::compute_transform(parent, &transforms, &parents);
                 physics_world
                     .area_server()
-                    .set_body_transform(a_tag.get(), &computed_trs);
+                    .set_body_transform__amethyst(a_tag.get(), &computed_trs);
             }
         }
 
@@ -173,8 +175,11 @@ impl<'a, N: crate::PtReal> System<'a> for PhysicsSyncTransformSystem<N> {
             match transforms.get_mut(entity) {
                 Some(transform) => {
                     // TODO please avoid much copies by sending the mutable reference directly
-                    transform
-                        .set_isometry(physics_world.rigid_body_server().body_transform(rb.get()));
+                    transform.set_isometry(
+                        physics_world
+                            .rigid_body_server()
+                            .body_transform__amethyst(rb.get()),
+                    );
                 }
                 _ => {}
             }

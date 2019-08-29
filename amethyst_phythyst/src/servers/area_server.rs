@@ -1,12 +1,12 @@
 use amethyst_core::ecs::Entity;
-use nalgebra::{Isometry3, RealField};
+use nalgebra::Isometry3;
 
-use crate::objects::*;
+use crate::{objects::*, PtReal};
 
 /// This is the interface that contains all the area functionalities,
 ///
 /// The object that implement this interface is wrapped by the `AreaServer`.
-pub trait AreaPhysicsServerTrait {
+pub trait AreaPhysicsServerTrait<N: PtReal> {
     /// Create an Area and return its handle.
     /// The PhysicsHandle returned can be safely cloned.
     /// When all instances of this Handle are dropped the Area is Dropped automatically.
@@ -22,8 +22,11 @@ pub trait AreaPhysicsServerTrait {
     /// is possible to retrieve the Entity index and perform some operation in SPECS style.
     fn entity(&self, area_tag: PhysicsAreaTag) -> Option<Entity>;
 
-    /// Set the transformation of the area
-    fn set_body_transform(&self, area: PhysicsAreaTag, transf: &Isometry3<f32>);
+    /// Set the transformation of the area, from the `Transform` component
+    fn set_body_transform(&self, area: PhysicsAreaTag, transf: &Isometry3<N>);
+
+    /// Set the transformation of the area, from the `Transform` component
+    fn set_body_transform__amethyst(&self, area: PhysicsAreaTag, transf: &Isometry3<f32>);
 
     // TODO please return an iterator and avoid to copy vectors around
     /// Returns the list of events occurred in the last step.

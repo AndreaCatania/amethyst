@@ -119,7 +119,7 @@ impl<N: PtReal> AreaNpServer<N> {
     }
 }
 
-impl<N> AreaPhysicsServerTrait for AreaNpServer<N>
+impl<N> AreaPhysicsServerTrait<N> for AreaNpServer<N>
 where
     N: PtReal,
 {
@@ -219,13 +219,17 @@ where
         }
     }
 
-    fn set_body_transform(&self, area_tag: PhysicsAreaTag, transf: &Isometry3<f32>) {
+    fn set_body_transform(&self, area_tag: PhysicsAreaTag, transf: &Isometry3<N>) {
         let body_key = area_tag_to_store_key(area_tag);
         let mut bodies = self.storages.bodies_w();
 
         if let Some(body) = bodies.get_body_mut(body_key) {
-            body.set_body_transform(&TransfConversor::to_physics(transf));
+            body.set_body_transform(transf);
         }
+    }
+
+    fn set_body_transform__amethyst(&self, area_tag: PhysicsAreaTag, transf: &Isometry3<f32>) {
+        self.set_body_transform(area_tag, &TransfConversor::to_physics(transf));
     }
 
     fn overlap_events(&self, area_tag: PhysicsAreaTag) -> Vec<OverlapEvent> {

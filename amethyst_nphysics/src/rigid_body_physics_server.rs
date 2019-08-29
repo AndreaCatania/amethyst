@@ -245,24 +245,34 @@ where
         }
     }
 
-    fn set_body_transform(&self, body_tag: PhysicsRigidBodyTag, transf: &Isometry3<f32>) {
+    fn set_body_transform(&self, body_tag: PhysicsRigidBodyTag, transf: &Isometry3<N>) {
         let body_key = rigid_tag_to_store_key(body_tag);
         let mut bodies = self.storages.bodies_w();
 
         if let Some(body) = bodies.get_body_mut(body_key) {
-            body.set_body_transform(&TransfConversor::to_physics(transf));
+            body.set_body_transform(transf);
         }
     }
 
-    fn body_transform(&self, body_tag: PhysicsRigidBodyTag) -> Isometry3<f32> {
+    fn body_transform(&self, body_tag: PhysicsRigidBodyTag) -> Option<Isometry3<N>> {
         let body_key = rigid_tag_to_store_key(body_tag);
         let mut bodies = self.storages.bodies_r();
 
         if let Some(body) = bodies.get_body(body_key) {
-            TransfConversor::from_physics(body.body_transform())
+            Some(*body.body_transform())
         } else {
-            Isometry3::identity()
+            None
         }
+    }
+
+    fn set_body_transform__amethyst(&self, body_tag: PhysicsRigidBodyTag, transf: &Isometry3<f32>) {
+        self.set_body_transform(body_tag, &TransfConversor::to_physics(transf));
+    }
+
+    fn body_transform__amethyst(&self, body_tag: PhysicsRigidBodyTag) -> Isometry3<f32> {
+        self.body_transform(body_tag)
+            .map(|t| TransfConversor::from_physics(&t))
+            .unwrap_or_else(|| Isometry3::identity())
     }
 
     fn set_body_friction(&self, body_tag: PhysicsRigidBodyTag, friction: N) {

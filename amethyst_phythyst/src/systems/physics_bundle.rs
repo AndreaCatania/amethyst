@@ -11,8 +11,8 @@ use crate::{
     prelude::*,
     servers::PhysicsWorld,
     systems::{
-        PhysicsBatchSystem, PhysicsStepperSystem, PhysicsSyncJointSystem, PhysicsSyncShapeSystem,
-        PhysicsSyncTransformSystem, PhysicsSyncEntitySystem,
+        PhysicsBatchSystem, PhysicsStepperSystem, PhysicsSyncEntitySystem, PhysicsSyncJointSystem,
+        PhysicsSyncShapeSystem, PhysicsSyncTransformSystem,
     },
     PhysicsTime,
 };

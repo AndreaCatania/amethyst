@@ -36,11 +36,17 @@ pub trait RBodyPhysicsServerTrait<N: crate::PtReal> {
     /// Get the shape of the body
     fn shape(&self, body_tag: PhysicsRigidBodyTag) -> Option<PhysicsShapeTag>;
 
-    /// Set the transformation of the body
-    fn set_body_transform(&self, body: PhysicsRigidBodyTag, transf: &Isometry3<f32>);
+    /// Set the transformation of the body.
+    fn set_body_transform(&self, body: PhysicsRigidBodyTag, transf: &Isometry3<N>);
 
-    /// Get the actual transformation of the body
-    fn body_transform(&self, body_tag: PhysicsRigidBodyTag) -> Isometry3<f32>;
+    /// Get the actual transformation of the body.
+    fn body_transform(&self, body_tag: PhysicsRigidBodyTag) -> Option<Isometry3<N>>;
+
+    /// Set the transformation of the body, from `the Transform` component.
+    fn set_body_transform__amethyst(&self, body: PhysicsRigidBodyTag, transf: &Isometry3<f32>);
+
+    /// Get the actual transformation of the body ready to be used in the `Transform` component.
+    fn body_transform__amethyst(&self, body_tag: PhysicsRigidBodyTag) -> Isometry3<f32>;
 
     /// Set the friction of the body
     fn set_body_friction(&self, body_tag: PhysicsRigidBodyTag, friction: N);

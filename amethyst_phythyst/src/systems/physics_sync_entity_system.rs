@@ -33,8 +33,7 @@ impl<'a, N: crate::PtReal> System<'a> for PhysicsSyncEntitySystem<N> {
                 .channel()
                 .read(self.bodies_event_reader.as_mut().unwrap());
 
-            let mut added_bodies =
-                BitSet::with_capacity(bodies_events.len() as u32);
+            let mut added_bodies = BitSet::with_capacity(bodies_events.len() as u32);
 
             bodies_events.into_iter().for_each(|e| match e {
                 ComponentEvent::Inserted(index) => {
@@ -51,8 +50,7 @@ impl<'a, N: crate::PtReal> System<'a> for PhysicsSyncEntitySystem<N> {
                 .channel()
                 .read(self.areas_event_reader.as_mut().unwrap());
 
-            let mut added_areas =
-                BitSet::with_capacity(area_events.len() as u32);
+            let mut added_areas = BitSet::with_capacity(area_events.len() as u32);
 
             area_events.into_iter().for_each(|e| match e {
                 ComponentEvent::Inserted(index) => {

@@ -22,7 +22,7 @@ pub use world_server::WorldPhysicsServerTrait;
 pub struct PhysicsWorld<N> {
     world_server: Box<dyn WorldPhysicsServerTrait<N>>,
     rigid_body_server: Box<dyn RBodyPhysicsServerTrait<N>>,
-    area_server: Box<dyn AreaPhysicsServerTrait>,
+    area_server: Box<dyn AreaPhysicsServerTrait<N>>,
     shape_server: Box<dyn ShapePhysicsServerTrait<N>>,
     joint_server: Box<dyn JointPhysicsServerTrait<N>>,
 }
@@ -31,7 +31,7 @@ impl<N> PhysicsWorld<N> {
     pub fn new(
         world_server: Box<dyn WorldPhysicsServerTrait<N>>,
         rigid_body_server: Box<dyn RBodyPhysicsServerTrait<N>>,
-        area_server: Box<dyn AreaPhysicsServerTrait>,
+        area_server: Box<dyn AreaPhysicsServerTrait<N>>,
         shape_server: Box<dyn ShapePhysicsServerTrait<N>>,
         joint_server: Box<dyn JointPhysicsServerTrait<N>>,
     ) -> Self {
@@ -52,7 +52,7 @@ impl<N> PhysicsWorld<N> {
         self.rigid_body_server.as_ref()
     }
 
-    pub fn area_server(&self) -> &dyn AreaPhysicsServerTrait {
+    pub fn area_server(&self) -> &dyn AreaPhysicsServerTrait<N> {
         self.area_server.as_ref()
     }
 
