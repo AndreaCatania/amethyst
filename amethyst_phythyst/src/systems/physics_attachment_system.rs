@@ -74,7 +74,6 @@ impl<'s> System<'s> for PhysicsAttachmentSystem {
                     if let Some(attachment) = physics_attachments.get_mut(*entity) {
                         if let Some(transform) = transforms.get(*entity) {
                             attachment.cache_world_transform = parent_trsf * transform.isometry();
-                            dbg!(&attachment.cache_world_transform);
                         } else {
                             attachment.cache_world_transform = parent_trsf;
                         }
