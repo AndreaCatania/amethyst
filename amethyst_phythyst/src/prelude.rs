@@ -7,8 +7,8 @@ pub use crate::{
     },
     servers::{
         AreaDesc, AreaPhysicsServerTrait, BodyMode, JointDesc, JointPhysicsServerTrait,
-        PhysicsWorld, RBodyPhysicsServerTrait, RigidBodyDesc, ShapeDesc, ShapePhysicsServerTrait,
-        WorldPhysicsServerTrait,
+        OverlapEvent, PhysicsWorld, RBodyPhysicsServerTrait, RigidBodyDesc, ShapeDesc,
+        ShapePhysicsServerTrait, WorldPhysicsServerTrait,
     },
     PhysicsTime,
 };
