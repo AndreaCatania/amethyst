@@ -47,20 +47,29 @@ impl<'a, N: PtReal> System<'a> for PhysicsBatchSystem<'_, '_, N> {
     type SystemData = BatchUncheckedWorld<'a>;
 
     fn run(&mut self, data: Self::SystemData) {
-        let want_to_dispatch = {
+        let iterations = {
             let time = data.0.fetch::<Time>();
             let mut physics_time = data.0.fetch_mut::<PhysicsTime>();
 
+            physics_time.in_sub_step = true;
             physics_time._time_bank += time.delta_seconds();
 
             // Avoid spiral performance degradation
             physics_time._time_bank = physics_time._time_bank.min(physics_time._max_bank_size);
 
-            physics_time._time_bank >= physics_time.delta_seconds
+            let iterations = (physics_time._time_bank / physics_time.delta_seconds).trunc();
+            physics_time._time_bank -= iterations * physics_time.delta_seconds;
+
+            iterations as i32
         };
 
-        if want_to_dispatch {
+        for i in 0..iterations {
             self.dispatcher.dispatch(data.0);
+        }
+
+        {
+            let mut physics_time = data.0.fetch_mut::<PhysicsTime>();
+            physics_time.in_sub_step = false;
         }
     }
 

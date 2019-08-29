@@ -27,6 +27,11 @@ pub struct PhysicsTime {
     /// Default is 8
     pub(crate) max_sub_steps: u32,
 
+    /// This is true during sub step dispatching
+    ///
+    /// This is useful to make the `System` aware where it's executed.
+    pub(crate) in_sub_step: bool,
+
     /// ### IMPORTANT
     /// This is used internally, don't change it in any way please.
     pub(crate) _max_bank_size: f32,
@@ -41,6 +46,7 @@ impl Default for PhysicsTime {
         let t = PhysicsTime {
             delta_seconds: 0.0,
             max_sub_steps: 0,
+            in_sub_step: false,
             _max_bank_size: 0.0,
             _time_bank: 0.0,
         };
@@ -52,6 +58,11 @@ impl PhysicsTime {
     /// Get the physics delta seconds
     pub fn delta_seconds(&self) -> f32 {
         self.delta_seconds
+    }
+
+    /// Returns true if the sub stepping is in process.
+    pub fn in_sub_step(&self) -> bool {
+        self.in_sub_step
     }
 
     /// Set the physics frames per seconds.

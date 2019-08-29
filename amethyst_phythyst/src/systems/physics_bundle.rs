@@ -11,8 +11,9 @@ use crate::{
     prelude::*,
     servers::PhysicsWorld,
     systems::{
-        PhysicsBatchSystem, PhysicsStepperSystem, PhysicsSyncEntitySystem, PhysicsSyncJointSystem,
-        PhysicsSyncShapeSystem, PhysicsSyncTransformSystem,
+        PhysicsAttachmentSystem, PhysicsBatchSystem, PhysicsStepperSystem, PhysicsSyncEntitySystem,
+        PhysicsSyncJointSystem, PhysicsSyncShapeSystem, PhysicsSyncTransformFromSystem,
+        PhysicsSyncTransformToSystem,
     },
     PhysicsTime,
 };
@@ -414,6 +415,11 @@ where
             let mut physics_builder = self.physics_builder;
 
             // Register PRE physics operations
+            physics_builder.add(
+                PhysicsAttachmentSystem::default(),
+                "physics_attachment",
+                &[],
+            );
             self.pre_physics_dispatcher_operations
                 .into_iter()
                 .try_for_each(|operation| operation.exec(world, &mut physics_builder))
@@ -441,6 +447,14 @@ where
             physics_builder
         };
 
+        // TODO the transform bundle should be split.
+        // The hierarchy computation should run here.
+        // Then, should run the parenting resolution here.
+        // And, most important, after the `PhysicsSyncTransformFrom` should run the Matrix computation.
+        //
+        // At that point the physics batch and the rendering `System`s could run in parallel, correctly
+        // `Synchronized`.
+
         builder.add(
             PhysicsSyncEntitySystem::<N>::default(),
             "physics_sync_entity",
@@ -452,22 +466,36 @@ where
             &[],
         );
         builder.add(
-            PhysicsSyncTransformSystem::<N>::new(),
-            "physics_sync_transform",
+            PhysicsSyncTransformToSystem::<N>::new(),
+            "physics_sync_transform_to",
             &[],
+        );
+        builder.add(
+            PhysicsAttachmentSystem::default(), // Note, this is executed **also** here because it computes the parent calculation useful to `PhysicsSyncTransformFromSystem`.
+            "physics_attachment",
+            &["physics_sync_transform_to"],
+        );
+        builder.add(
+            PhysicsSyncTransformFromSystem::<N>::new(),
+            "physics_sync_transform_from",
+            &["physics_sync_transform_to"],
         );
         builder.add(
             PhysicsSyncJointSystem::<N>::default(),
             "physics_sync_joint",
-            &["physics_sync_transform"],
+            &["physics_attachment"],
         );
+
         builder.add_batch::<PhysicsBatchSystem<N>>(
             physics_builder,
             "physics_batch",
             &[
                 "physics_sync_shape",
-                "physics_sync_transform",
                 "physics_sync_joint",
+                "physics_sync_entity",
+                "physics_sync_transform_to",
+                "physics_sync_transform_from",
+                "physics_attachment",
             ],
         );
 

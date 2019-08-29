@@ -44,13 +44,6 @@
 )]
 #![warn(clippy::all)]
 
-mod physics_time;
-mod systems;
-
-pub mod objects;
-pub mod prelude;
-pub mod servers;
-
 pub use physics_time::PhysicsTime;
 pub use systems::PhysicsBundle;
 
@@ -74,3 +67,11 @@ pub trait PhysicsBackend<N: crate::PtReal> {
     /// Returns the `PhysicsWorld`.
     fn create_world() -> servers::PhysicsWorld<N>;
 }
+
+mod physics_time;
+mod systems;
+
+pub mod conversors;
+pub mod objects;
+pub mod prelude;
+pub mod servers;

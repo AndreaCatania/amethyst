@@ -254,25 +254,15 @@ where
         }
     }
 
-    fn body_transform(&self, body_tag: PhysicsRigidBodyTag) -> Option<Isometry3<N>> {
+    fn body_transform(&self, body_tag: PhysicsRigidBodyTag) -> Isometry3<N> {
         let body_key = rigid_tag_to_store_key(body_tag);
         let mut bodies = self.storages.bodies_r();
 
         if let Some(body) = bodies.get_body(body_key) {
-            Some(*body.body_transform())
+            *body.body_transform()
         } else {
-            None
+            Isometry3::identity()
         }
-    }
-
-    fn set_body_transform__amethyst(&self, body_tag: PhysicsRigidBodyTag, transf: &Isometry3<f32>) {
-        self.set_body_transform(body_tag, &TransfConversor::to_physics(transf));
-    }
-
-    fn body_transform__amethyst(&self, body_tag: PhysicsRigidBodyTag) -> Isometry3<f32> {
-        self.body_transform(body_tag)
-            .map(|t| TransfConversor::from_physics(&t))
-            .unwrap_or_else(|| Isometry3::identity())
     }
 
     fn set_mode(&self, body_tag: PhysicsRigidBodyTag, mode: BodyMode) {
@@ -280,7 +270,8 @@ where
         let mut bodies = self.storages.bodies_w();
 
         if let Some(body) = bodies.get_body_mut(body_key) {
-            body.np_body.set_status(body_mode_conversor::to_physics(mode));
+            body.np_body
+                .set_status(body_mode_conversor::to_physics(mode));
         }
     }
 
@@ -290,7 +281,7 @@ where
 
         if let Some(body) = bodies.get_body_mut(body_key) {
             body_mode_conversor::from_physics(body.np_body.status())
-        }else{
+        } else {
             error!("Rigid Body not foud");
             BodyMode::Disabled
         }

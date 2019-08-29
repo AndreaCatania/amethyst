@@ -1,6 +1,11 @@
 use std::sync::{Arc, RwLock};
 
-use amethyst_core::ecs::{Component, DenseVecStorage, FlaggedStorage};
+use amethyst_core::{
+    ecs::{Component, DenseVecStorage, FlaggedStorage},
+    math::Isometry3,
+};
+
+use crate::PtReal;
 
 macro_rules! define_opaque_object {
     ($what:ident, $gc_name:ident) => {
@@ -181,6 +186,32 @@ impl Default for PhysicsGarbageCollector {
             areas: Vec::new(),
             shapes: Vec::new(),
             joints: Vec::new(),
+        }
+    }
+}
+
+/// This component allows to resolve an `Entity` transformation during the physics sub stepping.
+///
+/// Each physics sub step, the `RigidBody` moves, and if you have an `Area` attached to it, or a
+/// kinematic body, is it necessary to move it also each sub step, in order to have a  correct physics behaviour.
+///
+/// This component is useful only for game play implementation purposes, so it's not necessary in any way
+/// for rendering purposes.
+///
+/// Is necessary to also use the component `Parent`.
+pub struct PhysicsAttachment<N: PtReal> {
+    /// This is a cache parameter used to remember the actual global transform of the `Entity`.
+    pub(crate) cache_world_transform: Isometry3<N>,
+}
+
+impl<N: PtReal> Component for PhysicsAttachment<N> {
+    type Storage = DenseVecStorage<Self>;
+}
+
+impl<N: PtReal> Default for PhysicsAttachment<N> {
+    fn default() -> Self {
+        PhysicsAttachment {
+            cache_world_transform: Isometry3::identity(),
         }
     }
 }

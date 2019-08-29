@@ -228,10 +228,6 @@ where
         }
     }
 
-    fn set_body_transform__amethyst(&self, area_tag: PhysicsAreaTag, transf: &Isometry3<f32>) {
-        self.set_body_transform(area_tag, &TransfConversor::to_physics(transf));
-    }
-
     fn overlap_events(&self, area_tag: PhysicsAreaTag) -> Vec<OverlapEvent> {
         let area_key = area_tag_to_store_key(area_tag);
         let s = self.storages.bodies_r();

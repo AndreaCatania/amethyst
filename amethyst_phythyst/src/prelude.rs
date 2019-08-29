@@ -2,7 +2,7 @@
 
 pub use crate::{
     objects::{
-        PhysicsAreaTag, PhysicsGarbageCollector, PhysicsHandle, PhysicsJointTag,
+        PhysicsAreaTag, PhysicsAttachment, PhysicsGarbageCollector, PhysicsHandle, PhysicsJointTag,
         PhysicsRigidBodyTag, PhysicsShapeTag, PhysicsTag,
     },
     servers::{

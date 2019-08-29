@@ -25,9 +25,6 @@ pub trait AreaPhysicsServerTrait<N: PtReal> {
     /// Set the transformation of the area, from the `Transform` component
     fn set_body_transform(&self, area: PhysicsAreaTag, transf: &Isometry3<N>);
 
-    /// Set the transformation of the area, from the `Transform` component
-    fn set_body_transform__amethyst(&self, area: PhysicsAreaTag, transf: &Isometry3<f32>);
-
     // TODO please return an iterator and avoid to copy vectors around
     /// Returns the list of events occurred in the last step.
     /// Is mandatory check this array each sub step to be sure to not miss any event.
