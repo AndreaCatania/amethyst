@@ -275,19 +275,40 @@ where
             .unwrap_or_else(|| Isometry3::identity())
     }
 
-    fn set_body_friction(&self, body_tag: PhysicsRigidBodyTag, friction: N) {
+    fn set_mode(&self, body_tag: PhysicsRigidBodyTag, mode: BodyMode) {
+        let body_key = rigid_tag_to_store_key(body_tag);
+        let mut bodies = self.storages.bodies_w();
+
+        if let Some(body) = bodies.get_body_mut(body_key) {
+            body.np_body.set_status(body_mode_conversor::to_physics(mode));
+        }
+    }
+
+    fn mode(&self, body_tag: PhysicsRigidBodyTag) -> BodyMode {
+        let body_key = rigid_tag_to_store_key(body_tag);
+        let mut bodies = self.storages.bodies_w();
+
+        if let Some(body) = bodies.get_body_mut(body_key) {
+            body_mode_conversor::from_physics(body.np_body.status())
+        }else{
+            error!("Rigid Body not foud");
+            BodyMode::Disabled
+        }
+    }
+
+    fn set_friction(&self, body_tag: PhysicsRigidBodyTag, friction: N) {
         unimplemented!("Make sure to have a sharable material instead");
     }
 
-    fn body_friction(&self, body_tag: PhysicsRigidBodyTag) -> N {
+    fn friction(&self, body_tag: PhysicsRigidBodyTag) -> N {
         unimplemented!();
     }
 
-    fn set_body_bounciness(&self, body_tag: PhysicsRigidBodyTag, bounciness: N) {
+    fn set_bounciness(&self, body_tag: PhysicsRigidBodyTag, bounciness: N) {
         unimplemented!("Make sure to have a sharable material instead");
     }
 
-    fn body_bounciness(&self, body_tag: PhysicsRigidBodyTag) -> N {
+    fn bounciness(&self, body_tag: PhysicsRigidBodyTag) -> N {
         unimplemented!();
     }
 
