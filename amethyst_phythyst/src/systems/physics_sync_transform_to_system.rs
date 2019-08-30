@@ -36,6 +36,24 @@ impl<N: crate::PtReal> PhysicsSyncTransformToSystem<N> {
             areas_event_reader: None,
         }
     }
+
+    /// This method resolve the transformation of an object that is attached to a parent
+    // TODO please take rid of this
+    fn parent_transform(
+        parent: &Parent,
+        transforms: &ReadStorage<Transform>,
+        parents: &ReadStorage<Parent>,
+    ) -> Isometry3<f32> {
+        let i = transforms
+            .get(parent.entity)
+            .map_or(Isometry3::identity(), |t| t.isometry().clone());
+
+        if let Some(parent_parent) = parents.get(parent.entity) {
+            Self::parent_transform(parent_parent, transforms, parents) * i
+        } else {
+            i
+        }
+    }
 }
 
 impl<'s, N: crate::PtReal> System<'s> for PhysicsSyncTransformToSystem<N> {
@@ -44,10 +62,11 @@ impl<'s, N: crate::PtReal> System<'s> for PhysicsSyncTransformToSystem<N> {
         ReadStorage<'s, Transform>,
         ReadStorage<'s, PhysicsHandle<PhysicsRigidBodyTag>>,
         ReadStorage<'s, PhysicsHandle<PhysicsAreaTag>>,
+        ReadStorage<'s, PhysicsAttachment<N>>,
         ReadStorage<'s, Parent>,
     );
 
-    fn run(&mut self, (physics_world, transforms, bodies, areas, parents): Self::SystemData) {
+    fn run(&mut self, (physics_world, transforms, bodies, areas, attachments, parents): Self::SystemData) {
         let edited_transforms = {
             let trs_events = transforms
                 .channel()
@@ -116,6 +135,36 @@ impl<'s, N: crate::PtReal> System<'s> for PhysicsSyncTransformToSystem<N> {
                 a_tag.get(),
                 &conversors::TransfConversor::to_physics(transform.isometry()),
             );
+        }
+
+        // Set transform to physics with parents that doesn't use a `PhysicsAttachment`
+        // TODO is it necessary to improve this because the transformation is computed not in the optimal way
+        // and also the `PhysicsAttachmentSystem` may recompute it, so it's necessary cache the computed
+        // transform somewhere.
+        {
+            // Rigid bodies
+            for (transform, rb_tag, parent, _, _) in
+                (&transforms, &bodies, &parents, &edited_transforms, !&attachments).join()
+                {
+                    let computed_trs =
+                        Self::parent_transform(parent, &transforms, &parents) * transform.isometry();
+
+                    physics_world
+                        .rigid_body_server()
+                        .set_body_transform(rb_tag.get(), &conversors::TransfConversor::to_physics(&computed_trs));
+                }
+
+            // Areas
+            for (transform, a_tag, parent, _, _) in
+                (&transforms, &areas, &parents, &edited_transforms, !&attachments).join()
+                {
+                    let computed_trs =
+                        Self::parent_transform(parent, &transforms, &parents) * transform.isometry();
+
+                    physics_world
+                        .area_server()
+                        .set_body_transform(a_tag.get(), &conversors::TransfConversor::to_physics(&computed_trs));
+                }
         }
     }
 
