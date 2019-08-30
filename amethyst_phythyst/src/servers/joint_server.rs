@@ -13,6 +13,10 @@ pub trait JointPhysicsServerTrait<N: crate::PtReal> {
     /// `PhysicsHandle<PhysicsJointTag>` returned, to the two `Entities` that you want to constraint.
     ///
     /// To remove this joint, is necessary to drop all its handles.
+    // TODO accept an enum insted of initial_position.
+    // The enum must give many option to set the joint like:
+    // ExactPosition(Isometry3<N>)
+    // Between(N) // N is a delta parameter to decide where to put the pivot between these bodies.
     fn create_joint(
         &self,
         desc: &JointDesc,

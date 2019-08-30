@@ -22,8 +22,11 @@ pub trait AreaPhysicsServerTrait<N: PtReal> {
     /// is possible to retrieve the Entity index and perform some operation in SPECS style.
     fn entity(&self, area_tag: PhysicsAreaTag) -> Option<Entity>;
 
-    /// Set the transformation of the area, from the `Transform` component
+    /// Set the transformation of the area.
     fn set_body_transform(&self, area: PhysicsAreaTag, transf: &Isometry3<N>);
+
+    /// Get the transformation of the area.
+    fn body_transform(&self, area: PhysicsAreaTag) -> Isometry3<N>;
 
     // TODO please return an iterator and avoid to copy vectors around
     /// Returns the list of events occurred in the last step.

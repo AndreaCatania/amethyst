@@ -228,6 +228,17 @@ where
         }
     }
 
+    fn body_transform(&self, area_tag: PhysicsAreaTag) -> Isometry3<N> {
+        let body_key = area_tag_to_store_key(area_tag);
+        let bodies = self.storages.bodies_r();
+
+        if let Some(body) = bodies.get_body(body_key) {
+            *body.body_transform()
+        }else{
+            Isometry3::identity()
+        }
+    }
+
     fn overlap_events(&self, area_tag: PhysicsAreaTag) -> Vec<OverlapEvent> {
         let area_key = area_tag_to_store_key(area_tag);
         let s = self.storages.bodies_r();
