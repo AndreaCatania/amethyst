@@ -1,20 +1,18 @@
+use std::{
+    cell::UnsafeCell,
+    sync::{Mutex, MutexGuard}
+};
+
 use generational_arena::{Arena, Index, Iter, IterMut};
 
 pub type StoreKey = Index;
 
 /// This struct is used to store the physics resources, and return an opaque handle that allow to
 /// return a reference to them.
-// TODO
-//I've a vector that holds some objects. Some algorithms can add and remove these objects at the same time. To do it I'm using Arc<RwLock<Vec<Object>>.
-//
-//Often happens that I've to modify the objects held by this vector, so I take a mutable reference of this vector (from RwLock) and then I can modify the object that I want.
-//The problem is that, if another function want to modify another object, it has to wait that the first function release it.
-//
-//Use something like Arc<RwLock<Vec<Arc<RwLock<Vec<Object>>>> seems a bit too much, do you know vector structures that are optimized to handle these situations?
-//If not, what do you think about -> Arc<RwLock<Vec<Arc<RwLock<Vec<Object>>>> ?
-// Another idea is to create a storage that take care of make a thread and simulate a RwLock.
+///
+/// Each value is protected by a Mutex that allow parallel
 pub struct Storage<T> {
-    memory: Arena<T>,
+    memory: Arena<(UnsafeCell<T>, Mutex<()>)>,
     growing_size: usize,
 }
 
@@ -39,7 +37,7 @@ impl<T> Storage<T> {
             self.memory.reserve(self.growing_size);
         }
 
-        self.memory.insert(object)
+        self.memory.insert((UnsafeCell::new(object), Mutex::new(())))
     }
 
     pub fn has(&self, key: StoreKey) -> bool {
@@ -47,25 +45,35 @@ impl<T> Storage<T> {
     }
 
     pub fn get(&self, key: StoreKey) -> Option<&T> {
-        self.memory.get(key)
+        unsafe{
+            self.memory.get(key).map(|v|& *v.0.get())
+        }
     }
 
-    pub fn get_mut(&mut self, key: StoreKey) -> Option<&mut T> {
-        self.memory.get_mut(key)
+    pub fn get_mut(&self, key: StoreKey) -> Option<StorageGuard<T>> {
+        unsafe{
+            self.memory.get(key).map(|v|StorageGuard{data: &mut *v.0.get(), _guard: v.1.lock().unwrap()})
+        }
+    }
+
+    pub fn mut_get_mut(&mut self, key: StoreKey) -> Option<&mut T> {
+        unsafe{
+            self.memory.get(key).map(|v|&mut *v.0.get())
+        }
     }
 
     /// Remove an object and release the key for future use.
     ///
     /// Returns `Some` with the removed object, or `None` if nothing was removed.
     pub fn remove(&mut self, key: StoreKey) -> Option<T> {
-        self.memory.remove(key)
+        self.memory.remove(key).map(|v|v.0.into_inner())
     }
 
-    pub fn iter(&self) -> Iter<'_, T> {
+    pub fn iter(&self) -> Iter<'_, (UnsafeCell<T>, Mutex<()>)> {
         self.memory.iter()
     }
 
-    pub fn iter_mut(&mut self) -> IterMut<'_, T> {
+    pub fn iter_mut(&mut self) -> IterMut<'_, (UnsafeCell<T>, Mutex<()>)> {
         self.memory.iter_mut()
     }
 }
@@ -73,5 +81,26 @@ impl<T> Storage<T> {
 impl<T> Default for Storage<T> {
     fn default() -> Self {
         Storage::new(10, 10)
+    }
+}
+
+unsafe impl<T> Sync for Storage<T>{}
+
+pub struct StorageGuard<'a, T>{
+    data: &'a mut T,
+    _guard: MutexGuard<'a, ()>
+}
+
+impl<T> std::ops::Deref for StorageGuard<'_, T>{
+    type Target = T;
+
+    fn deref(&self) -> &Self::Target {
+        self.data
+    }
+}
+
+impl<T> std::ops::DerefMut for StorageGuard<'_, T>{
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        self.data
     }
 }

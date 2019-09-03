@@ -42,8 +42,8 @@ impl<N: PtReal> AreaNpServer<N> {
         shapes_storage: &mut ShapesStorageWrite<N>,
     ) {
         let area_key = area_tag_to_store_key(area_tag);
-        if let Some(area) = bodies_storage.get_body_mut(area_key) {
-            Self::remove_shape(area, shapes_storage, colliders_storage);
+        if let Some(mut area) = bodies_storage.get_body_mut(area_key) {
+            Self::remove_shape(&mut *area, shapes_storage, colliders_storage);
         }
         bodies_storage.drop_body(area_key);
     }
@@ -71,7 +71,7 @@ impl<N: PtReal> AreaNpServer<N> {
         colliders: &mut CollidersStorageWrite<N>,
     ) {
         if let Some(shape_key) = area.shape_key {
-            if let Some(shape) = shapes.get_mut(shape_key) {
+            if let Some(mut shape) = shapes.get_mut(shape_key) {
                 shape.unregister_body(area.self_key.unwrap());
             } else {
                 error!("An area is associated with a shape, but the shape doesn't exist!");
@@ -89,7 +89,7 @@ impl<N: PtReal> AreaNpServer<N> {
         let mut collider = collider_desc.build(NpBodyPartHandle(area.self_key.unwrap(), 0));
         AreaNpServer::update_user_data(&mut collider, area);
 
-        let key = colliders.insert_collider(Box::new(collider));
+        let key = colliders.insert_collider(collider);
         area.collider_key = Some(key);
     }
 
@@ -137,12 +137,12 @@ where
                 .set_mass(N::from(0.0f32))
                 .build();
 
-            let a_key = bodies_storage.insert_body(Box::new(Body::new_area(
+            let a_key = bodies_storage.insert_body(Body::new_area(
                 Box::new(np_rigid_body),
                 nalgebra::zero(),
                 nalgebra::zero(),
-            )));
-            let area = bodies_storage.get_body_mut(a_key).unwrap();
+            ));
+            let mut area = bodies_storage.get_body_mut(a_key).unwrap();
             area.self_key = Some(a_key);
 
             store_key_to_area_tag(a_key)
@@ -153,26 +153,27 @@ where
             let mut bodies = self.storages.bodies_w();
 
             let shape_key = Option::Some(shape_tag_to_store_key(area_desc.shape));
-            if let Some(body) = bodies.get_body_mut(body_key) {
+            let b = bodies.get_body_mut(body_key);
+            if let Some(mut body) = b {
                 if body.shape_key != shape_key {
                     let mut colliders = self.storages.colliders_w();
                     let mut shapes = self.storages.shapes_w();
 
                     // Remove the old shape
                     if let Some(b_shape_key) = body.shape_key {
-                        AreaNpServer::remove_shape(body, &mut shapes, &mut colliders);
+                        AreaNpServer::remove_shape(&mut *body, &mut shapes, &mut colliders);
                     }
 
                     // Assign the new shape if shape_tag is Some
                     if let Some(shape_key) = shape_key {
-                        if let Some(shape) = shapes.get_mut(shape_key) {
+                        if let Some(mut shape) = shapes.get_mut(shape_key) {
                             // Create and attach the collider
                             let mut collider_desc =
                                 NpColliderDesc::new(shape.shape_handle().clone()).sensor(true);
 
                             AreaNpServer::install_shape(
-                                body,
-                                shape,
+                                &mut *body,
+                                &mut *shape,
                                 &collider_desc,
                                 &mut colliders,
                             );
@@ -193,14 +194,17 @@ where
         let area_key = area_tag_to_store_key(area_tag);
         let mut bodies = self.storages.bodies_w();
 
-        if let Some(area) = bodies.get_body_mut(area_key) {
+        let area = bodies.get_body_mut(area_key);
+        if let Some(mut area) = area {
             fail_cond!(!matches!(area.body_data, BodyData::Area(_)));
             area.entity = entity;
 
             if let Some(collider_key) = area.collider_key {
                 let mut colliders = self.storages.colliders_w();
-                if let Some(collider) = colliders.get_collider_mut(collider_key) {
-                    AreaNpServer::update_user_data(collider, area);
+
+                let collider = colliders.get_collider_mut(collider_key);
+                if let Some(mut collider) = collider {
+                    AreaNpServer::update_user_data(&mut *collider, &mut *area);
                 } else {
                     error!("A body is assigned to a collider, but the collider doesn't exist!")
                 }
@@ -223,7 +227,8 @@ where
         let body_key = area_tag_to_store_key(area_tag);
         let mut bodies = self.storages.bodies_w();
 
-        if let Some(body) = bodies.get_body_mut(body_key) {
+        let body = bodies.get_body_mut(body_key);
+        if let Some(mut body) = body {
             body.set_body_transform(transf);
         }
     }
@@ -234,7 +239,7 @@ where
 
         if let Some(body) = bodies.get_body(body_key) {
             *body.body_transform()
-        }else{
+        } else {
             Isometry3::identity()
         }
     }

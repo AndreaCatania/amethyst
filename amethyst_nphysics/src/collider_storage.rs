@@ -5,10 +5,10 @@ use nphysics3d::object::{
     ColliderRemovalData as NpColliderRemovalData, ColliderSet,
 };
 
-use crate::storage::{Storage, StoreKey};
+use crate::storage::{Storage, StoreKey, StorageGuard};
 
 pub struct ColliderStorage<N: PtReal, BH: NpBodyHandle> {
-    storage: Storage<Box<NpCollider<N, BH>>>,
+    storage: Storage<NpCollider<N, BH>>,
     /// A list of inserted ID, this list is decremented only when the function `pop_inserted_event` is called
     inserted: Vec<StoreKey>,
     /// A list of removed ID, this list is decremented only when the function `pop_removal_event` is called
@@ -32,7 +32,7 @@ impl<N: PtReal, BH: NpBodyHandle> Default for ColliderStorage<N, BH> {
 }
 
 impl<N: PtReal, BH: NpBodyHandle> ColliderStorage<N, BH> {
-    pub fn insert_collider(&mut self, collider: Box<NpCollider<N, BH>>) -> StoreKey {
+    pub fn insert_collider(&mut self, collider: NpCollider<N, BH>) -> StoreKey {
         let key = self.storage.insert(collider);
         self.inserted.push(key);
         key
@@ -47,11 +47,11 @@ impl<N: PtReal, BH: NpBodyHandle> ColliderStorage<N, BH> {
         }
     }
 
-    pub fn get_collider(&self, key: StoreKey) -> Option<&Box<NpCollider<N, BH>>> {
+    pub fn get_collider(&self, key: StoreKey) -> Option<&NpCollider<N, BH>> {
         self.storage.get(key)
     }
 
-    pub fn get_collider_mut(&mut self, key: StoreKey) -> Option<&mut Box<NpCollider<N, BH>>> {
+    pub fn get_collider_mut(&self, key: StoreKey) -> Option<StorageGuard<NpCollider<N, BH>>> {
         self.storage.get_mut(key)
     }
 }
@@ -73,7 +73,10 @@ impl<N: PtReal, BH: NpBodyHandle> NpCollisionObjectSet<N> for ColliderStorage<N,
 
     fn foreach(&self, mut f: impl FnMut(Self::CollisionObjectHandle, &Self::CollisionObject)) {
         for (i, c) in self.storage.iter() {
-            f(i, &c)
+            // Safe because NPhysics use this in single thread.
+            unsafe{
+                f(i, &*c.0.get())
+            }
         }
     }
 }
@@ -82,11 +85,11 @@ impl<N: PtReal, BH: NpBodyHandle> ColliderSet<N, BH> for ColliderStorage<N, BH> 
     type Handle = StoreKey;
 
     fn get(&self, handle: Self::Handle) -> Option<&NpCollider<N, BH>> {
-        self.storage.get(handle).map(|c| c.as_ref())
+        self.storage.get(handle)
     }
 
     fn get_mut(&mut self, handle: Self::Handle) -> Option<&mut NpCollider<N, BH>> {
-        self.storage.get_mut(handle).map(|c| c.as_mut())
+        self.storage.mut_get_mut(handle)
     }
 
     fn get_pair_mut(
@@ -112,13 +115,19 @@ impl<N: PtReal, BH: NpBodyHandle> ColliderSet<N, BH> for ColliderStorage<N, BH> 
 
     fn foreach(&self, mut f: impl FnMut(Self::Handle, &NpCollider<N, BH>)) {
         for (i, c) in self.storage.iter() {
-            f(i, c)
+            // Safe because NPhysics use this in single thread.
+            unsafe {
+                f(i, & *c.0.get())
+            }
         }
     }
 
     fn foreach_mut(&mut self, mut f: impl FnMut(Self::Handle, &mut NpCollider<N, BH>)) {
         for (i, c) in self.storage.iter_mut() {
-            f(i, c)
+            // Safe because NPhysics use this in single thread.
+            unsafe{
+                f(i, &mut *c.0.get())
+            }
         }
     }
 

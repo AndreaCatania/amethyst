@@ -6,11 +6,11 @@ use nphysics3d::{
 
 use crate::{
     joint::Joint,
-    storage::{Storage, StoreKey},
+    storage::{Storage, StoreKey, StorageGuard},
 };
 
 pub struct JointStorage<N: PtReal, S: NpBodySet<N>> {
-    storage: Storage<Box<Joint<N, S>>>,
+    storage: Storage<Joint<N, S>>,
     /// A list of inserted ID, this list is decremented only when the function `pop_inserted_event` is called
     inserted: Vec<(
         StoreKey,
@@ -42,7 +42,7 @@ impl<N: PtReal, S: NpBodySet<N>> Default for JointStorage<N, S> {
 }
 
 impl<N: PtReal, S: NpBodySet<N>> JointStorage<N, S> {
-    pub fn insert(&mut self, joint: Box<Joint<N, S>>) -> StoreKey {
+    pub fn insert(&mut self, joint: Joint<N, S>) -> StoreKey {
         let notify_joint_created = joint.np_joint.is_some();
         let key = self.storage.insert(joint);
         if notify_joint_created {
@@ -91,11 +91,11 @@ impl<N: PtReal, S: NpBodySet<N>> JointStorage<N, S> {
         }
     }
 
-    pub fn get_joint(&self, key: StoreKey) -> Option<&Box<Joint<N, S>>> {
+    pub fn get_joint(&self, key: StoreKey) -> Option<&Joint<N, S>> {
         self.storage.get(key)
     }
 
-    pub fn get_joint_mut(&mut self, key: StoreKey) -> Option<&mut Box<Joint<N, S>>> {
+    pub fn get_joint_mut(&self, key: StoreKey) -> Option<StorageGuard<Joint<N, S>>> {
         self.storage.get_mut(key)
     }
 }
@@ -105,17 +105,17 @@ impl<N: PtReal, S: NpBodySet<N> + 'static> NpJointConstraintSet<N, S> for JointS
     type Handle = StoreKey;
 
     fn get(&self, handle: Self::Handle) -> Option<&Self::JointConstraint> {
-        if let Some(joint) = self.storage.get(handle) {
-            joint.np_joint.as_ref().map(|v| v.as_ref())
-        } else {
+        if let Some(j) = self.storage.get(handle) {
+            j.np_joint.as_ref().map(|v|v.as_ref())
+        }else{
             None
         }
     }
 
     fn get_mut(&mut self, handle: Self::Handle) -> Option<&mut Self::JointConstraint> {
-        if let Some(joint) = self.storage.get_mut(handle) {
-            joint.np_joint.as_mut().map(|v| v.as_mut())
-        } else {
+        if let Some(j) = self.storage.mut_get_mut(handle) {
+            j.np_joint.as_mut().map(|v|v.as_mut())
+        }else{
             None
         }
     }
@@ -126,16 +126,22 @@ impl<N: PtReal, S: NpBodySet<N> + 'static> NpJointConstraintSet<N, S> for JointS
 
     fn foreach(&self, mut f: impl FnMut(Self::Handle, &Self::JointConstraint)) {
         for (i, c) in self.storage.iter() {
-            if let Some(joint) = c.np_joint.as_ref() {
-                f(i, joint.as_ref())
+            // Safe because NPhysics use this in single thread.
+            unsafe{
+                if let Some(joint) = (*c.0.get()).np_joint.as_ref() {
+                    f(i, joint.as_ref())
+                }
             }
         }
     }
 
     fn foreach_mut(&mut self, mut f: impl FnMut(Self::Handle, &mut Self::JointConstraint)) {
         for (i, c) in self.storage.iter_mut() {
-            if let Some(joint) = c.np_joint.as_mut() {
-                f(i, joint.as_mut())
+            // Safe because NPhysics use this in single thread.
+            unsafe {
+                if let Some(joint) = (*c.0.get()).np_joint.as_mut() {
+                    f(i, joint.as_mut())
+                }
             }
         }
     }

@@ -8,11 +8,11 @@ use nphysics3d::{
 
 use crate::{
     force_generator::ForceGenerator,
-    storage::{Storage, StoreKey},
+    storage::{Storage, StoreKey, StorageGuard},
 };
 
 pub struct ForceGeneratorStorage<N: PtReal, S: NpBodySet<N>> {
-    storage: Storage<Box<ForceGenerator<N, S>>>,
+    storage: Storage<ForceGenerator<N, S>>,
 }
 
 impl<N: PtReal, S: NpBodySet<N>> ForceGeneratorStorage<N, S> {
@@ -30,7 +30,7 @@ impl<N: PtReal, S: NpBodySet<N>> Default for ForceGeneratorStorage<N, S> {
 }
 
 impl<N: PtReal, S: NpBodySet<N>> ForceGeneratorStorage<N, S> {
-    pub fn insert(&mut self, force_generator: Box<ForceGenerator<N, S>>) -> StoreKey {
+    pub fn insert(&mut self, force_generator: ForceGenerator<N, S>) -> StoreKey {
         self.storage.insert(force_generator)
     }
 
@@ -38,11 +38,11 @@ impl<N: PtReal, S: NpBodySet<N>> ForceGeneratorStorage<N, S> {
         self.storage.remove(key);
     }
 
-    pub fn get_collider(&self, key: StoreKey) -> Option<&Box<ForceGenerator<N, S>>> {
+    pub fn get_collider(&self, key: StoreKey) -> Option<&ForceGenerator<N, S>> {
         self.storage.get(key)
     }
 
-    pub fn get_collider_mut(&mut self, key: StoreKey) -> Option<&mut Box<ForceGenerator<N, S>>> {
+    pub fn get_collider_mut(&self, key: StoreKey) -> Option<StorageGuard<ForceGenerator<N, S>>> {
         self.storage.get_mut(key)
     }
 }
@@ -54,19 +54,11 @@ impl<N: PtReal, S: NpBodySet<N> + 'static> NpForceGeneratorSet<N, S>
     type Handle = StoreKey;
 
     fn get(&self, handle: Self::Handle) -> Option<&Self::ForceGenerator> {
-        if let Some(force_generator) = self.storage.get(handle) {
-            Some(force_generator.np_force_generator.as_ref())
-        } else {
-            None
-        }
+        self.storage.get(handle).map(|v|v.np_force_generator.as_ref())
     }
 
     fn get_mut(&mut self, handle: Self::Handle) -> Option<&mut Self::ForceGenerator> {
-        if let Some(force_generator) = self.storage.get_mut(handle) {
-            Some(force_generator.np_force_generator.as_mut())
-        } else {
-            None
-        }
+        self.storage.mut_get_mut(handle).map(|v|v.np_force_generator.as_mut())
     }
 
     fn contains(&self, handle: Self::Handle) -> bool {
@@ -75,13 +67,19 @@ impl<N: PtReal, S: NpBodySet<N> + 'static> NpForceGeneratorSet<N, S>
 
     fn foreach(&self, mut f: impl FnMut(Self::Handle, &Self::ForceGenerator)) {
         for (i, c) in self.storage.iter() {
-            f(i, c.np_force_generator.as_ref())
+            // Safe because NPhysics use this in single thread.
+            unsafe{
+                f(i, (*c.0.get()).np_force_generator.as_ref())
+            }
         }
     }
 
     fn foreach_mut(&mut self, mut f: impl FnMut(Self::Handle, &mut Self::ForceGenerator)) {
         for (i, c) in self.storage.iter_mut() {
-            f(i, c.np_force_generator.as_mut())
+            // Safe because NPhysics use this in single thread.
+            unsafe{
+                f(i, (*c.0.get()).np_force_generator.as_mut())
+            }
         }
     }
 }

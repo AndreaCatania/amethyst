@@ -56,13 +56,17 @@ impl<N: PtReal> JointNpServer<N> {
         joints: &mut JointsStorageWrite<N>,
         bodies: &mut BodiesStorageRead<N>,
     ) {
-        if let Some(joint) = joints.get_joint_mut(joint_key) {
+        let mut notify_added = false;
+        let mut notify_removed = false;
+        {
+        let joint = joints.get_joint_mut(joint_key);
+        if let Some(mut joint) = joint {
             if joint.np_joint.is_some() {
                 if joint.body_0.is_none() || joint.body_1.is_none() {
                     // -- Remove joint --
 
                     joint.np_joint = None;
-                    joints.notify_joint_removed(joint_key);
+                    notify_removed = true;
                 }
             } else {
                 if joint.body_0.is_some() && joint.body_1.is_some() {
@@ -94,9 +98,15 @@ impl<N: PtReal> JointNpServer<N> {
                             joint.np_joint = Some(Box::new(np_joint));
                         }
                     }
-                    joints.notify_joint_created(joint_key);
+                    notify_added = true;
                 }
             }
+        }
+    }
+        if notify_added {
+            joints.notify_joint_created(joint_key);
+        } else if notify_removed {
+            joints.notify_joint_removed(joint_key);
         }
     }
 }
@@ -108,26 +118,29 @@ impl<N: PtReal> JointPhysicsServerTrait<N> for JointNpServer<N> {
         initial_position: &Isometry3<N>,
     ) -> PhysicsHandle<PhysicsJointTag> {
         let mut joints = self.storages.joints_w();
-        let key = joints.insert(Box::new(Joint::new(*desc, initial_position.clone())));
+        let key = joints.insert(Joint::new(*desc, initial_position.clone()));
         joints.get_joint_mut(key).unwrap().self_key = Some(key);
         PhysicsHandle::new(store_key_to_joint_tag(key), self.storages.gc.clone())
     }
 
     fn insert_rigid_body(&self, joint_tag: PhysicsJointTag, body_tag: PhysicsRigidBodyTag) {
         let joint_key = joint_tag_to_store_key(joint_tag);
-        let mut joints = self.storages.joints_w();
+        let mut joints = self.storages.joints_r();
 
-        if let Some(joint) = joints.get_joint_mut(joint_key) {
-            if joint.body_0.is_none() {
-                joint.body_0 = Some((rigid_tag_to_store_key(body_tag), 0));
-            } else if joint.body_1.is_none() {
-                joint.body_1 = Some((rigid_tag_to_store_key(body_tag), 0));
+        {
+            let joint = joints.get_joint_mut(joint_key);
+            if let Some(mut joint) = joint {
+                if joint.body_0.is_none() {
+                    joint.body_0 = Some((rigid_tag_to_store_key(body_tag), 0));
+                } else if joint.body_1.is_none() {
+                    joint.body_1 = Some((rigid_tag_to_store_key(body_tag), 0));
+                } else {
+                    error!("This joint is already joining two other bodies, and you can't add more. Remove one of them if you want to constraint this new joint.");
+                    return;
+                }
             } else {
-                error!("This joint is already joining two other bodies, and you can't add more. Remove one of them if you want to constraint this new joint.");
-                return;
+                error!("Joint tag not found!");
             }
-        } else {
-            error!("Joint tag not found!");
         }
 
         Self::update_internal_joint(joint_key, &mut joints, &mut self.storages.bodies_r());
@@ -138,9 +151,10 @@ impl<N: PtReal> JointPhysicsServerTrait<N> for JointNpServer<N> {
         let mut joints = self.storages.joints_w();
 
         {
-            let mut bodies = self.storages.bodies_w();
+            let mut bodies = self.storages.bodies_r();
 
-            if let Some(joint) = joints.get_joint_mut(joint_key) {
+            let joint = joints.get_joint_mut(joint_key);
+            if let Some(mut joint) = joint {
                 if joint.body_0.is_some() {
                     RBodyNpServer::active_body(joint.body_0.unwrap().0, &mut bodies);
                 }

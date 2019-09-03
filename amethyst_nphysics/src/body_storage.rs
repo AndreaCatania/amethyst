@@ -1,14 +1,19 @@
+use std::{
+    cell::UnsafeCell,
+    sync::Mutex,
+};
+
 use amethyst_phythyst::{objects::PhysicsRigidBodyTag, PtReal};
 use generational_arena::{Iter, IterMut};
 use nphysics3d::object::{Body as NpBody, BodySet};
 
 use crate::{
     body::Body,
-    storage::{Storage, StoreKey},
+    storage::{Storage, StoreKey, StorageGuard},
 };
 
 pub struct BodyStorage<N: PtReal> {
-    storage: Storage<Box<Body<N>>>,
+    storage: Storage<Body<N>>,
     /// A list of removed ID, this list is decremented only when the function `pop_removal_event` is called
     removed: Vec<StoreKey>,
 }
@@ -29,7 +34,7 @@ impl<N: PtReal> Default for BodyStorage<N> {
 }
 
 impl<N: PtReal> BodyStorage<N> {
-    pub fn insert_body(&mut self, body: Box<Body<N>>) -> StoreKey {
+    pub fn insert_body(&mut self, body: Body<N>) -> StoreKey {
         self.storage.insert(body)
     }
 
@@ -38,19 +43,19 @@ impl<N: PtReal> BodyStorage<N> {
         self.removed.push(key);
     }
 
-    pub fn get_body(&self, key: StoreKey) -> Option<&Box<Body<N>>> {
+    pub fn get_body(&self, key: StoreKey) -> Option<&Body<N>> {
         self.storage.get(key)
     }
 
-    pub fn get_body_mut(&mut self, key: StoreKey) -> Option<&mut Box<Body<N>>> {
+    pub fn get_body_mut<>(&self, key: StoreKey) -> Option<StorageGuard<Body<N>>> {
         self.storage.get_mut(key)
     }
 
-    pub fn iter(&self) -> Iter<'_, Box<Body<N>>> {
+    pub fn iter(&self) -> Iter<'_, (UnsafeCell<Body<N>>, Mutex<()>)> {
         self.storage.iter()
     }
 
-    pub fn iter_mut(&mut self) -> IterMut<'_, Box<Body<N>>> {
+    pub fn iter_mut(&mut self) -> IterMut<'_, (UnsafeCell<Body<N>>, Mutex<()>)> {
         self.storage.iter_mut()
     }
 }
@@ -60,19 +65,11 @@ impl<N: PtReal> BodySet<N> for BodyStorage<N> {
     type Handle = StoreKey;
 
     fn get(&self, handle: Self::Handle) -> Option<&Self::Body> {
-        if let Some(body) = self.storage.get(handle) {
-            Some(body.np_body.as_ref())
-        } else {
-            None
-        }
+        self.storage.get(handle).map(|v|v.np_body.as_ref())
     }
 
     fn get_mut(&mut self, handle: Self::Handle) -> Option<&mut Self::Body> {
-        if let Some(body) = self.storage.get_mut(handle) {
-            Some(body.np_body.as_mut())
-        } else {
-            None
-        }
+        self.storage.mut_get_mut(handle).map(|v|v.np_body.as_mut())
     }
 
     fn get_pair_mut(
@@ -95,13 +92,19 @@ impl<N: PtReal> BodySet<N> for BodyStorage<N> {
 
     fn foreach(&self, mut f: impl FnMut(Self::Handle, &Self::Body)) {
         for (h, b) in self.storage.iter() {
-            f(h, b.np_body.as_ref())
+            // Safe because NPhysics use this in single thread.
+            unsafe {
+                f(h, (*b.0.get()).np_body.as_ref())
+            }
         }
     }
 
     fn foreach_mut(&mut self, mut f: impl FnMut(Self::Handle, &mut Self::Body)) {
         for (h, b) in self.storage.iter_mut() {
-            f(h, b.np_body.as_mut())
+            // Safe because NPhysics use this in single thread.
+            unsafe{
+                f(h, (*b.0.get()).np_body.as_mut())
+            }
         }
     }
 

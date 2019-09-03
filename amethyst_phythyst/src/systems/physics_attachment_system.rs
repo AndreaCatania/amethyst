@@ -45,7 +45,6 @@ impl<'s> System<'s> for PhysicsAttachmentSystem {
     ) {
         if !physics_time.in_sub_step() {
             self.skip_next_execution = true;
-
         } else if self.skip_next_execution {
             self.skip_next_execution = false;
             return;
