@@ -1,6 +1,6 @@
 use std::{cell::UnsafeCell, sync::Mutex};
 
-use amethyst_phythyst::{objects::PhysicsRigidBodyTag, PtReal};
+use amethyst_phythyst::PtReal;
 use generational_arena::{Iter, IterMut};
 use nphysics3d::object::{Body as NpBody, BodySet};
 
@@ -9,6 +9,7 @@ use crate::{
     storage::{Storage, StorageGuard, StoreKey},
 };
 
+#[allow(missing_debug_implementations)]
 pub struct BodyStorage<N: PtReal> {
     storage: Storage<Body<N>>,
     /// A list of removed ID, this list is decremented only when the function `pop_removal_event` is called
@@ -41,7 +42,7 @@ impl<N: PtReal> BodyStorage<N> {
     }
 
     /// Returns a `Mutex` guarded body that can be used safely to get or set data.
-    pub fn get_body(&self, key: StoreKey) -> Option<StorageGuard<Body<N>>> {
+    pub fn get_body(&self, key: StoreKey) -> Option<StorageGuard<'_, Body<N>>> {
         self.storage.get(key)
     }
 
@@ -78,10 +79,7 @@ impl<N: PtReal> BodySet<N> for BodyStorage<N> {
         assert_ne!(handle1, handle2, "Both body handles must not be equal.");
         let b1 = self.get_mut(handle1).map(|b| b as *mut dyn NpBody<N>);
         let b2 = self.get_mut(handle2).map(|b| b as *mut dyn NpBody<N>);
-        unsafe {
-            use std::mem;
-            (b1.map(|b| mem::transmute(b)), b2.map(|b| mem::transmute(b)))
-        }
+        unsafe { (b1.map(|b| &mut *b), b2.map(|b| &mut *b)) }
     }
 
     fn contains(&self, handle: Self::Handle) -> bool {

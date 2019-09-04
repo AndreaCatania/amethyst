@@ -1,19 +1,18 @@
+use amethyst_core::math::Isometry3;
 use amethyst_phythyst::{
     objects::*,
     servers::{JointDesc, JointPhysicsServerTrait},
     PtReal,
 };
 use log::error;
-use amethyst_core::math::Isometry3;
 use nphysics3d::{
-    joint::FixedConstraint as NpFixedConstraint,
-    object::{Body, BodyPartHandle as NpBodyPartHandle, BodySet as NpBodySet},
+    joint::FixedConstraint as NpFixedConstraint, object::BodyPartHandle as NpBodyPartHandle,
 };
 
 use crate::{
     conversors::*,
     joint::Joint,
-    servers_storage::{BodiesStorageRead, BodiesStorageWrite, JointsStorageWrite, ServersStorages},
+    servers_storage::{BodiesStorageRead, JointsStorageWrite, ServersStorages},
     storage::StoreKey,
     RBodyNpServer,
 };
@@ -33,8 +32,8 @@ impl<N: PtReal> JointNpServer<N> {
 impl<N: PtReal> JointNpServer<N> {
     pub fn drop_joint(
         joint_tag: PhysicsJointTag,
-        joints: &mut JointsStorageWrite<N>,
-        bodies: &BodiesStorageRead<N>,
+        joints: &mut JointsStorageWrite<'_, N>,
+        bodies: &BodiesStorageRead<'_, N>,
     ) {
         let j_key = joint_tag_to_store_key(joint_tag);
 
@@ -53,8 +52,8 @@ impl<N: PtReal> JointNpServer<N> {
 
     pub fn update_internal_joint(
         joint_key: StoreKey,
-        joints: &mut JointsStorageWrite<N>,
-        bodies: &BodiesStorageRead<N>,
+        joints: &mut JointsStorageWrite<'_, N>,
+        bodies: &BodiesStorageRead<'_, N>,
     ) {
         let mut notify_added = false;
         let mut notify_removed = false;
@@ -68,39 +67,35 @@ impl<N: PtReal> JointNpServer<N> {
                         joint.np_joint = None;
                         notify_removed = true;
                     }
-                } else {
-                    if joint.body_0.is_some() && joint.body_1.is_some() {
-                        // -- Create the joint --
-                        let body_0 = bodies.get_body(joint.body_0.unwrap().0);
-                        let body_1 = bodies.get_body(joint.body_1.unwrap().0);
-                        fail_cond!(body_0.is_none() || body_1.is_none());
+                } else if joint.body_0.is_some() && joint.body_1.is_some() {
+                    // -- Create the joint --
+                    let body_0 = bodies.get_body(joint.body_0.unwrap().0);
+                    let body_1 = bodies.get_body(joint.body_1.unwrap().0);
+                    fail_cond!(body_0.is_none() || body_1.is_none());
 
-                        let body_0 = body_0.unwrap();
-                        let body_1 = body_1.unwrap();
+                    let body_0 = body_0.unwrap();
+                    let body_1 = body_1.unwrap();
 
-                        let body_0_trsf = body_0.body_transform();
-                        let body_1_trsf = body_1.body_transform();
+                    let body_0_trsf = body_0.body_transform();
+                    let body_1_trsf = body_1.body_transform();
 
-                        let anchor_0: Isometry3<N> =
-                            body_0_trsf.inverse() * &joint.initial_isometry;
-                        let anchor_1: Isometry3<N> =
-                            body_1_trsf.inverse() * &joint.initial_isometry;
+                    let anchor_0: Isometry3<N> = body_0_trsf.inverse() * joint.initial_isometry;
+                    let anchor_1: Isometry3<N> = body_1_trsf.inverse() * joint.initial_isometry;
 
-                        match joint.joint_desc {
-                            JointDesc::Fixed => {
-                                let np_joint = NpFixedConstraint::new(
-                                    joint.body_0.map(|v| NpBodyPartHandle(v.0, v.1)).unwrap(),
-                                    joint.body_1.map(|v| NpBodyPartHandle(v.0, v.1)).unwrap(),
-                                    anchor_0.translation.vector.into(),
-                                    anchor_0.rotation,
-                                    anchor_1.translation.vector.into(),
-                                    anchor_1.rotation,
-                                );
-                                joint.np_joint = Some(Box::new(np_joint));
-                            }
+                    match joint.joint_desc {
+                        JointDesc::Fixed => {
+                            let np_joint = NpFixedConstraint::new(
+                                joint.body_0.map(|v| NpBodyPartHandle(v.0, v.1)).unwrap(),
+                                joint.body_1.map(|v| NpBodyPartHandle(v.0, v.1)).unwrap(),
+                                anchor_0.translation.vector.into(),
+                                anchor_0.rotation,
+                                anchor_1.translation.vector.into(),
+                                anchor_1.rotation,
+                            );
+                            joint.np_joint = Some(Box::new(np_joint));
                         }
-                        notify_added = true;
                     }
+                    notify_added = true;
                 }
             }
         }
@@ -119,7 +114,7 @@ impl<N: PtReal> JointPhysicsServerTrait<N> for JointNpServer<N> {
         initial_position: &Isometry3<N>,
     ) -> PhysicsHandle<PhysicsJointTag> {
         let mut joints = self.storages.joints_w();
-        let key = joints.insert(Joint::new(*desc, initial_position.clone()));
+        let key = joints.insert(Joint::new(*desc, *initial_position));
         joints.get_joint(key).unwrap().self_key = Some(key);
         PhysicsHandle::new(store_key_to_joint_tag(key), self.storages.gc.clone())
     }

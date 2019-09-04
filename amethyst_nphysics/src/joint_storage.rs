@@ -9,6 +9,7 @@ use crate::{
     storage::{Storage, StorageGuard, StoreKey},
 };
 
+#[allow(missing_debug_implementations)]
 pub struct JointStorage<N: PtReal, S: NpBodySet<N>> {
     storage: Storage<Joint<N, S>>,
     /// A list of inserted ID, this list is decremented only when the function `pop_inserted_event` is called
@@ -92,7 +93,7 @@ impl<N: PtReal, S: NpBodySet<N>> JointStorage<N, S> {
     }
 
     /// Returns a `Mutex` guarded joint that can be used safely to get or set data.
-    pub fn get_joint(&self, key: StoreKey) -> Option<StorageGuard<Joint<N, S>>> {
+    pub fn get_joint(&self, key: StoreKey) -> Option<StorageGuard<'_, Joint<N, S>>> {
         self.storage.get(key)
     }
 }

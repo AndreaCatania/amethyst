@@ -1,15 +1,8 @@
 use amethyst_core::{ecs::Entity, math::Isometry3};
-use amethyst_phythyst::{
-    objects::*,
-    servers::{BodyMode, OverlapEvent},
-    PtReal,
-};
+use amethyst_phythyst::{servers::OverlapEvent, PtReal};
 use nphysics3d::{
     material::{BasicMaterial, MaterialHandle},
-    object::{
-        Body as NpBody, BodyHandle as NpBodyHandle, ColliderHandle as NpColliderHandle,
-        RigidBody as NpRigidBody,
-    },
+    object::{Body as NpBody, RigidBody as NpRigidBody},
 };
 
 use crate::storage::StoreKey;
@@ -19,6 +12,7 @@ use crate::storage::StoreKey;
 /// A body is:
 /// - Rigid - RigidBody(Disabled, Dynamic, Static, Kinematic)
 /// - Area - RigidBody(Static)
+#[allow(missing_debug_implementations)]
 pub struct Body<N: PtReal> {
     pub self_key: Option<StoreKey>,
     pub np_body: Box<dyn NpBody<N>>,

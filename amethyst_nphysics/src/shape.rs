@@ -1,13 +1,13 @@
-use amethyst_phythyst::{objects::*, servers::ShapeDesc, PtReal};
-use amethyst_core::math::{convert, Point3, Unit, Vector3};
+use amethyst_core::math::{convert, Unit, Vector3};
+use amethyst_phythyst::{servers::ShapeDesc, PtReal};
 use ncollide3d::shape::{
     Ball as NcBall, Capsule as NcCapsule, Compound as NcCompound, ConvexHull as NcConvexHull,
-    Cuboid as NcCuboid, Cylinder as NcCylinder, Plane as NcPlane, ShapeHandle as NcShapeHandle,
-    TriMesh as NcTriMesh,
+    Cuboid as NcCuboid, Plane as NcPlane, ShapeHandle as NcShapeHandle, TriMesh as NcTriMesh,
 };
 
 use crate::storage::StoreKey;
 
+#[allow(missing_debug_implementations)]
 pub struct RigidShape<N: PtReal> {
     pub self_key: Option<StoreKey>,
     shape_desc: ShapeDesc<N>,
@@ -55,7 +55,7 @@ impl<N: PtReal> RigidShape<N> {
 
     pub fn is_concave(&self) -> bool {
         match &self.shape_desc {
-            ShapeDesc::TriMesh { points, indices } => true,
+            ShapeDesc::TriMesh { .. } => true,
             _ => false,
         }
     }
@@ -70,10 +70,7 @@ impl<N: PtReal> RigidShape<N> {
                 half_height,
                 radius,
             } => NcShapeHandle::new(NcCapsule::new(*half_height, *radius)),
-            ShapeDesc::Cylinder {
-                half_height,
-                radius,
-            } => {
+            ShapeDesc::Cylinder { .. } => {
                 unimplemented!();
                 //NcShapeHandle::new(NcCylinder::new(*half_height, *radius))
             }

@@ -1,14 +1,12 @@
 use amethyst_core::ecs::Entity;
+use amethyst_core::math::{one, zero, Isometry3, Point, Vector3};
 use amethyst_phythyst::{objects::*, servers::*, PtReal};
 use log::error;
-use amethyst_core::math::{zero, one, Isometry3, Point, Vector3};
 use nphysics3d::{
-    material::{BasicMaterial, MaterialHandle},
     math::{Force, ForceType},
     object::{
-        Body as NpBody, BodyPartHandle as NpBodyPartHandle, BodyStatus as NpBodyStatus,
-        Collider as NpCollider, ColliderDesc as NpColliderDesc, RigidBody as NpRigidBody,
-        RigidBodyDesc as NpRigidBodyDesc,
+        BodyPartHandle as NpBodyPartHandle, Collider as NpCollider, ColliderDesc as NpColliderDesc,
+        RigidBody as NpRigidBody, RigidBodyDesc as NpRigidBodyDesc,
     },
 };
 
@@ -36,9 +34,9 @@ impl<N: PtReal> RBodyNpServer<N> {
 impl<N: PtReal> RBodyNpServer<N> {
     pub fn drop_body(
         body_tag: PhysicsRigidBodyTag,
-        bodies_storage: &mut BodiesStorageWrite<N>,
-        colliders_storage: &mut CollidersStorageWrite<N>,
-        shapes_storage: &ShapesStorageRead<N>,
+        bodies_storage: &mut BodiesStorageWrite<'_, N>,
+        colliders_storage: &mut CollidersStorageWrite<'_, N>,
+        shapes_storage: &ShapesStorageRead<'_, N>,
     ) {
         let body_key = rigid_tag_to_store_key(body_tag);
         if let Some(mut body) = bodies_storage.get_body(body_key) {
@@ -49,11 +47,11 @@ impl<N: PtReal> RBodyNpServer<N> {
 
     /// Set shape.
     /// Take care to register the shape and set the collider to the body.
-    pub fn install_shape<'w>(
+    pub fn install_shape(
         body: &mut Body<N>,
         shape: &mut RigidShape<N>,
         mut collider_desc: NpColliderDesc<N>,
-        colliders: &mut CollidersStorageWrite<N>,
+        colliders: &mut CollidersStorageWrite<'_, N>,
     ) {
         if shape.is_concave() {
             collider_desc.set_density(zero());
@@ -74,8 +72,8 @@ impl<N: PtReal> RBodyNpServer<N> {
     /// Take care to unregister the shape and then drop the internal collider.
     pub fn remove_shape(
         body: &mut Body<N>,
-        shapes: &ShapesStorageRead<N>,
-        colliders: &mut CollidersStorageWrite<N>,
+        shapes: &ShapesStorageRead<'_, N>,
+        colliders: &mut CollidersStorageWrite<'_, N>,
     ) {
         if let Some(shape_key) = body.shape_key {
             if let Some(mut shape) = shapes.get(shape_key) {
@@ -89,10 +87,10 @@ impl<N: PtReal> RBodyNpServer<N> {
     }
 
     /// Set collider to the body
-    pub fn install_collider<'w>(
+    pub fn install_collider(
         body: &mut Body<N>,
         collider_desc: &NpColliderDesc<N>,
-        colliders: &mut CollidersStorageWrite<N>,
+        colliders: &mut CollidersStorageWrite<'_, N>,
     ) {
         let mut collider = collider_desc.build(NpBodyPartHandle(body.self_key.unwrap(), 0));
 
@@ -103,7 +101,7 @@ impl<N: PtReal> RBodyNpServer<N> {
     }
 
     /// Just drop the internal collider of the passed body.
-    pub fn drop_collider(body: &mut Body<N>, colliders: &mut CollidersStorageWrite<N>) {
+    pub fn drop_collider(body: &mut Body<N>, colliders: &mut CollidersStorageWrite<'_, N>) {
         if let Some(collider_key) = body.collider_key {
             colliders.drop_collider(collider_key);
             body.collider_key = None;
@@ -120,7 +118,7 @@ impl<N: PtReal> RBodyNpServer<N> {
 
     /// Extract collider description from a rigid body
     pub fn extract_collider_desc(
-        np_rigid_body: &NpRigidBody<N>,
+        _np_rigid_body: &NpRigidBody<N>, // This is not yet used, but in future it will be.
         shape: &RigidShape<N>,
         np_collider_desc: &mut NpColliderDesc<N>,
     ) {
@@ -131,7 +129,7 @@ impl<N: PtReal> RBodyNpServer<N> {
         }
     }
 
-    pub fn active_body(body_key: StoreKey, bodies: &BodiesStorageRead<N>) {
+    pub fn active_body(body_key: StoreKey, bodies: &BodiesStorageRead<'_, N>) {
         if let Some(mut body) = bodies.get_body(body_key) {
             body.activate();
         }
@@ -175,7 +173,7 @@ where
                 let colliders = self.storages.colliders_r();
                 let collider = colliders.get_collider(collider_key);
                 if let Some(mut collider) = collider {
-                    RBodyNpServer::update_user_data(&mut *collider, &mut *body);
+                    RBodyNpServer::update_user_data(&mut *collider, &*body);
                 } else {
                     error!("A body is assigned to a collider, but the collider doesn't exist!")
                 }
@@ -185,7 +183,7 @@ where
 
     fn entity(&self, body_tag: PhysicsRigidBodyTag) -> Option<Entity> {
         let body_key = rigid_tag_to_store_key(body_tag);
-        let mut bodies = self.storages.bodies_r();
+        let bodies = self.storages.bodies_r();
 
         let body = bodies.get_body(body_key);
         if let Some(body) = body {
@@ -199,7 +197,7 @@ where
         let body_key = rigid_tag_to_store_key(body_tag);
         let bodies = self.storages.bodies_r();
 
-        let shape_key = shape_tag.map(|tag| shape_tag_to_store_key(tag));
+        let shape_key = shape_tag.map(shape_tag_to_store_key);
 
         let body = bodies.get_body(body_key);
         if let Some(mut body) = body {
@@ -211,7 +209,7 @@ where
             let shapes = self.storages.shapes_r();
 
             // Remove the old shape
-            if let Some(b_shape_key) = body.shape_key {
+            if let Some(_b_shape_key) = body.shape_key {
                 RBodyNpServer::remove_shape(&mut *body, &shapes, &mut colliders);
             }
 
@@ -239,11 +237,11 @@ where
 
     fn shape(&self, body_tag: PhysicsRigidBodyTag) -> Option<PhysicsShapeTag> {
         let body_key = rigid_tag_to_store_key(body_tag);
-        let mut bodies = self.storages.bodies_r();
+        let bodies = self.storages.bodies_r();
 
         let body = bodies.get_body(body_key);
         if let Some(body) = body {
-            body.shape_key.map(|key| store_key_to_shape_tag(key))
+            body.shape_key.map(store_key_to_shape_tag)
         } else {
             None
         }
@@ -261,7 +259,7 @@ where
 
     fn body_transform(&self, body_tag: PhysicsRigidBodyTag) -> Isometry3<N> {
         let body_key = rigid_tag_to_store_key(body_tag);
-        let mut bodies = self.storages.bodies_r();
+        let bodies = self.storages.bodies_r();
 
         let body = bodies.get_body(body_key);
         if let Some(body) = body {
@@ -287,7 +285,7 @@ where
         let bodies = self.storages.bodies_r();
 
         let body = bodies.get_body(body_key);
-        if let Some(mut body) = body {
+        if let Some(body) = body {
             body_mode_conversor::from_physics(body.np_body.status())
         } else {
             error!("Rigid Body not foud");
@@ -295,19 +293,19 @@ where
         }
     }
 
-    fn set_friction(&self, body_tag: PhysicsRigidBodyTag, friction: N) {
+    fn set_friction(&self, _body_tag: PhysicsRigidBodyTag, _friction: N) {
         unimplemented!("Make sure to have a sharable material instead");
     }
 
-    fn friction(&self, body_tag: PhysicsRigidBodyTag) -> N {
+    fn friction(&self, _body_tag: PhysicsRigidBodyTag) -> N {
         unimplemented!();
     }
 
-    fn set_bounciness(&self, body_tag: PhysicsRigidBodyTag, bounciness: N) {
+    fn set_bounciness(&self, _body_tag: PhysicsRigidBodyTag, _bounciness: N) {
         unimplemented!("Make sure to have a sharable material instead");
     }
 
-    fn bounciness(&self, body_tag: PhysicsRigidBodyTag) -> N {
+    fn bounciness(&self, _body_tag: PhysicsRigidBodyTag) -> N {
         unimplemented!();
     }
 
@@ -423,10 +421,10 @@ where
 
     fn linear_velocity(&self, body_tag: PhysicsRigidBodyTag) -> Vector3<N> {
         let body_key = rigid_tag_to_store_key(body_tag);
-        let mut bodies = self.storages.bodies_r();
+        let bodies = self.storages.bodies_r();
 
         let body = bodies.get_body(body_key);
-        if let Some(mut body) = body {
+        if let Some(body) = body {
             if let Some(rb_body) = body.rigid_body() {
                 return rb_body.velocity().linear;
             } else {
@@ -452,10 +450,10 @@ where
 
     fn angular_velocity(&self, body_tag: PhysicsRigidBodyTag) -> Vector3<N> {
         let body_key = rigid_tag_to_store_key(body_tag);
-        let mut bodies = self.storages.bodies_r();
+        let bodies = self.storages.bodies_r();
 
         let body = bodies.get_body(body_key);
-        if let Some(mut body) = body {
+        if let Some(body) = body {
             if let Some(rb_body) = body.rigid_body() {
                 return rb_body.velocity().angular;
             } else {
@@ -471,10 +469,10 @@ where
         position: &Vector3<N>,
     ) -> Vector3<N> {
         let body_key = rigid_tag_to_store_key(body_tag);
-        let mut bodies = self.storages.bodies_r();
+        let bodies = self.storages.bodies_r();
 
         let body = bodies.get_body(body_key);
-        if let Some(mut body) = body {
+        if let Some(body) = body {
             if let Some(rb_body) = body.rigid_body() {
                 return rb_body.velocity().shift(&position).linear;
             } else {

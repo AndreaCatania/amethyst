@@ -1,11 +1,11 @@
 use std::sync::RwLock;
 
+use amethyst_core::math::Vector3;
 use amethyst_phythyst::{
     objects::*,
     servers::{OverlapEvent, WorldPhysicsServerTrait},
     PtReal,
 };
-use amethyst_core::math::Vector3;
 use ncollide3d::query::Proximity;
 use nphysics3d::world::{GeometricalWorld, MechanicalWorld};
 
@@ -82,7 +82,7 @@ impl<N: PtReal> WorldNpServer<N> {
                 }
             }
 
-            if removed_shape.len() > 0 {
+            if removed_shape.is_empty() {
                 // Remove from GC only the removed shapes.
                 gc.shapes.retain(|&s| !removed_shape.contains(&s));
             }
@@ -103,18 +103,15 @@ impl<N: PtReal> WorldNpServer<N> {
 
     fn fetch_events(
         g_world: &mut GeometricalWorld<N, StoreKey, StoreKey>,
-        m_world: &mut MechanicalWorld<N, BodyStorage<N>, StoreKey>,
-        bodies: &mut BodiesStorageWrite<N>,
-        colliders: &mut CollidersStorageWrite<N>,
+        _m_world: &mut MechanicalWorld<N, BodyStorage<N>, StoreKey>, // Not yet used but will be with contact event
+        bodies: &mut BodiesStorageWrite<'_, N>,
+        colliders: &mut CollidersStorageWrite<'_, N>,
     ) {
         // Clear old events
         for (_i, b) in bodies.iter_mut() {
             unsafe {
-                match &mut (*b.0.get()).body_data {
-                    BodyData::Area(e) => {
-                        e.clear();
-                    }
-                    _ => {}
+                if let BodyData::Area(e) = &mut (*b.0.get()).body_data {
+                    e.clear();
                 }
             }
         }

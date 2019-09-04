@@ -5,6 +5,7 @@ use nphysics3d::{
 
 use crate::storage::StoreKey;
 
+#[allow(missing_debug_implementations)]
 pub struct ForceGenerator<N: PtReal, S: NpBodySet<N>> {
     pub self_key: Option<StoreKey>,
     pub np_force_generator: Box<dyn NpForceGenerator<N, S>>,
@@ -12,6 +13,7 @@ pub struct ForceGenerator<N: PtReal, S: NpBodySet<N>> {
 }
 
 impl<N: PtReal, S: NpBodySet<N>> ForceGenerator<N, S> {
+    #[allow(dead_code)]
     pub(crate) fn new(
         np_force_generator: Box<dyn NpForceGenerator<N, S>>,
         world_key: StoreKey,

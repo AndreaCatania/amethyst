@@ -1,11 +1,8 @@
 use std::sync::{Arc, RwLock, RwLockReadGuard, RwLockWriteGuard};
 
 use amethyst_phythyst::{objects::*, PtReal};
-use amethyst_core::math::RealField;
-use nphysics3d::object::{BodyHandle as NpBodyHandle, RigidBody as NpRigidBody};
 
 use crate::{
-    body::Body,
     body_storage::BodyStorage,
     collider_storage::ColliderStorage,
     force_generator_storage::ForceGeneratorStorage,
@@ -45,6 +42,7 @@ pub type ShapesStorageRead<'a, N> = RwLockReadGuard<'a, Storage<Box<RigidShape<N
 /// Again to take the World mutable I have to use `RwLock::write()` that synchronize the execution.
 ///
 /// A solution to this problem would be support add multithreading support on NPhysics
+#[allow(missing_debug_implementations)]
 pub struct ServersStorage<N: PtReal> {
     pub(crate) gc: Arc<RwLock<PhysicsGarbageCollector>>,
     bodies: Arc<RwLock<BodyStorage<N>>>,
@@ -68,43 +66,43 @@ impl<N: PtReal> ServersStorage<N> {
 }
 
 impl<N: PtReal> ServersStorage<N> {
-    pub fn bodies_w(&self) -> BodiesStorageWrite<N> {
+    pub fn bodies_w(&self) -> BodiesStorageWrite<'_, N> {
         self.bodies.write().unwrap()
     }
 
-    pub fn bodies_r(&self) -> BodiesStorageRead<N> {
+    pub fn bodies_r(&self) -> BodiesStorageRead<'_, N> {
         self.bodies.read().unwrap()
     }
 
-    pub fn colliders_w(&self) -> CollidersStorageWrite<N> {
+    pub fn colliders_w(&self) -> CollidersStorageWrite<'_, N> {
         self.colliders.write().unwrap()
     }
 
-    pub fn colliders_r(&self) -> CollidersStorageRead<N> {
+    pub fn colliders_r(&self) -> CollidersStorageRead<'_, N> {
         self.colliders.read().unwrap()
     }
 
-    pub fn joints_w(&self) -> JointsStorageWrite<N> {
+    pub fn joints_w(&self) -> JointsStorageWrite<'_, N> {
         self.joints.write().unwrap()
     }
 
-    pub fn joints_r(&self) -> JointsStorageRead<N> {
+    pub fn joints_r(&self) -> JointsStorageRead<'_, N> {
         self.joints.read().unwrap()
     }
 
-    pub fn force_generator_w(&self) -> ForceGeneratorsStorageWrite<N> {
+    pub fn force_generator_w(&self) -> ForceGeneratorsStorageWrite<'_, N> {
         self.force_generators.write().unwrap()
     }
 
-    pub fn force_generator_r(&self) -> ForceGeneratorsStorageRead<N> {
+    pub fn force_generator_r(&self) -> ForceGeneratorsStorageRead<'_, N> {
         self.force_generators.read().unwrap()
     }
 
-    pub fn shapes_w(&self) -> ShapesStorageWrite<N> {
+    pub fn shapes_w(&self) -> ShapesStorageWrite<'_, N> {
         self.shapes.write().unwrap()
     }
 
-    pub fn shapes_r(&self) -> ShapesStorageRead<N> {
+    pub fn shapes_r(&self) -> ShapesStorageRead<'_, N> {
         self.shapes.read().unwrap()
     }
 }

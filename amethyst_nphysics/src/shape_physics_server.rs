@@ -24,7 +24,7 @@ impl<N: PtReal> ShapeNpServer<N> {
     /// Drop a shape, return false if it can't be removed right now or it something failed.
     pub fn drop_shape(
         shape_tag: PhysicsShapeTag,
-        shapes_storage: &mut ShapesStorageWrite<N>,
+        shapes_storage: &mut ShapesStorageWrite<'_, N>,
     ) -> bool {
         let shape_key = shape_tag_to_store_key(shape_tag);
 
@@ -47,9 +47,12 @@ impl<N: PtReal> ShapeNpServer<N> {
     /// Returns `true` if this shape is still in use.
     // It's using ShapeStorageWrite because this function is used during shape dropping, and at that
     // stage only the writing storage is available.
-    pub fn has_dependency(shape_key: StoreKey, shapes_storage: &mut ShapesStorageWrite<N>) -> bool {
+    pub fn has_dependency(
+        shape_key: StoreKey,
+        shapes_storage: &mut ShapesStorageWrite<'_, N>,
+    ) -> bool {
         if let Some(shape) = shapes_storage.get(shape_key) {
-            if shape.bodies().len() > 0 {
+            if shape.bodies().is_empty() {
                 return true;
             }
         }
@@ -62,7 +65,7 @@ impl<N: PtReal> ShapePhysicsServerTrait<N> for ShapeNpServer<N> {
         let shape = Box::new(RigidShape::new(shape_desc));
 
         let mut shapes_storage = self.storages.shapes_w();
-        let mut shape_key = shapes_storage.insert(shape);
+        let shape_key = shapes_storage.insert(shape);
 
         let mut shape = shapes_storage.get(shape_key).unwrap();
         shape.self_key = Some(shape_key);

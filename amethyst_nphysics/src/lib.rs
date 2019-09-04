@@ -4,24 +4,20 @@
 //! Actually this is here only to make it more simple to develop.
 //! The idea is to move this outside once it's almost done.
 
-//! # Amethyst default physics engine
-//! This is the default Amethyst physics engine.
-//! To use this you have to register the `PhysicsServers` returned by the fn `create_physics`
-//! that is located in this crate, using the fn `Application::with_physics`.
+//! # NPhysics backend for Phythyst.
+//! To use this backend you have to specify the `NPhysicsBackend` type in the `PhysicsBundle`.
 //!
-//! Follow the instructions of Phythyst to make more info about it.
+//! Follow the `Phythyst` instructions know more.
 //!
-//! # Dev info
-//!
-//! ## Naming
-//! Since NPhysics doesn't use any prefix to identify its structures this implementation take care
-//! to append the prefix `Np` to any struct that come from NPhysics.
-//! In this way is possible to have a clear distinction of what is what.
-//! Example: `RigidBody` and `NpRigidBody`.
+
+// ## Naming
+// Since NPhysics doesn't use any prefix to identify its structures this implementation take care
+// to append the prefix `Np` to any struct that come from NPhysics.
+// In this way is possible to have a clear distinction of what is what.
+// Example: `RigidBody` and `NpRigidBody`.
 
 #![warn(
     missing_debug_implementations,
-    missing_docs,
     rust_2018_idioms,
     rust_2018_compatibility
 )]
@@ -35,6 +31,8 @@ use world_physics_server::WorldNpServer;
 
 use amethyst_phythyst::{servers::PhysicsWorld, PtReal};
 
+/// NPhysics backend can be specified as type of the PhysicsBundle to use NPhysics engine.
+#[allow(missing_debug_implementations)]
 pub struct NPhysicsBackend;
 
 /// NPhysics Backend
@@ -57,8 +55,6 @@ where
 
 #[macro_use]
 mod conditional_macros;
-#[macro_use]
-mod servers_storage;
 mod area_physics_server;
 mod body;
 mod body_storage;
@@ -70,6 +66,7 @@ mod joint;
 mod joint_physics_server;
 mod joint_storage;
 mod rigid_body_physics_server;
+pub mod servers_storage;
 mod shape;
 mod shape_physics_server;
 mod storage;

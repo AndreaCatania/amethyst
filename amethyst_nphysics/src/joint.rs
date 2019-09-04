@@ -1,9 +1,10 @@
-use amethyst_phythyst::{servers::JointDesc, PtReal};
 use amethyst_core::math::Isometry3;
+use amethyst_phythyst::{servers::JointDesc, PtReal};
 use nphysics3d::{joint::JointConstraint as NpJointConstraint, object::BodySet as NpBodySet};
 
 use crate::storage::StoreKey;
 
+#[allow(missing_debug_implementations)]
 pub struct Joint<N: PtReal, S: NpBodySet<N>> {
     pub self_key: Option<StoreKey>,
     pub joint_desc: JointDesc,

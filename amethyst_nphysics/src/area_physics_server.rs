@@ -1,20 +1,18 @@
 use amethyst_core::ecs::Entity;
+use amethyst_core::math::{zero, Isometry3};
 use amethyst_phythyst::{
     objects::*,
     servers::{AreaPhysicsServerTrait, OverlapEvent},
     PtReal,
 };
 use log::error;
-use amethyst_core::math::{zero, Isometry3};
 use nphysics3d::object::{
     BodyPartHandle as NpBodyPartHandle, BodyStatus as NpBodyStatus, Collider as NpCollider,
-    ColliderDesc as NpColliderDesc, ColliderHandle as NpColliderHandle, RigidBody as NpRigidBody,
-    RigidBodyDesc as NpRigidBodyDesc,
+    ColliderDesc as NpColliderDesc, RigidBody as NpRigidBody, RigidBodyDesc as NpRigidBodyDesc,
 };
 
 use crate::{
     body::{Body, BodyData},
-    conditional_macros,
     conversors::*,
     servers_storage::*,
     shape::RigidShape,
@@ -37,9 +35,9 @@ impl<N: PtReal> AreaNpServer<N> {
 impl<N: PtReal> AreaNpServer<N> {
     pub fn drop_area(
         area_tag: PhysicsAreaTag,
-        bodies_storage: &mut BodiesStorageWrite<N>,
-        colliders_storage: &mut CollidersStorageWrite<N>,
-        shapes_storage: &ShapesStorageRead<N>,
+        bodies_storage: &mut BodiesStorageWrite<'_, N>,
+        colliders_storage: &mut CollidersStorageWrite<'_, N>,
+        shapes_storage: &ShapesStorageRead<'_, N>,
     ) {
         let area_key = area_tag_to_store_key(area_tag);
         if let Some(mut area) = bodies_storage.get_body(area_key) {
@@ -50,11 +48,11 @@ impl<N: PtReal> AreaNpServer<N> {
 
     /// Set shape.
     /// Take care to register the shape and set the collider to the body.
-    pub fn install_shape<'w>(
+    pub fn install_shape(
         area: &mut Body<N>,
         shape: &mut RigidShape<N>,
         collider_desc: &NpColliderDesc<N>,
-        colliders: &mut CollidersStorageWrite<N>,
+        colliders: &mut CollidersStorageWrite<'_, N>,
     ) {
         Self::install_collider(area, collider_desc, colliders);
 
@@ -67,8 +65,8 @@ impl<N: PtReal> AreaNpServer<N> {
     /// Take care to unregister the shape and then drop the internal collider.
     pub fn remove_shape(
         area: &mut Body<N>,
-        shapes: &ShapesStorageRead<N>,
-        colliders: &mut CollidersStorageWrite<N>,
+        shapes: &ShapesStorageRead<'_, N>,
+        colliders: &mut CollidersStorageWrite<'_, N>,
     ) {
         if let Some(shape_key) = area.shape_key {
             if let Some(mut shape) = shapes.get(shape_key) {
@@ -81,10 +79,10 @@ impl<N: PtReal> AreaNpServer<N> {
         Self::drop_collider(area, colliders);
     }
 
-    pub fn install_collider<'w>(
+    pub fn install_collider(
         area: &mut Body<N>,
         collider_desc: &NpColliderDesc<N>,
-        colliders: &mut CollidersStorageWrite<N>,
+        colliders: &mut CollidersStorageWrite<'_, N>,
     ) {
         let mut collider = collider_desc.build(NpBodyPartHandle(area.self_key.unwrap(), 0));
         AreaNpServer::update_user_data(&mut collider, area);
@@ -94,7 +92,7 @@ impl<N: PtReal> AreaNpServer<N> {
     }
 
     /// Just drop the internal collider of the passed area.
-    pub fn drop_collider(area: &mut Body<N>, colliders: &mut CollidersStorageWrite<N>) {
+    pub fn drop_collider(area: &mut Body<N>, colliders: &mut CollidersStorageWrite<'_, N>) {
         if let Some(collider_key) = area.collider_key {
             colliders.drop_collider(collider_key);
             area.collider_key = None;
@@ -110,8 +108,8 @@ impl<N: PtReal> AreaNpServer<N> {
     }
 
     pub fn extract_collider_desc(
-        np_rigid_body: &NpRigidBody<N>,
-        shape: &Box<RigidShape<N>>,
+        _np_rigid_body: &NpRigidBody<N>, // Even if not used still here because in future this will be used.
+        _shape: &RigidShape<N>, // Even if not used still here because in future this will be used.
         np_collider_desc: &mut NpColliderDesc<N>,
     ) {
         np_collider_desc.set_density(zero());
@@ -132,11 +130,8 @@ where
             .set_mass(N::from(0.0f32))
             .build();
 
-        let a_key = bodies_storage.insert_body(Body::new_area(
-            Box::new(np_rigid_body),
-            zero(),
-            zero(),
-        ));
+        let a_key =
+            bodies_storage.insert_body(Body::new_area(Box::new(np_rigid_body), zero(), zero()));
         let mut area = bodies_storage.get_body(a_key).unwrap();
         area.self_key = Some(a_key);
 
@@ -157,7 +152,7 @@ where
 
                 let collider = colliders.get_collider(collider_key);
                 if let Some(mut collider) = collider {
-                    AreaNpServer::update_user_data(&mut *collider, &mut *area);
+                    AreaNpServer::update_user_data(&mut *collider, &*area);
                 } else {
                     error!("A body is assigned to a collider, but the collider doesn't exist!")
                 }
@@ -179,7 +174,7 @@ where
 
     fn set_shape(&self, area_tag: PhysicsAreaTag, shape_tag: Option<PhysicsShapeTag>) {
         let area_key = area_tag_to_store_key(area_tag);
-        let shape_key = shape_tag.map(|v| shape_tag_to_store_key(v));
+        let shape_key = shape_tag.map(shape_tag_to_store_key);
 
         let bodies = self.storages.bodies_r();
 
@@ -191,7 +186,7 @@ where
                 let mut colliders = self.storages.colliders_w();
 
                 // Remove the old shape
-                if let Some(b_shape_key) = area.shape_key {
+                if let Some(_b_shape_key) = area.shape_key {
                     AreaNpServer::remove_shape(&mut *area, &shapes, &mut colliders);
                 }
 
@@ -223,11 +218,11 @@ where
 
     fn shape(&self, area_tag: PhysicsAreaTag) -> Option<PhysicsShapeTag> {
         let area_key = area_tag_to_store_key(area_tag);
-        let mut bodies = self.storages.bodies_r();
+        let bodies = self.storages.bodies_r();
 
         let area = bodies.get_body(area_key);
         if let Some(area) = area {
-            area.shape_key.map(|key| store_key_to_shape_tag(key))
+            area.shape_key.map(store_key_to_shape_tag)
         } else {
             None
         }

@@ -1,4 +1,4 @@
-use amethyst_phythyst::{objects::PhysicsRigidBodyTag, PtReal};
+use amethyst_phythyst::PtReal;
 use ncollide3d::pipeline::object::CollisionObjectSet as NpCollisionObjectSet;
 use nphysics3d::object::{
     BodyHandle as NpBodyHandle, Collider as NpCollider,
@@ -7,6 +7,7 @@ use nphysics3d::object::{
 
 use crate::storage::{Storage, StorageGuard, StoreKey};
 
+#[allow(missing_debug_implementations)]
 pub struct ColliderStorage<N: PtReal, BH: NpBodyHandle> {
     storage: Storage<NpCollider<N, BH>>,
     /// A list of inserted ID, this list is decremented only when the function `pop_inserted_event` is called
@@ -48,7 +49,7 @@ impl<N: PtReal, BH: NpBodyHandle> ColliderStorage<N, BH> {
     }
 
     /// Returns a `Mutex` guarded collider that can be used safely to get or set data.
-    pub fn get_collider(&self, key: StoreKey) -> Option<StorageGuard<NpCollider<N, BH>>> {
+    pub fn get_collider(&self, key: StoreKey) -> Option<StorageGuard<'_, NpCollider<N, BH>>> {
         self.storage.get(key)
     }
 }
@@ -94,10 +95,7 @@ impl<N: PtReal, BH: NpBodyHandle> ColliderSet<N, BH> for ColliderStorage<N, BH> 
         assert_ne!(handle1, handle2, "Both body handles must not be equal.");
         let b1 = self.get_mut(handle1).map(|b| b as *mut NpCollider<N, BH>);
         let b2 = self.get_mut(handle2).map(|b| b as *mut NpCollider<N, BH>);
-        unsafe {
-            use std::mem;
-            (b1.map(|b| mem::transmute(b)), b2.map(|b| mem::transmute(b)))
-        }
+        unsafe { (b1.map(|b| &mut *b), b2.map(|b| &mut *b)) }
     }
 
     fn contains(&self, handle: Self::Handle) -> bool {

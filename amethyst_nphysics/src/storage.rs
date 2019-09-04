@@ -15,6 +15,7 @@ pub type StoreKey = Index;
 ///
 /// The actual data are not stored inside the `Mutex` because *NPhysics* can't deal with the mutex and
 /// expects the raw reference.
+#[derive(Debug)]
 pub struct Storage<T> {
     memory: Arena<(UnsafeCell<T>, Mutex<()>)>,
     growing_size: usize,
@@ -54,7 +55,7 @@ impl<T> Storage<T> {
     ///
     /// Since the storage is using a `Mutex` to prevent data races, only this function is enough to
     /// read or to write the stored data.
-    pub fn get(&self, key: StoreKey) -> Option<StorageGuard<T>> {
+    pub fn get(&self, key: StoreKey) -> Option<StorageGuard<'_, T>> {
         unsafe {
             self.memory.get(key).map(|v| StorageGuard {
                 data: &mut *v.0.get(),
@@ -114,6 +115,7 @@ unsafe impl<T> Sync for Storage<T> {}
 /// which is used to track the lifetime of the data reference.
 ///
 /// The reason of the extra type, is because the `Mutex` doesn't own directly the data.
+#[allow(missing_debug_implementations)]
 pub struct StorageGuard<'a, T> {
     data: &'a mut T,
     _guard: MutexGuard<'a, ()>,

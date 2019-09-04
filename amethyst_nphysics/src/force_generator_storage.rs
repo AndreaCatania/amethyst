@@ -11,6 +11,7 @@ use crate::{
     storage::{Storage, StorageGuard, StoreKey},
 };
 
+#[allow(missing_debug_implementations)]
 pub struct ForceGeneratorStorage<N: PtReal, S: NpBodySet<N>> {
     storage: Storage<ForceGenerator<N, S>>,
 }
@@ -39,7 +40,10 @@ impl<N: PtReal, S: NpBodySet<N>> ForceGeneratorStorage<N, S> {
     }
 
     /// Returns a `Mutex` guarded force generator that can be used safely to get or set data.
-    pub fn get_force_generator(&self, key: StoreKey) -> Option<StorageGuard<ForceGenerator<N, S>>> {
+    pub fn get_force_generator(
+        &self,
+        key: StoreKey,
+    ) -> Option<StorageGuard<'_, ForceGenerator<N, S>>> {
         self.storage.get(key)
     }
 }
