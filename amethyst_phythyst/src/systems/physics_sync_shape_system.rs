@@ -45,8 +45,9 @@ impl<'a, N: crate::PtReal> System<'a> for PhysicsSyncShapeSystem<N> {
                 .channel()
                 .read(self.shapes_event_reader.as_mut().unwrap());
 
-            let mut dirty_shapes =
-                BitSet::with_capacity((bodies_events.len() + areas_events.len() + shapes_events.len()) as u32);
+            let mut dirty_shapes = BitSet::with_capacity(
+                (bodies_events.len() + areas_events.len() + shapes_events.len()) as u32,
+            );
 
             let event_storages = vec![bodies_events, areas_events, shapes_events];
             event_storages.into_iter().flatten().for_each(|e| match e {
@@ -83,9 +84,7 @@ impl<'a, N: crate::PtReal> System<'a> for PhysicsSyncShapeSystem<N> {
 
         // Remove shape to `Area`
         for (area, _, _) in (&areas, !&shapes, &dirty_shapes).join() {
-            physics_world
-                .area_server()
-                .set_shape(area.get(), None);
+            physics_world.area_server().set_shape(area.get(), None);
         }
     }
 

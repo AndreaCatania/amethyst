@@ -8,7 +8,10 @@ use crate::PtReal;
 pub trait WorldPhysicsServerTrait<N: PtReal> {
     /// This function is responsible to perform the stepping of the world.
     /// This must be called at a fixed rate
-    fn step(&self, delta_time: N);
+    fn step(&self);
+
+    /// Set the time step
+    fn set_time_step(&self, delta_time: N);
 
     /// Set world gravity
     fn set_gravity(&self, gravity: &Vector3<N>);

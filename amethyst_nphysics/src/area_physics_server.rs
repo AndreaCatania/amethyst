@@ -124,7 +124,6 @@ where
     N: PtReal,
 {
     fn create_area(&self) -> PhysicsHandle<PhysicsAreaTag> {
-
         let mut bodies_storage = self.storages.bodies_w();
 
         // Create Rigid body
@@ -178,9 +177,9 @@ where
         }
     }
 
-    fn set_shape(&self, area_tag: PhysicsAreaTag, shape_tag: Option<PhysicsShapeTag>){
+    fn set_shape(&self, area_tag: PhysicsAreaTag, shape_tag: Option<PhysicsShapeTag>) {
         let area_key = area_tag_to_store_key(area_tag);
-        let shape_key = shape_tag.map(|v|shape_tag_to_store_key(v));
+        let shape_key = shape_tag.map(|v| shape_tag_to_store_key(v));
 
         let bodies = self.storages.bodies_r();
 
@@ -213,7 +212,7 @@ where
                     } else {
                         error!("During the area creation, was not possible to find the shape to assign");
                     }
-                }else{
+                } else {
                     // Nothing, previous shape already removed.
                 }
             }
@@ -222,7 +221,7 @@ where
         }
     }
 
-    fn shape(&self, area_tag: PhysicsAreaTag) -> Option<PhysicsShapeTag>{
+    fn shape(&self, area_tag: PhysicsAreaTag) -> Option<PhysicsShapeTag> {
         let area_key = area_tag_to_store_key(area_tag);
         let mut bodies = self.storages.bodies_r();
 

@@ -200,7 +200,7 @@ impl<N: PtReal> WorldNpServer<N> {
 }
 
 impl<N: PtReal> WorldPhysicsServerTrait<N> for WorldNpServer<N> {
-    fn step(&self, delta_time: N) {
+    fn step(&self) {
         self.garbage_collect();
 
         let mut mw = self.mechanical_world.write().unwrap();
@@ -211,8 +211,6 @@ impl<N: PtReal> WorldPhysicsServerTrait<N> for WorldNpServer<N> {
         let mut joints = self.storages.joints_w();
         let mut force_generator = self.storages.force_generator_w();
 
-        //// TODO this is not completely free. So perform it only when needed.
-        mw.set_timestep(delta_time);
         mw.step(
             &mut *gw,
             &mut *bodies,
@@ -222,6 +220,11 @@ impl<N: PtReal> WorldPhysicsServerTrait<N> for WorldNpServer<N> {
         );
 
         Self::fetch_events(&mut *gw, &mut *mw, &mut bodies, &mut colliders);
+    }
+
+    fn set_time_step(&self, delta_time: N) {
+        let mut mw = self.mechanical_world.write().unwrap();
+        mw.set_timestep(delta_time);
     }
 
     fn set_gravity(&self, gravity: &Vector3<N>) {
