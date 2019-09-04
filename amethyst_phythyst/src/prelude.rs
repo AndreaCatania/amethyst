@@ -6,7 +6,7 @@ pub use crate::{
         PhysicsRigidBodyTag, PhysicsShapeTag, PhysicsTag,
     },
     servers::{
-        AreaDesc, AreaPhysicsServerTrait, BodyMode, JointDesc, JointPhysicsServerTrait,
+        AreaPhysicsServerTrait, BodyMode, JointDesc, JointPhysicsServerTrait,
         OverlapEvent, PhysicsWorld, RBodyPhysicsServerTrait, RigidBodyDesc, ShapeDesc,
         ShapePhysicsServerTrait, WorldPhysicsServerTrait,
     },
