@@ -34,7 +34,7 @@ impl<N: PtReal> JointNpServer<N> {
     pub fn drop_joint(
         joint_tag: PhysicsJointTag,
         joints: &mut JointsStorageWrite<N>,
-        bodies: &mut BodiesStorageWrite<N>,
+        bodies: &BodiesStorageRead<N>,
     ) {
         let j_key = joint_tag_to_store_key(joint_tag);
 
@@ -54,55 +54,55 @@ impl<N: PtReal> JointNpServer<N> {
     pub fn update_internal_joint(
         joint_key: StoreKey,
         joints: &mut JointsStorageWrite<N>,
-        bodies: &mut BodiesStorageRead<N>,
+        bodies: &BodiesStorageRead<N>,
     ) {
         let mut notify_added = false;
         let mut notify_removed = false;
         {
-        let joint = joints.get_joint_mut(joint_key);
-        if let Some(mut joint) = joint {
-            if joint.np_joint.is_some() {
-                if joint.body_0.is_none() || joint.body_1.is_none() {
-                    // -- Remove joint --
+            let joint = joints.get_joint_mut(joint_key);
+            if let Some(mut joint) = joint {
+                if joint.np_joint.is_some() {
+                    if joint.body_0.is_none() || joint.body_1.is_none() {
+                        // -- Remove joint --
 
-                    joint.np_joint = None;
-                    notify_removed = true;
-                }
-            } else {
-                if joint.body_0.is_some() && joint.body_1.is_some() {
-                    // -- Create the joint --
-
-                    let body_0_trsf = bodies
-                        .get_body(joint.body_0.unwrap().0)
-                        .map(|v| v.body_transform());
-                    let body_1_trsf = bodies
-                        .get_body(joint.body_1.unwrap().0)
-                        .map(|v| v.body_transform());
-                    fail_cond!(body_0_trsf.is_none() || body_1_trsf.is_none());
-
-                    let anchor_0: Isometry3<N> =
-                        body_0_trsf.unwrap().inverse() * &joint.initial_isometry;
-                    let anchor_1: Isometry3<N> =
-                        body_1_trsf.unwrap().inverse() * &joint.initial_isometry;
-
-                    match joint.joint_desc {
-                        JointDesc::Fixed => {
-                            let np_joint = NpFixedConstraint::new(
-                                joint.body_0.map(|v| NpBodyPartHandle(v.0, v.1)).unwrap(),
-                                joint.body_1.map(|v| NpBodyPartHandle(v.0, v.1)).unwrap(),
-                                anchor_0.translation.vector.into(),
-                                anchor_0.rotation,
-                                anchor_1.translation.vector.into(),
-                                anchor_1.rotation,
-                            );
-                            joint.np_joint = Some(Box::new(np_joint));
-                        }
+                        joint.np_joint = None;
+                        notify_removed = true;
                     }
-                    notify_added = true;
+                } else {
+                    if joint.body_0.is_some() && joint.body_1.is_some() {
+                        // -- Create the joint --
+
+                        let body_0_trsf = bodies
+                            .get_body(joint.body_0.unwrap().0)
+                            .map(|v| v.body_transform());
+                        let body_1_trsf = bodies
+                            .get_body(joint.body_1.unwrap().0)
+                            .map(|v| v.body_transform());
+                        fail_cond!(body_0_trsf.is_none() || body_1_trsf.is_none());
+
+                        let anchor_0: Isometry3<N> =
+                            body_0_trsf.unwrap().inverse() * &joint.initial_isometry;
+                        let anchor_1: Isometry3<N> =
+                            body_1_trsf.unwrap().inverse() * &joint.initial_isometry;
+
+                        match joint.joint_desc {
+                            JointDesc::Fixed => {
+                                let np_joint = NpFixedConstraint::new(
+                                    joint.body_0.map(|v| NpBodyPartHandle(v.0, v.1)).unwrap(),
+                                    joint.body_1.map(|v| NpBodyPartHandle(v.0, v.1)).unwrap(),
+                                    anchor_0.translation.vector.into(),
+                                    anchor_0.rotation,
+                                    anchor_1.translation.vector.into(),
+                                    anchor_1.rotation,
+                                );
+                                joint.np_joint = Some(Box::new(np_joint));
+                            }
+                        }
+                        notify_added = true;
+                    }
                 }
             }
         }
-    }
         if notify_added {
             joints.notify_joint_created(joint_key);
         } else if notify_removed {
@@ -125,7 +125,7 @@ impl<N: PtReal> JointPhysicsServerTrait<N> for JointNpServer<N> {
 
     fn insert_rigid_body(&self, joint_tag: PhysicsJointTag, body_tag: PhysicsRigidBodyTag) {
         let joint_key = joint_tag_to_store_key(joint_tag);
-        let mut joints = self.storages.joints_r();
+        let mut joints = self.storages.joints_w();
 
         {
             let joint = joints.get_joint_mut(joint_key);
@@ -143,23 +143,22 @@ impl<N: PtReal> JointPhysicsServerTrait<N> for JointNpServer<N> {
             }
         }
 
-        Self::update_internal_joint(joint_key, &mut joints, &mut self.storages.bodies_r());
+        Self::update_internal_joint(joint_key, &mut joints, &self.storages.bodies_r());
     }
 
     fn remove_rigid_body(&self, joint_tag: PhysicsJointTag, body_tag: PhysicsRigidBodyTag) {
         let joint_key = joint_tag_to_store_key(joint_tag);
         let mut joints = self.storages.joints_w();
+        let bodies = self.storages.bodies_r();
 
         {
-            let mut bodies = self.storages.bodies_r();
-
             let joint = joints.get_joint_mut(joint_key);
             if let Some(mut joint) = joint {
                 if joint.body_0.is_some() {
-                    RBodyNpServer::active_body(joint.body_0.unwrap().0, &mut bodies);
+                    RBodyNpServer::active_body(joint.body_0.unwrap().0, &bodies);
                 }
                 if joint.body_1.is_some() {
-                    RBodyNpServer::active_body(joint.body_1.unwrap().0, &mut bodies);
+                    RBodyNpServer::active_body(joint.body_1.unwrap().0, &bodies);
                 }
 
                 if let Some(true) = joint
@@ -180,6 +179,6 @@ impl<N: PtReal> JointPhysicsServerTrait<N> for JointNpServer<N> {
             }
         }
 
-        Self::update_internal_joint(joint_key, &mut joints, &mut self.storages.bodies_r());
+        Self::update_internal_joint(joint_key, &mut joints, &bodies);
     }
 }

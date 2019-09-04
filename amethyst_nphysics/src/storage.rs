@@ -1,6 +1,6 @@
 use std::{
     cell::UnsafeCell,
-    sync::{Mutex, MutexGuard}
+    sync::{Mutex, MutexGuard},
 };
 
 use generational_arena::{Arena, Index, Iter, IterMut};
@@ -37,7 +37,8 @@ impl<T> Storage<T> {
             self.memory.reserve(self.growing_size);
         }
 
-        self.memory.insert((UnsafeCell::new(object), Mutex::new(())))
+        self.memory
+            .insert((UnsafeCell::new(object), Mutex::new(())))
     }
 
     pub fn has(&self, key: StoreKey) -> bool {
@@ -45,28 +46,27 @@ impl<T> Storage<T> {
     }
 
     pub fn get(&self, key: StoreKey) -> Option<&T> {
-        unsafe{
-            self.memory.get(key).map(|v|& *v.0.get())
-        }
+        unsafe { self.memory.get(key).map(|v| &*v.0.get()) }
     }
 
     pub fn get_mut(&self, key: StoreKey) -> Option<StorageGuard<T>> {
-        unsafe{
-            self.memory.get(key).map(|v|StorageGuard{data: &mut *v.0.get(), _guard: v.1.lock().unwrap()})
+        unsafe {
+            self.memory.get(key).map(|v| StorageGuard {
+                data: &mut *v.0.get(),
+                _guard: v.1.lock().unwrap(),
+            })
         }
     }
 
     pub fn mut_get_mut(&mut self, key: StoreKey) -> Option<&mut T> {
-        unsafe{
-            self.memory.get(key).map(|v|&mut *v.0.get())
-        }
+        unsafe { self.memory.get(key).map(|v| &mut *v.0.get()) }
     }
 
     /// Remove an object and release the key for future use.
     ///
     /// Returns `Some` with the removed object, or `None` if nothing was removed.
     pub fn remove(&mut self, key: StoreKey) -> Option<T> {
-        self.memory.remove(key).map(|v|v.0.into_inner())
+        self.memory.remove(key).map(|v| v.0.into_inner())
     }
 
     pub fn iter(&self) -> Iter<'_, (UnsafeCell<T>, Mutex<()>)> {
@@ -84,14 +84,14 @@ impl<T> Default for Storage<T> {
     }
 }
 
-unsafe impl<T> Sync for Storage<T>{}
+unsafe impl<T> Sync for Storage<T> {}
 
-pub struct StorageGuard<'a, T>{
+pub struct StorageGuard<'a, T> {
     data: &'a mut T,
-    _guard: MutexGuard<'a, ()>
+    _guard: MutexGuard<'a, ()>,
 }
 
-impl<T> std::ops::Deref for StorageGuard<'_, T>{
+impl<T> std::ops::Deref for StorageGuard<'_, T> {
     type Target = T;
 
     fn deref(&self) -> &Self::Target {
@@ -99,7 +99,7 @@ impl<T> std::ops::Deref for StorageGuard<'_, T>{
     }
 }
 
-impl<T> std::ops::DerefMut for StorageGuard<'_, T>{
+impl<T> std::ops::DerefMut for StorageGuard<'_, T> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         self.data
     }

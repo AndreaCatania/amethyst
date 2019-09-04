@@ -1,7 +1,4 @@
-use std::{
-    cell::UnsafeCell,
-    sync::Mutex,
-};
+use std::{cell::UnsafeCell, sync::Mutex};
 
 use amethyst_phythyst::{objects::PhysicsRigidBodyTag, PtReal};
 use generational_arena::{Iter, IterMut};
@@ -9,7 +6,7 @@ use nphysics3d::object::{Body as NpBody, BodySet};
 
 use crate::{
     body::Body,
-    storage::{Storage, StoreKey, StorageGuard},
+    storage::{Storage, StorageGuard, StoreKey},
 };
 
 pub struct BodyStorage<N: PtReal> {
@@ -47,7 +44,7 @@ impl<N: PtReal> BodyStorage<N> {
         self.storage.get(key)
     }
 
-    pub fn get_body_mut<>(&self, key: StoreKey) -> Option<StorageGuard<Body<N>>> {
+    pub fn get_body_mut(&self, key: StoreKey) -> Option<StorageGuard<Body<N>>> {
         self.storage.get_mut(key)
     }
 
@@ -65,11 +62,11 @@ impl<N: PtReal> BodySet<N> for BodyStorage<N> {
     type Handle = StoreKey;
 
     fn get(&self, handle: Self::Handle) -> Option<&Self::Body> {
-        self.storage.get(handle).map(|v|v.np_body.as_ref())
+        self.storage.get(handle).map(|v| v.np_body.as_ref())
     }
 
     fn get_mut(&mut self, handle: Self::Handle) -> Option<&mut Self::Body> {
-        self.storage.mut_get_mut(handle).map(|v|v.np_body.as_mut())
+        self.storage.mut_get_mut(handle).map(|v| v.np_body.as_mut())
     }
 
     fn get_pair_mut(
@@ -93,18 +90,14 @@ impl<N: PtReal> BodySet<N> for BodyStorage<N> {
     fn foreach(&self, mut f: impl FnMut(Self::Handle, &Self::Body)) {
         for (h, b) in self.storage.iter() {
             // Safe because NPhysics use this in single thread.
-            unsafe {
-                f(h, (*b.0.get()).np_body.as_ref())
-            }
+            unsafe { f(h, (*b.0.get()).np_body.as_ref()) }
         }
     }
 
     fn foreach_mut(&mut self, mut f: impl FnMut(Self::Handle, &mut Self::Body)) {
         for (h, b) in self.storage.iter_mut() {
             // Safe because NPhysics use this in single thread.
-            unsafe{
-                f(h, (*b.0.get()).np_body.as_mut())
-            }
+            unsafe { f(h, (*b.0.get()).np_body.as_mut()) }
         }
     }
 

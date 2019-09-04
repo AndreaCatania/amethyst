@@ -6,7 +6,7 @@ use nphysics3d::{
 
 use crate::{
     joint::Joint,
-    storage::{Storage, StoreKey, StorageGuard},
+    storage::{Storage, StorageGuard, StoreKey},
 };
 
 pub struct JointStorage<N: PtReal, S: NpBodySet<N>> {
@@ -106,16 +106,16 @@ impl<N: PtReal, S: NpBodySet<N> + 'static> NpJointConstraintSet<N, S> for JointS
 
     fn get(&self, handle: Self::Handle) -> Option<&Self::JointConstraint> {
         if let Some(j) = self.storage.get(handle) {
-            j.np_joint.as_ref().map(|v|v.as_ref())
-        }else{
+            j.np_joint.as_ref().map(|v| v.as_ref())
+        } else {
             None
         }
     }
 
     fn get_mut(&mut self, handle: Self::Handle) -> Option<&mut Self::JointConstraint> {
         if let Some(j) = self.storage.mut_get_mut(handle) {
-            j.np_joint.as_mut().map(|v|v.as_mut())
-        }else{
+            j.np_joint.as_mut().map(|v| v.as_mut())
+        } else {
             None
         }
     }
@@ -127,7 +127,7 @@ impl<N: PtReal, S: NpBodySet<N> + 'static> NpJointConstraintSet<N, S> for JointS
     fn foreach(&self, mut f: impl FnMut(Self::Handle, &Self::JointConstraint)) {
         for (i, c) in self.storage.iter() {
             // Safe because NPhysics use this in single thread.
-            unsafe{
+            unsafe {
                 if let Some(joint) = (*c.0.get()).np_joint.as_ref() {
                     f(i, joint.as_ref())
                 }

@@ -39,7 +39,7 @@ impl<N: PtReal> AreaNpServer<N> {
         area_tag: PhysicsAreaTag,
         bodies_storage: &mut BodiesStorageWrite<N>,
         colliders_storage: &mut CollidersStorageWrite<N>,
-        shapes_storage: &mut ShapesStorageWrite<N>,
+        shapes_storage: &ShapesStorageRead<N>,
     ) {
         let area_key = area_tag_to_store_key(area_tag);
         if let Some(mut area) = bodies_storage.get_body_mut(area_key) {
@@ -67,7 +67,7 @@ impl<N: PtReal> AreaNpServer<N> {
     /// Take care to unregister the shape and then drop the internal collider.
     pub fn remove_shape(
         area: &mut Body<N>,
-        shapes: &mut ShapesStorageWrite<N>,
+        shapes: &ShapesStorageRead<N>,
         colliders: &mut CollidersStorageWrite<N>,
     ) {
         if let Some(shape_key) = area.shape_key {
@@ -128,8 +128,6 @@ where
 
         let ph = {
             let mut bodies_storage = self.storages.bodies_w();
-            let mut colliders = self.storages.colliders_w();
-            let mut shape_storage = self.storages.shapes_w();
 
             // Create Rigid body
             let np_rigid_body = NpRigidBodyDesc::new()
@@ -150,18 +148,18 @@ where
 
         {
             let body_key = area_tag_to_store_key(ph);
-            let mut bodies = self.storages.bodies_w();
+            let bodies = self.storages.bodies_r();
 
             let shape_key = Option::Some(shape_tag_to_store_key(area_desc.shape));
             let b = bodies.get_body_mut(body_key);
             if let Some(mut body) = b {
                 if body.shape_key != shape_key {
+                    let shapes = self.storages.shapes_r();
                     let mut colliders = self.storages.colliders_w();
-                    let mut shapes = self.storages.shapes_w();
 
                     // Remove the old shape
                     if let Some(b_shape_key) = body.shape_key {
-                        AreaNpServer::remove_shape(&mut *body, &mut shapes, &mut colliders);
+                        AreaNpServer::remove_shape(&mut *body, &shapes, &mut colliders);
                     }
 
                     // Assign the new shape if shape_tag is Some
@@ -225,7 +223,7 @@ where
 
     fn set_body_transform(&self, area_tag: PhysicsAreaTag, transf: &Isometry3<N>) {
         let body_key = area_tag_to_store_key(area_tag);
-        let mut bodies = self.storages.bodies_w();
+        let bodies = self.storages.bodies_r();
 
         let body = bodies.get_body_mut(body_key);
         if let Some(mut body) = body {

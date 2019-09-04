@@ -42,39 +42,36 @@ impl<N: PtReal> WorldNpServer<N> {
 impl<N: PtReal> WorldNpServer<N> {
     fn garbage_collect(&self) {
         let mut gc = self.storages.gc.write().unwrap();
-        let mut bodies_storage = self.storages.bodies_w();
-        let mut colliders_storage = self.storages.colliders_w();
-        let mut shapes_storage = self.storages.shapes_w();
-        let mut joints_storage = self.storages.joints_w();
 
         {
+            let mut bodies_storage = self.storages.bodies_w();
+            let mut colliders_storage = self.storages.colliders_w();
+            let shapes_storage = self.storages.shapes_r();
+
             for rb in gc.bodies.iter() {
                 RBodyNpServer::drop_body(
                     *rb,
                     &mut bodies_storage,
                     &mut colliders_storage,
-                    &mut shapes_storage,
+                    &shapes_storage,
                 );
             }
-
             gc.bodies.clear();
-        }
 
-        {
             for area in gc.areas.iter() {
                 AreaNpServer::drop_area(
                     *area,
                     &mut bodies_storage,
                     &mut colliders_storage,
-                    &mut shapes_storage,
+                    &shapes_storage,
                 );
             }
-
             gc.areas.clear();
         }
 
         // This happen after the bodies and the areas since they depend on this.
         {
+            let mut shapes_storage = self.storages.shapes_w();
             // Not all shapes can be safely removed since they could be assigned to Rigid Body and Areas.
             // If a shape is not removed it remains in the garbage collector.
             let mut removed_shape = Vec::<PhysicsShapeTag>::with_capacity(gc.shapes.len());
@@ -93,9 +90,13 @@ impl<N: PtReal> WorldNpServer<N> {
 
         // Remove joints
         {
+            let mut joints_storage = self.storages.joints_w();
+            let bodies_storage = self.storages.bodies_r();
+
             for j_tag in gc.joints.iter() {
-                JointNpServer::drop_joint(*j_tag, &mut joints_storage, &mut bodies_storage);
+                JointNpServer::drop_joint(*j_tag, &mut joints_storage, &bodies_storage);
             }
+
             gc.joints.clear();
         }
     }
@@ -108,7 +109,6 @@ impl<N: PtReal> WorldNpServer<N> {
     ) {
         // Clear old events
         for (i, b) in bodies.iter_mut() {
-
             unsafe {
                 match &mut (*b.0.get()).body_data {
                     BodyData::Area(e) => {

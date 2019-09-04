@@ -45,13 +45,14 @@ impl<N: PtReal> ShapeNpServer<N> {
     }
 
     /// Returns `true` if this shape is still in use.
+    // It's using ShapeStorageWrite because this function is used during shape dropping, and at that
+    // stage only the writing storage is available.
     pub fn has_dependency(shape_key: StoreKey, shapes_storage: &mut ShapesStorageWrite<N>) -> bool {
         if let Some(shape) = shapes_storage.get_mut(shape_key) {
             if shape.bodies().len() > 0 {
                 return true;
             }
         }
-
         false
     }
 }
@@ -70,9 +71,9 @@ impl<N: PtReal> ShapePhysicsServerTrait<N> for ShapeNpServer<N> {
     }
 
     fn update_shape(&self, shape_tag: PhysicsShapeTag, shape_desc: &ShapeDesc<N>) {
-        let mut bodies = self.storages.bodies_w();
+        let bodies = self.storages.bodies_r();
         let mut colliders = self.storages.colliders_w();
-        let mut shapes = self.storages.shapes_w();
+        let shapes = self.storages.shapes_r();
 
         let shape_key = shape_tag_to_store_key(shape_tag);
         let shape = shapes.get_mut(shape_key);
@@ -93,7 +94,11 @@ impl<N: PtReal> ShapePhysicsServerTrait<N> for ShapeNpServer<N> {
                                 &*shape,
                                 &mut collider_desc,
                             );
-                            RBodyNpServer::install_collider(&mut *body, &collider_desc, &mut colliders);
+                            RBodyNpServer::install_collider(
+                                &mut *body,
+                                &collider_desc,
+                                &mut colliders,
+                            );
                         }
                         BodyData::Area(e) => {
                             AreaNpServer::drop_collider(&mut *body, &mut colliders);
@@ -102,7 +107,11 @@ impl<N: PtReal> ShapePhysicsServerTrait<N> for ShapeNpServer<N> {
                                 &*shape,
                                 &mut collider_desc,
                             );
-                            AreaNpServer::install_collider(&mut *body, &collider_desc, &mut colliders);
+                            AreaNpServer::install_collider(
+                                &mut *body,
+                                &collider_desc,
+                                &mut colliders,
+                            );
                         }
                     }
                 }

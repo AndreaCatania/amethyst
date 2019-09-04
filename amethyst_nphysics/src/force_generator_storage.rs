@@ -8,7 +8,7 @@ use nphysics3d::{
 
 use crate::{
     force_generator::ForceGenerator,
-    storage::{Storage, StoreKey, StorageGuard},
+    storage::{Storage, StorageGuard, StoreKey},
 };
 
 pub struct ForceGeneratorStorage<N: PtReal, S: NpBodySet<N>> {
@@ -54,11 +54,15 @@ impl<N: PtReal, S: NpBodySet<N> + 'static> NpForceGeneratorSet<N, S>
     type Handle = StoreKey;
 
     fn get(&self, handle: Self::Handle) -> Option<&Self::ForceGenerator> {
-        self.storage.get(handle).map(|v|v.np_force_generator.as_ref())
+        self.storage
+            .get(handle)
+            .map(|v| v.np_force_generator.as_ref())
     }
 
     fn get_mut(&mut self, handle: Self::Handle) -> Option<&mut Self::ForceGenerator> {
-        self.storage.mut_get_mut(handle).map(|v|v.np_force_generator.as_mut())
+        self.storage
+            .mut_get_mut(handle)
+            .map(|v| v.np_force_generator.as_mut())
     }
 
     fn contains(&self, handle: Self::Handle) -> bool {
@@ -68,18 +72,14 @@ impl<N: PtReal, S: NpBodySet<N> + 'static> NpForceGeneratorSet<N, S>
     fn foreach(&self, mut f: impl FnMut(Self::Handle, &Self::ForceGenerator)) {
         for (i, c) in self.storage.iter() {
             // Safe because NPhysics use this in single thread.
-            unsafe{
-                f(i, (*c.0.get()).np_force_generator.as_ref())
-            }
+            unsafe { f(i, (*c.0.get()).np_force_generator.as_ref()) }
         }
     }
 
     fn foreach_mut(&mut self, mut f: impl FnMut(Self::Handle, &mut Self::ForceGenerator)) {
         for (i, c) in self.storage.iter_mut() {
             // Safe because NPhysics use this in single thread.
-            unsafe{
-                f(i, (*c.0.get()).np_force_generator.as_mut())
-            }
+            unsafe { f(i, (*c.0.get()).np_force_generator.as_mut()) }
         }
     }
 }

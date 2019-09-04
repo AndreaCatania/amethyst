@@ -5,7 +5,7 @@ use nphysics3d::object::{
     ColliderRemovalData as NpColliderRemovalData, ColliderSet,
 };
 
-use crate::storage::{Storage, StoreKey, StorageGuard};
+use crate::storage::{Storage, StorageGuard, StoreKey};
 
 pub struct ColliderStorage<N: PtReal, BH: NpBodyHandle> {
     storage: Storage<NpCollider<N, BH>>,
@@ -74,9 +74,7 @@ impl<N: PtReal, BH: NpBodyHandle> NpCollisionObjectSet<N> for ColliderStorage<N,
     fn foreach(&self, mut f: impl FnMut(Self::CollisionObjectHandle, &Self::CollisionObject)) {
         for (i, c) in self.storage.iter() {
             // Safe because NPhysics use this in single thread.
-            unsafe{
-                f(i, &*c.0.get())
-            }
+            unsafe { f(i, &*c.0.get()) }
         }
     }
 }
@@ -116,18 +114,14 @@ impl<N: PtReal, BH: NpBodyHandle> ColliderSet<N, BH> for ColliderStorage<N, BH> 
     fn foreach(&self, mut f: impl FnMut(Self::Handle, &NpCollider<N, BH>)) {
         for (i, c) in self.storage.iter() {
             // Safe because NPhysics use this in single thread.
-            unsafe {
-                f(i, & *c.0.get())
-            }
+            unsafe { f(i, &*c.0.get()) }
         }
     }
 
     fn foreach_mut(&mut self, mut f: impl FnMut(Self::Handle, &mut NpCollider<N, BH>)) {
         for (i, c) in self.storage.iter_mut() {
             // Safe because NPhysics use this in single thread.
-            unsafe{
-                f(i, &mut *c.0.get())
-            }
+            unsafe { f(i, &mut *c.0.get()) }
         }
     }
 

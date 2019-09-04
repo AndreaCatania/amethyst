@@ -38,7 +38,7 @@ impl<N: PtReal> RBodyNpServer<N> {
         body_tag: PhysicsRigidBodyTag,
         bodies_storage: &mut BodiesStorageWrite<N>,
         colliders_storage: &mut CollidersStorageWrite<N>,
-        shapes_storage: &mut ShapesStorageWrite<N>,
+        shapes_storage: &ShapesStorageRead<N>,
     ) {
         let body_key = rigid_tag_to_store_key(body_tag);
         if let Some(mut body) = bodies_storage.get_body_mut(body_key) {
@@ -74,7 +74,7 @@ impl<N: PtReal> RBodyNpServer<N> {
     /// Take care to unregister the shape and then drop the internal collider.
     pub fn remove_shape(
         body: &mut Body<N>,
-        shapes: &mut ShapesStorageWrite<N>,
+        shapes: &ShapesStorageRead<N>,
         colliders: &mut CollidersStorageWrite<N>,
     ) {
         if let Some(shape_key) = body.shape_key {
@@ -131,26 +131,19 @@ impl<N: PtReal> RBodyNpServer<N> {
         }
     }
 
-    pub fn active_body(body_key: StoreKey, bodies: &mut BodiesStorageWrite<N>) {
+    pub fn active_body(body_key: StoreKey, bodies: &BodiesStorageRead<N>) {
         if let Some(mut body) = bodies.get_body_mut(body_key) {
             body.activate();
         }
     }
 }
 
-// TODO please make it work in parallel ASAP!
-/// ### Serial execution
-/// There are functions that are marked as serial execution.
-/// These functions doesn't have the capability to be executed in parallel. Even if executed by different
-/// threads.
 impl<N> RBodyPhysicsServerTrait<N> for RBodyNpServer<N>
 where
     N: PtReal,
 {
     fn create_body(&self, body_desc: &RigidBodyDesc<N>) -> PhysicsHandle<PhysicsRigidBodyTag> {
         let mut bodies_storage = self.storages.bodies_w();
-        let mut colliders = self.storages.colliders_w();
-        let mut shape_storage = self.storages.shapes_w();
 
         // Create Rigid body
         let np_rigid_body = NpRigidBodyDesc::new()
@@ -171,7 +164,7 @@ where
 
     fn set_entity(&self, body_tag: PhysicsRigidBodyTag, entity: Option<Entity>) {
         let body_key = rigid_tag_to_store_key(body_tag);
-        let mut bodies = self.storages.bodies_w();
+        let bodies = self.storages.bodies_r();
 
         let body = bodies.get_body_mut(body_key);
         if let Some(mut body) = body {
@@ -179,7 +172,7 @@ where
             body.entity = entity;
 
             if let Some(collider_key) = body.collider_key {
-                let mut colliders = self.storages.colliders_w();
+                let colliders = self.storages.colliders_r();
                 let collider = colliders.get_collider_mut(collider_key);
                 if let Some(mut collider) = collider {
                     RBodyNpServer::update_user_data(&mut *collider, &mut *body);
@@ -203,7 +196,7 @@ where
 
     fn set_shape(&self, body_tag: PhysicsRigidBodyTag, shape_tag: Option<PhysicsShapeTag>) {
         let body_key = rigid_tag_to_store_key(body_tag);
-        let mut bodies = self.storages.bodies_w();
+        let bodies = self.storages.bodies_r();
 
         let shape_key = shape_tag.map(|tag| shape_tag_to_store_key(tag));
 
@@ -214,11 +207,11 @@ where
             }
 
             let mut colliders = self.storages.colliders_w();
-            let mut shapes = self.storages.shapes_w();
+            let shapes = self.storages.shapes_r();
 
             // Remove the old shape
             if let Some(b_shape_key) = body.shape_key {
-                RBodyNpServer::remove_shape(&mut *body, &mut shapes, &mut colliders);
+                RBodyNpServer::remove_shape(&mut *body, &shapes, &mut colliders);
             }
 
             // Assign the new shape if shape_tag is Some
@@ -228,7 +221,12 @@ where
                     // Create and attach the collider
                     let collider_desc = NpColliderDesc::new(shape.shape_handle().clone());
 
-                    RBodyNpServer::install_shape(&mut *body, &mut *shape, collider_desc, &mut colliders);
+                    RBodyNpServer::install_shape(
+                        &mut *body,
+                        &mut *shape,
+                        collider_desc,
+                        &mut colliders,
+                    );
                 } else {
                     error!("During the rigid body creation, was not possible to find the shape to assign");
                 }
@@ -251,7 +249,7 @@ where
 
     fn set_body_transform(&self, body_tag: PhysicsRigidBodyTag, transf: &Isometry3<N>) {
         let body_key = rigid_tag_to_store_key(body_tag);
-        let mut bodies = self.storages.bodies_w();
+        let bodies = self.storages.bodies_r();
 
         let body = bodies.get_body_mut(body_key);
         if let Some(mut body) = body {
@@ -272,7 +270,7 @@ where
 
     fn set_mode(&self, body_tag: PhysicsRigidBodyTag, mode: BodyMode) {
         let body_key = rigid_tag_to_store_key(body_tag);
-        let mut bodies = self.storages.bodies_w();
+        let bodies = self.storages.bodies_r();
 
         let body = bodies.get_body_mut(body_key);
         if let Some(mut body) = body {
@@ -311,7 +309,7 @@ where
 
     fn clear_forces(&self, body_tag: PhysicsRigidBodyTag) {
         let body_key = rigid_tag_to_store_key(body_tag);
-        let mut bodies = self.storages.bodies_w();
+        let bodies = self.storages.bodies_r();
 
         let body = bodies.get_body_mut(body_key);
         if let Some(mut body) = body {
@@ -321,7 +319,7 @@ where
 
     fn apply_force(&self, body_tag: PhysicsRigidBodyTag, force: &Vector3<N>) {
         let body_key = rigid_tag_to_store_key(body_tag);
-        let mut bodies = self.storages.bodies_w();
+        let bodies = self.storages.bodies_r();
 
         let body = bodies.get_body_mut(body_key);
         if let Some(mut body) = body {
@@ -332,7 +330,7 @@ where
 
     fn apply_torque(&self, body_tag: PhysicsRigidBodyTag, force: &Vector3<N>) {
         let body_key = rigid_tag_to_store_key(body_tag);
-        let mut bodies = self.storages.bodies_w();
+        let bodies = self.storages.bodies_r();
 
         let body = bodies.get_body_mut(body_key);
         if let Some(mut body) = body {
@@ -348,7 +346,7 @@ where
         position: &Vector3<N>,
     ) {
         let body_key = rigid_tag_to_store_key(body_tag);
-        let mut bodies = self.storages.bodies_w();
+        let bodies = self.storages.bodies_r();
 
         let body = bodies.get_body_mut(body_key);
         if let Some(mut body) = body {
@@ -364,7 +362,7 @@ where
 
     fn apply_impulse(&self, body_tag: PhysicsRigidBodyTag, impulse: &Vector3<N>) {
         let body_key = rigid_tag_to_store_key(body_tag);
-        let mut bodies = self.storages.bodies_w();
+        let bodies = self.storages.bodies_r();
 
         let body = bodies.get_body_mut(body_key);
         if let Some(mut body) = body {
@@ -375,7 +373,7 @@ where
 
     fn apply_angular_impulse(&self, body_tag: PhysicsRigidBodyTag, impulse: &Vector3<N>) {
         let body_key = rigid_tag_to_store_key(body_tag);
-        let mut bodies = self.storages.bodies_w();
+        let bodies = self.storages.bodies_r();
 
         let body = bodies.get_body_mut(body_key);
         if let Some(mut body) = body {
@@ -391,7 +389,7 @@ where
         position: &Vector3<N>,
     ) {
         let body_key = rigid_tag_to_store_key(body_tag);
-        let mut bodies = self.storages.bodies_w();
+        let bodies = self.storages.bodies_r();
 
         let body = bodies.get_body_mut(body_key);
         if let Some(mut body) = body {
@@ -407,7 +405,7 @@ where
 
     fn set_linear_velocity(&self, body_tag: PhysicsRigidBodyTag, velocity: &Vector3<N>) {
         let body_key = rigid_tag_to_store_key(body_tag);
-        let mut bodies = self.storages.bodies_w();
+        let bodies = self.storages.bodies_r();
 
         let body = bodies.get_body_mut(body_key);
         if let Some(mut body) = body {
@@ -435,7 +433,7 @@ where
 
     fn set_angular_velocity(&self, body_tag: PhysicsRigidBodyTag, velocity: &Vector3<N>) {
         let body_key = rigid_tag_to_store_key(body_tag);
-        let mut bodies = self.storages.bodies_w();
+        let bodies = self.storages.bodies_r();
 
         let body = bodies.get_body_mut(body_key);
         if let Some(mut body) = body {
