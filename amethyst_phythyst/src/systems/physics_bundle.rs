@@ -493,7 +493,7 @@ where
             &["physics_attachment"],
         );
 
-        builder.add_batch::<PhysicsBatchSystem<'_, '_, N>>(
+        builder.add_batch::<PhysicsBatchSystem<'static, 'static, N>>(
             physics_builder,
             "physics_batch",
             &[
