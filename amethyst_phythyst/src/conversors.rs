@@ -1,12 +1,12 @@
-//! This module contains the necessary functions to convert an Amethyst `Transform` `Isometry`, to a
-//! physics `Isometry`.
-use amethyst_core::math::{Isometry3, Quaternion, Translation3, UnitQuaternion, Vector3, Vector4};
+//! This module contains the necessary functions to convert an Amethyst f32 object to generic physics object.
 
-use crate::PtReal;
+pub mod vec_conversor {
+    //! This module contains the necessary functions to convert an Amethyst f32 `Vector3` to generic physics `Vector3`.
 
-pub struct VecConversor;
+    use amethyst_core::math::Vector3;
 
-impl VecConversor {
+    use crate::PtReal;
+
     /// Used to convert an amethyst `Vector3` `Quaternion` to the physics `Vector3`.
     #[allow(clippy::wrong_self_convention)]
     pub fn to_physics<N>(v: &Vector3<f32>) -> Vector3<N>
@@ -25,10 +25,13 @@ impl VecConversor {
     }
 }
 
-pub struct QuatConversor;
+pub mod quat_conversor {
+    //! This module contains the necessary functions to convert an Amethyst f32 `Quaternion` to generic physics `Quaternion`.
+    use amethyst_core::math::{Quaternion, Vector4};
 
-impl QuatConversor {
-    /// Used to convert an amethyst `Transform` `Quaternion` to the physics `Quaternion`.
+    use crate::PtReal;
+
+    /// Used to convert an amethyst `f32` `Quaternion` to a generic `Quaternion`.
     #[allow(clippy::wrong_self_convention)]
     pub fn to_physics<N>(r: &Quaternion<f32>) -> Quaternion<N>
     where
@@ -37,7 +40,7 @@ impl QuatConversor {
         Quaternion::from(Vector4::new(r.i.into(), r.j.into(), r.k.into(), r.w.into()))
     }
 
-    /// Used to convert a physics `Quaternion` to the amethyst `Transform` `Quaternion`.
+    /// Used to convert a generic `Quaternion` to the `f32` `Quaternion`.
     pub fn from_physics<N>(r: &Quaternion<N>) -> Quaternion<f32>
     where
         N: PtReal,
@@ -51,29 +54,37 @@ impl QuatConversor {
     }
 }
 
-pub struct TransfConversor;
+pub mod transf_conversor {
+    //! This module contains the necessary functions to convert an Amethyst f32 `Isometry` to generic physics `Isometry`.
+    use amethyst_core::math::{
+        Isometry3, Translation3, UnitQuaternion,
+    };
 
-impl TransfConversor {
-    /// Used to convert an amethyst `Transform` `Isometry` to the physics `Isometry`.
+    use crate::{
+        conversors::{quat_conversor, vec_conversor},
+        PtReal,
+    };
+
+    /// Used to convert an amethyst `f32` `Isometry` to the generic `Isometry`.
     #[allow(clippy::wrong_self_convention)]
     pub fn to_physics<N>(t: &Isometry3<f32>) -> Isometry3<N>
     where
         N: PtReal,
     {
         Isometry3::from_parts(
-            Translation3::from(VecConversor::to_physics(&t.translation.vector)),
-            UnitQuaternion::new_normalize(QuatConversor::to_physics(&t.rotation)),
+            Translation3::from(vec_conversor::to_physics(&t.translation.vector)),
+            UnitQuaternion::new_normalize(quat_conversor::to_physics(&t.rotation)),
         )
     }
 
-    /// Used to convert a physics `Isometry` to the amethyst `Transform` `Isometry`.
+    /// Used to convert a generic `Isometry` to the amethyst `f32` `Isometry`.
     pub fn from_physics<N>(t: &Isometry3<N>) -> Isometry3<f32>
     where
         N: PtReal,
     {
         Isometry3::from_parts(
-            Translation3::from(VecConversor::from_physics(&t.translation.vector)),
-            UnitQuaternion::new_normalize(QuatConversor::from_physics(&t.rotation)),
+            Translation3::from(vec_conversor::from_physics(&t.translation.vector)),
+            UnitQuaternion::new_normalize(quat_conversor::from_physics(&t.rotation)),
         )
     }
 }

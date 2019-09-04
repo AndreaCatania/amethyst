@@ -122,7 +122,7 @@ impl<'s, N: crate::PtReal> System<'s> for PhysicsSyncTransformToSystem<N> {
         {
             physics_world.rigid_body_server().set_body_transform(
                 rb_tag.get(),
-                &conversors::TransfConversor::to_physics(transform.isometry()),
+                &conversors::transf_conversor::to_physics(transform.isometry()),
             );
         }
 
@@ -131,7 +131,7 @@ impl<'s, N: crate::PtReal> System<'s> for PhysicsSyncTransformToSystem<N> {
         {
             physics_world.area_server().set_body_transform(
                 a_tag.get(),
-                &conversors::TransfConversor::to_physics(transform.isometry()),
+                &conversors::transf_conversor::to_physics(transform.isometry()),
             );
         }
 
@@ -155,7 +155,7 @@ impl<'s, N: crate::PtReal> System<'s> for PhysicsSyncTransformToSystem<N> {
 
                 physics_world.rigid_body_server().set_body_transform(
                     rb_tag.get(),
-                    &conversors::TransfConversor::to_physics(&computed_trs),
+                    &conversors::transf_conversor::to_physics(&computed_trs),
                 );
             }
 
@@ -174,7 +174,7 @@ impl<'s, N: crate::PtReal> System<'s> for PhysicsSyncTransformToSystem<N> {
 
                 physics_world.area_server().set_body_transform(
                     a_tag.get(),
-                    &conversors::TransfConversor::to_physics(&computed_trs),
+                    &conversors::transf_conversor::to_physics(&computed_trs),
                 );
             }
         }

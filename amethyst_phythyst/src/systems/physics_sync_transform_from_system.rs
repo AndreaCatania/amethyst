@@ -48,7 +48,7 @@ impl<'s, N: crate::PtReal> System<'s> for PhysicsSyncTransformFromSystem<N> {
             if let Some(transform) = transforms.get_mut(entity) {
                 let body_transform = physics_world.rigid_body_server().body_transform(rb.get());
 
-                transform.set_isometry(conversors::TransfConversor::from_physics(&body_transform));
+                transform.set_isometry(conversors::transf_conversor::from_physics(&body_transform));
             }
         }
 

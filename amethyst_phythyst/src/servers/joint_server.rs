@@ -3,6 +3,7 @@ use amethyst_core::math::Isometry3;
 use crate::objects::*;
 
 /// Trait that defines the *Joint* server capabilities.
+#[allow(clippy::trivially_copy_pass_by_ref)] // TODO remove when all joints get implemented
 pub trait JointPhysicsServerTrait<N: crate::PtReal> {
     /// Creates a new joint.
     ///
