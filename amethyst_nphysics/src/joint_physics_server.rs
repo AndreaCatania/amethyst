@@ -59,7 +59,7 @@ impl<N: PtReal> JointNpServer<N> {
         let mut notify_added = false;
         let mut notify_removed = false;
         {
-            let joint = joints.get_joint_mut(joint_key);
+            let joint = joints.get_joint(joint_key);
             if let Some(mut joint) = joint {
                 if joint.np_joint.is_some() {
                     if joint.body_0.is_none() || joint.body_1.is_none() {
@@ -71,19 +71,20 @@ impl<N: PtReal> JointNpServer<N> {
                 } else {
                     if joint.body_0.is_some() && joint.body_1.is_some() {
                         // -- Create the joint --
+                        let body_0 = bodies.get_body(joint.body_0.unwrap().0);
+                        let body_1 = bodies.get_body(joint.body_1.unwrap().0);
+                        fail_cond!(body_0.is_none() || body_1.is_none());
 
-                        let body_0_trsf = bodies
-                            .get_body(joint.body_0.unwrap().0)
-                            .map(|v| v.body_transform());
-                        let body_1_trsf = bodies
-                            .get_body(joint.body_1.unwrap().0)
-                            .map(|v| v.body_transform());
-                        fail_cond!(body_0_trsf.is_none() || body_1_trsf.is_none());
+                        let body_0 = body_0.unwrap();
+                        let body_1 = body_1.unwrap();
+
+                        let body_0_trsf = body_0.body_transform();
+                        let body_1_trsf = body_1.body_transform();
 
                         let anchor_0: Isometry3<N> =
-                            body_0_trsf.unwrap().inverse() * &joint.initial_isometry;
+                            body_0_trsf.inverse() * &joint.initial_isometry;
                         let anchor_1: Isometry3<N> =
-                            body_1_trsf.unwrap().inverse() * &joint.initial_isometry;
+                            body_1_trsf.inverse() * &joint.initial_isometry;
 
                         match joint.joint_desc {
                             JointDesc::Fixed => {
@@ -119,7 +120,7 @@ impl<N: PtReal> JointPhysicsServerTrait<N> for JointNpServer<N> {
     ) -> PhysicsHandle<PhysicsJointTag> {
         let mut joints = self.storages.joints_w();
         let key = joints.insert(Joint::new(*desc, initial_position.clone()));
-        joints.get_joint_mut(key).unwrap().self_key = Some(key);
+        joints.get_joint(key).unwrap().self_key = Some(key);
         PhysicsHandle::new(store_key_to_joint_tag(key), self.storages.gc.clone())
     }
 
@@ -128,7 +129,7 @@ impl<N: PtReal> JointPhysicsServerTrait<N> for JointNpServer<N> {
         let mut joints = self.storages.joints_w();
 
         {
-            let joint = joints.get_joint_mut(joint_key);
+            let joint = joints.get_joint(joint_key);
             if let Some(mut joint) = joint {
                 if joint.body_0.is_none() {
                     joint.body_0 = Some((rigid_tag_to_store_key(body_tag), 0));
@@ -152,7 +153,7 @@ impl<N: PtReal> JointPhysicsServerTrait<N> for JointNpServer<N> {
         let bodies = self.storages.bodies_r();
 
         {
-            let joint = joints.get_joint_mut(joint_key);
+            let joint = joints.get_joint(joint_key);
             if let Some(mut joint) = joint {
                 if joint.body_0.is_some() {
                     RBodyNpServer::active_body(joint.body_0.unwrap().0, &bodies);

@@ -38,12 +38,9 @@ impl<N: PtReal, S: NpBodySet<N>> ForceGeneratorStorage<N, S> {
         self.storage.remove(key);
     }
 
-    pub fn get_collider(&self, key: StoreKey) -> Option<&ForceGenerator<N, S>> {
+    /// Returns a `Mutex` guarded force generator that can be used safely to get or set data.
+    pub fn get_force_generator(&self, key: StoreKey) -> Option<StorageGuard<ForceGenerator<N, S>>> {
         self.storage.get(key)
-    }
-
-    pub fn get_collider_mut(&self, key: StoreKey) -> Option<StorageGuard<ForceGenerator<N, S>>> {
-        self.storage.get_mut(key)
     }
 }
 
@@ -55,13 +52,13 @@ impl<N: PtReal, S: NpBodySet<N> + 'static> NpForceGeneratorSet<N, S>
 
     fn get(&self, handle: Self::Handle) -> Option<&Self::ForceGenerator> {
         self.storage
-            .get(handle)
+            .unchecked_get(handle)
             .map(|v| v.np_force_generator.as_ref())
     }
 
     fn get_mut(&mut self, handle: Self::Handle) -> Option<&mut Self::ForceGenerator> {
         self.storage
-            .mut_get_mut(handle)
+            .unchecked_get_mut(handle)
             .map(|v| v.np_force_generator.as_mut())
     }
 

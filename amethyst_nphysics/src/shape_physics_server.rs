@@ -31,7 +31,7 @@ impl<N: PtReal> ShapeNpServer<N> {
         let safe_to_drop = !ShapeNpServer::has_dependency(shape_key, shapes_storage);
 
         if !safe_to_drop {
-            if let Some(mut shape) = shapes_storage.get_mut(shape_key) {
+            if let Some(mut shape) = shapes_storage.get(shape_key) {
                 if !shape.marked_for_drop {
                     shape.marked_for_drop = true;
                     fail!("A shape is marked for drop while still in use. Consider to store the PhysicsHandle<PhysicsShapeTag> to not waste resources.", false);
@@ -48,7 +48,7 @@ impl<N: PtReal> ShapeNpServer<N> {
     // It's using ShapeStorageWrite because this function is used during shape dropping, and at that
     // stage only the writing storage is available.
     pub fn has_dependency(shape_key: StoreKey, shapes_storage: &mut ShapesStorageWrite<N>) -> bool {
-        if let Some(shape) = shapes_storage.get_mut(shape_key) {
+        if let Some(shape) = shapes_storage.get(shape_key) {
             if shape.bodies().len() > 0 {
                 return true;
             }
@@ -64,7 +64,7 @@ impl<N: PtReal> ShapePhysicsServerTrait<N> for ShapeNpServer<N> {
         let mut shapes_storage = self.storages.shapes_w();
         let mut shape_key = shapes_storage.insert(shape);
 
-        let mut shape = shapes_storage.get_mut(shape_key).unwrap();
+        let mut shape = shapes_storage.get(shape_key).unwrap();
         shape.self_key = Some(shape_key);
 
         PhysicsHandle::new(store_key_to_shape_tag(shape_key), self.storages.gc.clone())
@@ -76,13 +76,13 @@ impl<N: PtReal> ShapePhysicsServerTrait<N> for ShapeNpServer<N> {
         let shapes = self.storages.shapes_r();
 
         let shape_key = shape_tag_to_store_key(shape_tag);
-        let shape = shapes.get_mut(shape_key);
+        let shape = shapes.get(shape_key);
         if let Some(mut shape) = shape {
             shape.update(shape_desc);
 
             let b_keys = shape.bodies();
             for body_key in b_keys {
-                let body = bodies.get_body_mut(*body_key);
+                let body = bodies.get_body(*body_key);
                 if let Some(mut body) = body {
                     let mut collider_desc = NpColliderDesc::new(shape.shape_handle().clone());
 
@@ -100,7 +100,7 @@ impl<N: PtReal> ShapePhysicsServerTrait<N> for ShapeNpServer<N> {
                                 &mut colliders,
                             );
                         }
-                        BodyData::Area(e) => {
+                        BodyData::Area(_e) => {
                             AreaNpServer::drop_collider(&mut *body, &mut colliders);
                             AreaNpServer::extract_collider_desc(
                                 body.rigid_body().unwrap(),

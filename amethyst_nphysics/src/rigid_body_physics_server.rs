@@ -41,7 +41,7 @@ impl<N: PtReal> RBodyNpServer<N> {
         shapes_storage: &ShapesStorageRead<N>,
     ) {
         let body_key = rigid_tag_to_store_key(body_tag);
-        if let Some(mut body) = bodies_storage.get_body_mut(body_key) {
+        if let Some(mut body) = bodies_storage.get_body(body_key) {
             Self::remove_shape(&mut *body, shapes_storage, colliders_storage);
         }
         bodies_storage.drop_body(body_key);
@@ -78,7 +78,7 @@ impl<N: PtReal> RBodyNpServer<N> {
         colliders: &mut CollidersStorageWrite<N>,
     ) {
         if let Some(shape_key) = body.shape_key {
-            if let Some(mut shape) = shapes.get_mut(shape_key) {
+            if let Some(mut shape) = shapes.get(shape_key) {
                 shape.unregister_body(body.self_key.unwrap());
             } else {
                 error!("A body is associated with a shape, but the shape doesn't exist!");
@@ -132,7 +132,7 @@ impl<N: PtReal> RBodyNpServer<N> {
     }
 
     pub fn active_body(body_key: StoreKey, bodies: &BodiesStorageRead<N>) {
-        if let Some(mut body) = bodies.get_body_mut(body_key) {
+        if let Some(mut body) = bodies.get_body(body_key) {
             body.activate();
         }
     }
@@ -156,7 +156,7 @@ where
             body_desc.friction,
             body_desc.bounciness,
         ));
-        let mut body = bodies_storage.get_body_mut(b_key).unwrap();
+        let mut body = bodies_storage.get_body(b_key).unwrap();
         body.self_key = Some(b_key);
 
         PhysicsHandle::new(store_key_to_rigid_tag(b_key), self.storages.gc.clone())
@@ -166,14 +166,14 @@ where
         let body_key = rigid_tag_to_store_key(body_tag);
         let bodies = self.storages.bodies_r();
 
-        let body = bodies.get_body_mut(body_key);
+        let body = bodies.get_body(body_key);
         if let Some(mut body) = body {
             fail_cond!(!matches!(body.body_data, BodyData::Rigid));
             body.entity = entity;
 
             if let Some(collider_key) = body.collider_key {
                 let colliders = self.storages.colliders_r();
-                let collider = colliders.get_collider_mut(collider_key);
+                let collider = colliders.get_collider(collider_key);
                 if let Some(mut collider) = collider {
                     RBodyNpServer::update_user_data(&mut *collider, &mut *body);
                 } else {
@@ -187,7 +187,8 @@ where
         let body_key = rigid_tag_to_store_key(body_tag);
         let mut bodies = self.storages.bodies_r();
 
-        if let Some(body) = bodies.get_body(body_key) {
+        let body = bodies.get_body(body_key);
+        if let Some(body) = body {
             body.entity
         } else {
             None
@@ -200,7 +201,7 @@ where
 
         let shape_key = shape_tag.map(|tag| shape_tag_to_store_key(tag));
 
-        let body = bodies.get_body_mut(body_key);
+        let body = bodies.get_body(body_key);
         if let Some(mut body) = body {
             if body.shape_key == shape_key {
                 return;
@@ -216,7 +217,7 @@ where
 
             // Assign the new shape if shape_tag is Some
             if let Some(shape_key) = shape_key {
-                let shape = shapes.get_mut(shape_key);
+                let shape = shapes.get(shape_key);
                 if let Some(mut shape) = shape {
                     // Create and attach the collider
                     let collider_desc = NpColliderDesc::new(shape.shape_handle().clone());
@@ -240,7 +241,8 @@ where
         let body_key = rigid_tag_to_store_key(body_tag);
         let mut bodies = self.storages.bodies_r();
 
-        if let Some(body) = bodies.get_body(body_key) {
+        let body = bodies.get_body(body_key);
+        if let Some(body) = body {
             body.shape_key.map(|key| store_key_to_shape_tag(key))
         } else {
             None
@@ -251,7 +253,7 @@ where
         let body_key = rigid_tag_to_store_key(body_tag);
         let bodies = self.storages.bodies_r();
 
-        let body = bodies.get_body_mut(body_key);
+        let body = bodies.get_body(body_key);
         if let Some(mut body) = body {
             body.set_body_transform(transf);
         }
@@ -261,7 +263,8 @@ where
         let body_key = rigid_tag_to_store_key(body_tag);
         let mut bodies = self.storages.bodies_r();
 
-        if let Some(body) = bodies.get_body(body_key) {
+        let body = bodies.get_body(body_key);
+        if let Some(body) = body {
             *body.body_transform()
         } else {
             Isometry3::identity()
@@ -272,7 +275,7 @@ where
         let body_key = rigid_tag_to_store_key(body_tag);
         let bodies = self.storages.bodies_r();
 
-        let body = bodies.get_body_mut(body_key);
+        let body = bodies.get_body(body_key);
         if let Some(mut body) = body {
             body.np_body
                 .set_status(body_mode_conversor::to_physics(mode));
@@ -283,7 +286,8 @@ where
         let body_key = rigid_tag_to_store_key(body_tag);
         let bodies = self.storages.bodies_r();
 
-        if let Some(mut body) = bodies.get_body(body_key) {
+        let body = bodies.get_body(body_key);
+        if let Some(mut body) = body {
             body_mode_conversor::from_physics(body.np_body.status())
         } else {
             error!("Rigid Body not foud");
@@ -311,7 +315,7 @@ where
         let body_key = rigid_tag_to_store_key(body_tag);
         let bodies = self.storages.bodies_r();
 
-        let body = bodies.get_body_mut(body_key);
+        let body = bodies.get_body(body_key);
         if let Some(mut body) = body {
             body.np_body.clear_forces();
         }
@@ -321,7 +325,7 @@ where
         let body_key = rigid_tag_to_store_key(body_tag);
         let bodies = self.storages.bodies_r();
 
-        let body = bodies.get_body_mut(body_key);
+        let body = bodies.get_body(body_key);
         if let Some(mut body) = body {
             body.np_body
                 .apply_force(0, &Force::linear(*force), ForceType::Force, true);
@@ -332,7 +336,7 @@ where
         let body_key = rigid_tag_to_store_key(body_tag);
         let bodies = self.storages.bodies_r();
 
-        let body = bodies.get_body_mut(body_key);
+        let body = bodies.get_body(body_key);
         if let Some(mut body) = body {
             body.np_body
                 .apply_force(0, &Force::torque(*force), ForceType::Force, true);
@@ -348,7 +352,7 @@ where
         let body_key = rigid_tag_to_store_key(body_tag);
         let bodies = self.storages.bodies_r();
 
-        let body = bodies.get_body_mut(body_key);
+        let body = bodies.get_body(body_key);
         if let Some(mut body) = body {
             body.np_body.apply_force_at_local_point(
                 0,
@@ -364,7 +368,7 @@ where
         let body_key = rigid_tag_to_store_key(body_tag);
         let bodies = self.storages.bodies_r();
 
-        let body = bodies.get_body_mut(body_key);
+        let body = bodies.get_body(body_key);
         if let Some(mut body) = body {
             body.np_body
                 .apply_force(0, &Force::linear(*impulse), ForceType::Impulse, true);
@@ -375,7 +379,7 @@ where
         let body_key = rigid_tag_to_store_key(body_tag);
         let bodies = self.storages.bodies_r();
 
-        let body = bodies.get_body_mut(body_key);
+        let body = bodies.get_body(body_key);
         if let Some(mut body) = body {
             body.np_body
                 .apply_force(0, &Force::torque(*impulse), ForceType::Impulse, true);
@@ -391,7 +395,7 @@ where
         let body_key = rigid_tag_to_store_key(body_tag);
         let bodies = self.storages.bodies_r();
 
-        let body = bodies.get_body_mut(body_key);
+        let body = bodies.get_body(body_key);
         if let Some(mut body) = body {
             body.np_body.apply_force_at_point(
                 0,
@@ -407,7 +411,7 @@ where
         let body_key = rigid_tag_to_store_key(body_tag);
         let bodies = self.storages.bodies_r();
 
-        let body = bodies.get_body_mut(body_key);
+        let body = bodies.get_body(body_key);
         if let Some(mut body) = body {
             if let Some(rb_body) = body.rigid_body_mut() {
                 rb_body.set_linear_velocity(*velocity);
@@ -421,7 +425,8 @@ where
         let body_key = rigid_tag_to_store_key(body_tag);
         let mut bodies = self.storages.bodies_r();
 
-        if let Some(body) = bodies.get_body(body_key) {
+        let body = bodies.get_body(body_key);
+        if let Some(mut body) = body {
             if let Some(rb_body) = body.rigid_body() {
                 return rb_body.velocity().linear;
             } else {
@@ -435,7 +440,7 @@ where
         let body_key = rigid_tag_to_store_key(body_tag);
         let bodies = self.storages.bodies_r();
 
-        let body = bodies.get_body_mut(body_key);
+        let body = bodies.get_body(body_key);
         if let Some(mut body) = body {
             if let Some(rb_body) = body.rigid_body_mut() {
                 rb_body.set_angular_velocity(*velocity);
@@ -449,7 +454,8 @@ where
         let body_key = rigid_tag_to_store_key(body_tag);
         let mut bodies = self.storages.bodies_r();
 
-        if let Some(body) = bodies.get_body(body_key) {
+        let body = bodies.get_body(body_key);
+        if let Some(mut body) = body {
             if let Some(rb_body) = body.rigid_body() {
                 return rb_body.velocity().angular;
             } else {
@@ -467,7 +473,8 @@ where
         let body_key = rigid_tag_to_store_key(body_tag);
         let mut bodies = self.storages.bodies_r();
 
-        if let Some(body) = bodies.get_body(body_key) {
+        let body = bodies.get_body(body_key);
+        if let Some(mut body) = body {
             if let Some(rb_body) = body.rigid_body() {
                 return rb_body.velocity().shift(&position).linear;
             } else {

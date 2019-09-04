@@ -10,7 +10,11 @@ pub type StoreKey = Index;
 /// This struct is used to store the physics resources, and return an opaque handle that allow to
 /// return a reference to them.
 ///
-/// Each value is protected by a Mutex that allow parallel
+/// Each value is protected by a `Mutex` so each thread can perform operation on multiple elements
+/// without locking the entire storage.
+///
+/// The actual data are not stored inside the `Mutex` because *NPhysics* can't deal with the mutex and
+/// expects the raw reference.
 pub struct Storage<T> {
     memory: Arena<(UnsafeCell<T>, Mutex<()>)>,
     growing_size: usize,
@@ -41,15 +45,16 @@ impl<T> Storage<T> {
             .insert((UnsafeCell::new(object), Mutex::new(())))
     }
 
+    /// Returns true if the store key is associated to something
     pub fn has(&self, key: StoreKey) -> bool {
         self.memory.contains(key)
     }
 
-    pub fn get(&self, key: StoreKey) -> Option<&T> {
-        unsafe { self.memory.get(key).map(|v| &*v.0.get()) }
-    }
-
-    pub fn get_mut(&self, key: StoreKey) -> Option<StorageGuard<T>> {
+    /// This is the default get function that must be used in order to obtain access to the stored object.
+    ///
+    /// Since the storage is using a `Mutex` to prevent data races, only this function is enough to
+    /// read or to write the stored data.
+    pub fn get(&self, key: StoreKey) -> Option<StorageGuard<T>> {
         unsafe {
             self.memory.get(key).map(|v| StorageGuard {
                 data: &mut *v.0.get(),
@@ -58,7 +63,21 @@ impl<T> Storage<T> {
         }
     }
 
-    pub fn mut_get_mut(&mut self, key: StoreKey) -> Option<&mut T> {
+    /// This function is safe only when it's used by *NPhysics* set storages.
+    ///
+    /// The reason is that *NPhysics* runs in single thread, and during this process no one can access
+    /// to the storage because it's fully locked by RwLock which own this storage.
+    /// So the borrow checker is it able to correctly prevent data races.
+    pub fn unchecked_get(&self, key: StoreKey) -> Option<&T> {
+        unsafe { self.memory.get(key).map(|v| &*v.0.get()) }
+    }
+
+    /// This function is safe only when it's used by *NPhysics* set storages.
+    ///
+    /// The reason is that *NPhysics* runs in single thread, and during this process no one can access
+    /// to the storage because it's fully locked by RwLock which own this storage.
+    /// So the borrow checker is it able to correctly prevent data races.
+    pub fn unchecked_get_mut(&mut self, key: StoreKey) -> Option<&mut T> {
         unsafe { self.memory.get(key).map(|v| &mut *v.0.get()) }
     }
 
@@ -69,10 +88,14 @@ impl<T> Storage<T> {
         self.memory.remove(key).map(|v| v.0.into_inner())
     }
 
+    /// Returns an iterator to the data.
+    // TODO consider to create a for each, similar to NPhysics set trait, instead?
     pub fn iter(&self) -> Iter<'_, (UnsafeCell<T>, Mutex<()>)> {
         self.memory.iter()
     }
 
+    /// Returns a mutable iterator to the data.
+    // TODO consider to create a for each, similar to NPhysics set trait, instead?
     pub fn iter_mut(&mut self) -> IterMut<'_, (UnsafeCell<T>, Mutex<()>)> {
         self.memory.iter_mut()
     }
@@ -84,8 +107,13 @@ impl<T> Default for Storage<T> {
     }
 }
 
+// Safe to be sent trough threads thanks to the `Mutex`
 unsafe impl<T> Sync for Storage<T> {}
 
+/// The `StorageGuard` is used to returns an object that contains the requested data plus the MutexGuard
+/// which is used to track the lifetime of the data reference.
+///
+/// The reason of the extra type, is because the `Mutex` doesn't own directly the data.
 pub struct StorageGuard<'a, T> {
     data: &'a mut T,
     _guard: MutexGuard<'a, ()>,

@@ -42,7 +42,7 @@ impl<N: PtReal> AreaNpServer<N> {
         shapes_storage: &ShapesStorageRead<N>,
     ) {
         let area_key = area_tag_to_store_key(area_tag);
-        if let Some(mut area) = bodies_storage.get_body_mut(area_key) {
+        if let Some(mut area) = bodies_storage.get_body(area_key) {
             Self::remove_shape(&mut *area, shapes_storage, colliders_storage);
         }
         bodies_storage.drop_body(area_key);
@@ -71,7 +71,7 @@ impl<N: PtReal> AreaNpServer<N> {
         colliders: &mut CollidersStorageWrite<N>,
     ) {
         if let Some(shape_key) = area.shape_key {
-            if let Some(mut shape) = shapes.get_mut(shape_key) {
+            if let Some(mut shape) = shapes.get(shape_key) {
                 shape.unregister_body(area.self_key.unwrap());
             } else {
                 error!("An area is associated with a shape, but the shape doesn't exist!");
@@ -140,7 +140,7 @@ where
                 nalgebra::zero(),
                 nalgebra::zero(),
             ));
-            let mut area = bodies_storage.get_body_mut(a_key).unwrap();
+            let mut area = bodies_storage.get_body(a_key).unwrap();
             area.self_key = Some(a_key);
 
             store_key_to_area_tag(a_key)
@@ -151,7 +151,7 @@ where
             let bodies = self.storages.bodies_r();
 
             let shape_key = Option::Some(shape_tag_to_store_key(area_desc.shape));
-            let b = bodies.get_body_mut(body_key);
+            let b = bodies.get_body(body_key);
             if let Some(mut body) = b {
                 if body.shape_key != shape_key {
                     let shapes = self.storages.shapes_r();
@@ -164,9 +164,9 @@ where
 
                     // Assign the new shape if shape_tag is Some
                     if let Some(shape_key) = shape_key {
-                        if let Some(mut shape) = shapes.get_mut(shape_key) {
+                        if let Some(mut shape) = shapes.get(shape_key) {
                             // Create and attach the collider
-                            let mut collider_desc =
+                            let collider_desc =
                                 NpColliderDesc::new(shape.shape_handle().clone()).sensor(true);
 
                             AreaNpServer::install_shape(
@@ -190,17 +190,17 @@ where
 
     fn set_entity(&self, area_tag: PhysicsAreaTag, entity: Option<Entity>) {
         let area_key = area_tag_to_store_key(area_tag);
-        let mut bodies = self.storages.bodies_w();
+        let bodies = self.storages.bodies_r();
 
-        let area = bodies.get_body_mut(area_key);
+        let area = bodies.get_body(area_key);
         if let Some(mut area) = area {
             fail_cond!(!matches!(area.body_data, BodyData::Area(_)));
             area.entity = entity;
 
             if let Some(collider_key) = area.collider_key {
-                let mut colliders = self.storages.colliders_w();
+                let colliders = self.storages.colliders_r();
 
-                let collider = colliders.get_collider_mut(collider_key);
+                let collider = colliders.get_collider(collider_key);
                 if let Some(mut collider) = collider {
                     AreaNpServer::update_user_data(&mut *collider, &mut *area);
                 } else {
@@ -212,9 +212,10 @@ where
 
     fn entity(&self, area_tag: PhysicsAreaTag) -> Option<Entity> {
         let area_key = area_tag_to_store_key(area_tag);
-        let mut bodies = self.storages.bodies_r();
+        let bodies = self.storages.bodies_r();
 
-        if let Some(area) = bodies.get_body(area_key) {
+        let area = bodies.get_body(area_key);
+        if let Some(area) = area {
             area.entity
         } else {
             None
@@ -225,18 +226,19 @@ where
         let body_key = area_tag_to_store_key(area_tag);
         let bodies = self.storages.bodies_r();
 
-        let body = bodies.get_body_mut(body_key);
-        if let Some(mut body) = body {
-            body.set_body_transform(transf);
+        let area = bodies.get_body(body_key);
+        if let Some(mut area) = area {
+            area.set_body_transform(transf);
         }
     }
 
     fn body_transform(&self, area_tag: PhysicsAreaTag) -> Isometry3<N> {
-        let body_key = area_tag_to_store_key(area_tag);
+        let area_key = area_tag_to_store_key(area_tag);
         let bodies = self.storages.bodies_r();
 
-        if let Some(body) = bodies.get_body(body_key) {
-            *body.body_transform()
+        let area = bodies.get_body(area_key);
+        if let Some(area) = area {
+            *area.body_transform()
         } else {
             Isometry3::identity()
         }
@@ -244,8 +246,10 @@ where
 
     fn overlap_events(&self, area_tag: PhysicsAreaTag) -> Vec<OverlapEvent> {
         let area_key = area_tag_to_store_key(area_tag);
-        let s = self.storages.bodies_r();
-        if let Some(area) = s.get_body(area_key) {
+        let bodies = self.storages.bodies_r();
+
+        let area = bodies.get_body(area_key);
+        if let Some(area) = area {
             if let BodyData::Area(e) = &area.body_data {
                 return e.to_vec();
             }

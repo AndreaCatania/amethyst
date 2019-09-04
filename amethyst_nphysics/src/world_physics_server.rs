@@ -108,7 +108,7 @@ impl<N: PtReal> WorldNpServer<N> {
         colliders: &mut CollidersStorageWrite<N>,
     ) {
         // Clear old events
-        for (i, b) in bodies.iter_mut() {
+        for (_i, b) in bodies.iter_mut() {
             unsafe {
                 match &mut (*b.0.get()).body_data {
                     BodyData::Area(e) => {
@@ -178,7 +178,7 @@ impl<N: PtReal> WorldNpServer<N> {
                     ),
                 };
 
-                let mut area = bodies.get_body_mut(area_tag).unwrap();
+                let mut area = bodies.get_body(area_tag).unwrap();
                 if let BodyData::Area(e) = &mut area.body_data {
                     if status == 0 {
                         // Enter

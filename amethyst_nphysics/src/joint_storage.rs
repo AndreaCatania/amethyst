@@ -91,12 +91,9 @@ impl<N: PtReal, S: NpBodySet<N>> JointStorage<N, S> {
         }
     }
 
-    pub fn get_joint(&self, key: StoreKey) -> Option<&Joint<N, S>> {
+    /// Returns a `Mutex` guarded joint that can be used safely to get or set data.
+    pub fn get_joint(&self, key: StoreKey) -> Option<StorageGuard<Joint<N, S>>> {
         self.storage.get(key)
-    }
-
-    pub fn get_joint_mut(&self, key: StoreKey) -> Option<StorageGuard<Joint<N, S>>> {
-        self.storage.get_mut(key)
     }
 }
 
@@ -105,7 +102,7 @@ impl<N: PtReal, S: NpBodySet<N> + 'static> NpJointConstraintSet<N, S> for JointS
     type Handle = StoreKey;
 
     fn get(&self, handle: Self::Handle) -> Option<&Self::JointConstraint> {
-        if let Some(j) = self.storage.get(handle) {
+        if let Some(j) = self.storage.unchecked_get(handle) {
             j.np_joint.as_ref().map(|v| v.as_ref())
         } else {
             None
@@ -113,7 +110,7 @@ impl<N: PtReal, S: NpBodySet<N> + 'static> NpJointConstraintSet<N, S> for JointS
     }
 
     fn get_mut(&mut self, handle: Self::Handle) -> Option<&mut Self::JointConstraint> {
-        if let Some(j) = self.storage.mut_get_mut(handle) {
+        if let Some(j) = self.storage.unchecked_get_mut(handle) {
             j.np_joint.as_mut().map(|v| v.as_mut())
         } else {
             None

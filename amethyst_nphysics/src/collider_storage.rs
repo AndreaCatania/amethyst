@@ -47,12 +47,9 @@ impl<N: PtReal, BH: NpBodyHandle> ColliderStorage<N, BH> {
         }
     }
 
-    pub fn get_collider(&self, key: StoreKey) -> Option<&NpCollider<N, BH>> {
+    /// Returns a `Mutex` guarded collider that can be used safely to get or set data.
+    pub fn get_collider(&self, key: StoreKey) -> Option<StorageGuard<NpCollider<N, BH>>> {
         self.storage.get(key)
-    }
-
-    pub fn get_collider_mut(&self, key: StoreKey) -> Option<StorageGuard<NpCollider<N, BH>>> {
-        self.storage.get_mut(key)
     }
 }
 
@@ -64,11 +61,7 @@ impl<N: PtReal, BH: NpBodyHandle> NpCollisionObjectSet<N> for ColliderStorage<N,
         &self,
         handle: Self::CollisionObjectHandle,
     ) -> Option<&Self::CollisionObject> {
-        if let Some(collider) = self.storage.get(handle) {
-            Some(&collider)
-        } else {
-            None
-        }
+        self.storage.unchecked_get(handle)
     }
 
     fn foreach(&self, mut f: impl FnMut(Self::CollisionObjectHandle, &Self::CollisionObject)) {
@@ -83,11 +76,11 @@ impl<N: PtReal, BH: NpBodyHandle> ColliderSet<N, BH> for ColliderStorage<N, BH> 
     type Handle = StoreKey;
 
     fn get(&self, handle: Self::Handle) -> Option<&NpCollider<N, BH>> {
-        self.storage.get(handle)
+        self.storage.unchecked_get(handle)
     }
 
     fn get_mut(&mut self, handle: Self::Handle) -> Option<&mut NpCollider<N, BH>> {
-        self.storage.mut_get_mut(handle)
+        self.storage.unchecked_get_mut(handle)
     }
 
     fn get_pair_mut(

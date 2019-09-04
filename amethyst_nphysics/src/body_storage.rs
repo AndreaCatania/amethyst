@@ -40,12 +40,9 @@ impl<N: PtReal> BodyStorage<N> {
         self.removed.push(key);
     }
 
-    pub fn get_body(&self, key: StoreKey) -> Option<&Body<N>> {
+    /// Returns a `Mutex` guarded body that can be used safely to get or set data.
+    pub fn get_body(&self, key: StoreKey) -> Option<StorageGuard<Body<N>>> {
         self.storage.get(key)
-    }
-
-    pub fn get_body_mut(&self, key: StoreKey) -> Option<StorageGuard<Body<N>>> {
-        self.storage.get_mut(key)
     }
 
     pub fn iter(&self) -> Iter<'_, (UnsafeCell<Body<N>>, Mutex<()>)> {
@@ -62,11 +59,15 @@ impl<N: PtReal> BodySet<N> for BodyStorage<N> {
     type Handle = StoreKey;
 
     fn get(&self, handle: Self::Handle) -> Option<&Self::Body> {
-        self.storage.get(handle).map(|v| v.np_body.as_ref())
+        self.storage
+            .unchecked_get(handle)
+            .map(|v| v.np_body.as_ref())
     }
 
     fn get_mut(&mut self, handle: Self::Handle) -> Option<&mut Self::Body> {
-        self.storage.mut_get_mut(handle).map(|v| v.np_body.as_mut())
+        self.storage
+            .unchecked_get_mut(handle)
+            .map(|v| v.np_body.as_mut())
     }
 
     fn get_pair_mut(
