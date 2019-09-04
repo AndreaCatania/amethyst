@@ -40,9 +40,9 @@
     missing_debug_implementations,
     missing_docs,
     rust_2018_idioms,
-    rust_2018_compatibility
+    rust_2018_compatibility,
+    clippy::all
 )]
-#![warn(clippy::all)]
 
 pub use physics_time::PhysicsTime;
 pub use systems::PhysicsBundle;

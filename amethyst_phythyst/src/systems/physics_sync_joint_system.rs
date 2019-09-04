@@ -95,12 +95,12 @@ impl<'a, N: crate::PtReal> System<'a> for PhysicsSyncJointSystem<N> {
     fn setup(&mut self, world: &mut World) {
         Self::SystemData::setup(world);
         {
-            let mut storage: WriteStorage<PhysicsHandle<PhysicsRigidBodyTag>> =
+            let mut storage: WriteStorage<'_, PhysicsHandle<PhysicsRigidBodyTag>> =
                 SystemData::fetch(&world);
             self.rbodies_event_reader = Some(storage.register_reader());
         }
         {
-            let mut storage: WriteStorage<PhysicsHandle<PhysicsJointTag>> =
+            let mut storage: WriteStorage<'_, PhysicsHandle<PhysicsJointTag>> =
                 SystemData::fetch(&world);
             self.joints_event_reader = Some(storage.register_reader());
         }

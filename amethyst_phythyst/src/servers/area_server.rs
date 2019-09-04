@@ -43,8 +43,13 @@ pub trait AreaPhysicsServerTrait<N: PtReal> {
     fn overlap_events(&self, area_tag: PhysicsAreaTag) -> Vec<OverlapEvent>;
 }
 
+/// Overlap event
+///
+/// It's possible to read these events from the function `overlap_events`.
 #[derive(Copy, Clone, PartialEq, Debug)]
 pub enum OverlapEvent {
+    /// Overlap event called when the overlap starts.
     Enter(PhysicsRigidBodyTag, Option<Entity>),
+    /// Overlap event called when the overlap ends.
     Exit(PhysicsRigidBodyTag, Option<Entity>),
 }

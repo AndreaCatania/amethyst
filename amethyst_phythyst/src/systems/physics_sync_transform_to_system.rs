@@ -1,9 +1,9 @@
 use amethyst_core::{
     ecs::{
-        storage::ComponentEvent, BitSet, Entities, Join, ReadExpect, ReadStorage, ReaderId, System,
+        storage::ComponentEvent, BitSet, Join, ReadExpect, ReadStorage, ReaderId, System,
         SystemData, World, WriteStorage,
     },
-    math::{Isometry3, Quaternion, RealField},
+    math::Isometry3,
     transform::components::{Parent, Transform},
 };
 
@@ -41,12 +41,12 @@ impl<N: crate::PtReal> PhysicsSyncTransformToSystem<N> {
     // TODO please take rid of this
     fn parent_transform(
         parent: &Parent,
-        transforms: &ReadStorage<Transform>,
-        parents: &ReadStorage<Parent>,
+        transforms: &ReadStorage<'_, Transform>,
+        parents: &ReadStorage<'_, Parent>,
     ) -> Isometry3<f32> {
         let i = transforms
             .get(parent.entity)
-            .map_or(Isometry3::identity(), |t| t.isometry().clone());
+            .map_or(Isometry3::identity(), |t| *t.isometry());
 
         if let Some(parent_parent) = parents.get(parent.entity) {
             Self::parent_transform(parent_parent, transforms, parents) * i
@@ -87,6 +87,7 @@ impl<'s, N: crate::PtReal> System<'s> for PhysicsSyncTransformToSystem<N> {
 
             // Collect all information about the entities that want to update the transform
             for e in trs_events {
+                #[allow(clippy::single_match)] // TODO remove once below is solved
                 match e {
                     // TODO
                     // Removing the below comment allow to fully synchronize the transform
@@ -101,19 +102,13 @@ impl<'s, N: crate::PtReal> System<'s> for PhysicsSyncTransformToSystem<N> {
                 }
             }
             for e in bodies_events {
-                match e {
-                    ComponentEvent::Inserted(index) => {
-                        edited_transforms.add(*index);
-                    }
-                    _ => {}
+                if let ComponentEvent::Inserted(index) = e {
+                    edited_transforms.add(*index);
                 }
             }
             for e in area_events {
-                match e {
-                    ComponentEvent::Inserted(index) => {
-                        edited_transforms.add(*index);
-                    }
-                    _ => {}
+                if let ComponentEvent::Inserted(index) = e {
+                    edited_transforms.add(*index);
                 }
             }
             edited_transforms
@@ -188,16 +183,16 @@ impl<'s, N: crate::PtReal> System<'s> for PhysicsSyncTransformToSystem<N> {
     fn setup(&mut self, world: &mut World) {
         Self::SystemData::setup(world);
         {
-            let mut storage: WriteStorage<Transform> = SystemData::fetch(&world);
+            let mut storage: WriteStorage<'_, Transform> = SystemData::fetch(&world);
             self.transf_event_reader = Some(storage.register_reader());
         }
         {
-            let mut storage: WriteStorage<PhysicsHandle<PhysicsRigidBodyTag>> =
+            let mut storage: WriteStorage<'_, PhysicsHandle<PhysicsRigidBodyTag>> =
                 SystemData::fetch(&world);
             self.rigid_bodies_event_reader = Some(storage.register_reader());
         }
         {
-            let mut storage: WriteStorage<PhysicsHandle<PhysicsAreaTag>> =
+            let mut storage: WriteStorage<'_, PhysicsHandle<PhysicsAreaTag>> =
                 SystemData::fetch(&world);
             self.areas_event_reader = Some(storage.register_reader());
         }

@@ -1,6 +1,6 @@
 use amethyst_core::{
     deferred_dispatcher_operation::*,
-    ecs::{DispatcherBuilder, ReadStorage, System, SystemData, World},
+    ecs::{DispatcherBuilder, System, SystemData, World},
     SystemBundle, SystemDesc,
 };
 use amethyst_error::Error;
@@ -8,8 +8,6 @@ use log::info;
 
 use crate::{
     objects::PhysicsSetupStorages,
-    prelude::*,
-    servers::PhysicsWorld,
     systems::{
         PhysicsAttachmentSystem, PhysicsBatchSystem, PhysicsStepperSystem, PhysicsSyncEntitySystem,
         PhysicsSyncJointSystem, PhysicsSyncShapeSystem, PhysicsSyncTransformFromSystem,
@@ -127,6 +125,7 @@ use crate::{
 /// written as if this problem doesn't exist.
 ///
 /// [Transform component]: ../amethyst_core/transform/components/struct.Transform.html
+#[allow(missing_debug_implementations)]
 pub struct PhysicsBundle<'a, 'b, N: crate::PtReal, B: crate::PhysicsBackend<N>> {
     phantom_data_float: std::marker::PhantomData<N>,
     phantom_data_backend: std::marker::PhantomData<B>,
@@ -244,6 +243,14 @@ macro_rules! define_setters{
             self.$vec
                 .push(Box::new(AddBarrier {}) as Box<dyn DispatcherOperation<'a, 'b>>);
         }
+    }
+}
+
+impl<'a, 'b, N: crate::PtReal, B: crate::PhysicsBackend<N>> Default
+    for PhysicsBundle<'a, 'b, N, B>
+{
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -402,7 +409,7 @@ where
     B: crate::PhysicsBackend<N> + Send + 'static,
 {
     fn build(
-        mut self,
+        self,
         world: &mut World,
         builder: &mut DispatcherBuilder<'static, 'static>,
     ) -> Result<(), Error> {
@@ -486,7 +493,7 @@ where
             &["physics_attachment"],
         );
 
-        builder.add_batch::<PhysicsBatchSystem<N>>(
+        builder.add_batch::<PhysicsBatchSystem<'_, '_, N>>(
             physics_builder,
             "physics_batch",
             &[

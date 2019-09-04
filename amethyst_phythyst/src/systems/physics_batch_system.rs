@@ -1,13 +1,12 @@
 use amethyst_core::{
     ecs::{
-        AccessorCow, BatchAccessor, BatchController, BatchUncheckedWorld, Dispatcher, Read,
-        ReadExpect, RunningTime, System, World, WriteExpect,
+        AccessorCow, BatchAccessor, BatchController, BatchUncheckedWorld, Dispatcher, ReadExpect,
+        RunningTime, System, World,
     },
-    shred::Resources,
     Time,
 };
 
-use crate::{objects::*, PhysicsTime, PtReal};
+use crate::{PhysicsTime, PtReal};
 
 /// This `Batch` is a used to dispatch the physics `System`s.
 ///
@@ -63,7 +62,7 @@ impl<'a, N: PtReal> System<'a> for PhysicsBatchSystem<'_, '_, N> {
             iterations as i32
         };
 
-        for i in 0..iterations {
+        for _i in 0..iterations {
             self.dispatcher.dispatch(data.0);
         }
 

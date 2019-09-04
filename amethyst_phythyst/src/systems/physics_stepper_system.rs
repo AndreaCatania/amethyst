@@ -1,11 +1,9 @@
 use amethyst_core::{
-    ecs::{Dispatcher, Read, ReadExpect, RunNow, System, WriteExpect},
+    ecs::{ReadExpect, System},
     math::zero,
-    shred::Resources,
-    Time,
 };
 
-use crate::{objects::*, servers::PhysicsWorld, PhysicsTime};
+use crate::{servers::PhysicsWorld, PhysicsTime};
 
 /// This `System` simply step the physics.
 pub struct PhysicsStepperSystem<N: crate::PtReal> {

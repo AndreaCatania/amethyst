@@ -19,6 +19,7 @@ pub use world_server::WorldPhysicsServerTrait;
 ///
 /// The `PhysicsWorld` is safe to be sent through threads because internally each `Backend` make sure
 /// to access each data in thread safe.
+#[allow(missing_debug_implementations)]
 pub struct PhysicsWorld<N> {
     world_server: Box<dyn WorldPhysicsServerTrait<N>>,
     rigid_body_server: Box<dyn RBodyPhysicsServerTrait<N>>,
@@ -28,6 +29,9 @@ pub struct PhysicsWorld<N> {
 }
 
 impl<N> PhysicsWorld<N> {
+    /// Creates a new PhysicsWorld.
+    ///
+    /// This function is called automatically by the `PhysicsBundle`.
     pub fn new(
         world_server: Box<dyn WorldPhysicsServerTrait<N>>,
         rigid_body_server: Box<dyn RBodyPhysicsServerTrait<N>>,
@@ -44,22 +48,27 @@ impl<N> PhysicsWorld<N> {
         }
     }
 
+    /// Return world server.
     pub fn world_server(&self) -> &dyn WorldPhysicsServerTrait<N> {
         self.world_server.as_ref()
     }
 
+    /// Return body server.
     pub fn rigid_body_server(&self) -> &dyn RBodyPhysicsServerTrait<N> {
         self.rigid_body_server.as_ref()
     }
 
+    /// Return area server.
     pub fn area_server(&self) -> &dyn AreaPhysicsServerTrait<N> {
         self.area_server.as_ref()
     }
 
+    /// Return shape server.
     pub fn shape_server(&self) -> &dyn ShapePhysicsServerTrait<N> {
         self.shape_server.as_ref()
     }
 
+    /// Return joint server.
     pub fn joint_server(&self) -> &dyn JointPhysicsServerTrait<N> {
         self.joint_server.as_ref()
     }

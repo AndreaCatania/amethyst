@@ -1,5 +1,4 @@
-use amethyst_core::components::Transform;
-use amethyst_core::math::{Isometry3, Point3, RealField, Vector3};
+use amethyst_core::math::Isometry3;
 
 use crate::objects::*;
 
@@ -44,5 +43,6 @@ pub trait JointPhysicsServerTrait<N: crate::PtReal> {
 /// Joint description, used during the joint creation.
 #[derive(Copy, Clone, Debug)]
 pub enum JointDesc {
+    /// Fixed joint
     Fixed,
 }

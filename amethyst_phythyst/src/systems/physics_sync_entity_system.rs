@@ -35,11 +35,10 @@ impl<'a, N: crate::PtReal> System<'a> for PhysicsSyncEntitySystem<N> {
 
             let mut added_bodies = BitSet::with_capacity(bodies_events.len() as u32);
 
-            bodies_events.into_iter().for_each(|e| match e {
-                ComponentEvent::Inserted(index) => {
+            bodies_events.for_each(|e| {
+                if let ComponentEvent::Inserted(index) = e {
                     added_bodies.add(*index);
                 }
-                _ => {}
             });
 
             added_bodies
@@ -52,11 +51,10 @@ impl<'a, N: crate::PtReal> System<'a> for PhysicsSyncEntitySystem<N> {
 
             let mut added_areas = BitSet::with_capacity(area_events.len() as u32);
 
-            area_events.into_iter().for_each(|e| match e {
-                ComponentEvent::Inserted(index) => {
+            area_events.for_each(|e| {
+                if let ComponentEvent::Inserted(index) = e {
                     added_areas.add(*index);
                 }
-                _ => {}
             });
 
             added_areas
@@ -80,12 +78,12 @@ impl<'a, N: crate::PtReal> System<'a> for PhysicsSyncEntitySystem<N> {
     fn setup(&mut self, world: &mut World) {
         Self::SystemData::setup(world);
         {
-            let mut storage: WriteStorage<PhysicsHandle<PhysicsRigidBodyTag>> =
+            let mut storage: WriteStorage<'_, PhysicsHandle<PhysicsRigidBodyTag>> =
                 SystemData::fetch(&world);
             self.bodies_event_reader = Some(storage.register_reader());
         }
         {
-            let mut storage: WriteStorage<PhysicsHandle<PhysicsAreaTag>> =
+            let mut storage: WriteStorage<'_, PhysicsHandle<PhysicsAreaTag>> =
                 SystemData::fetch(&world);
             self.areas_event_reader = Some(storage.register_reader());
         }

@@ -1,9 +1,5 @@
 use amethyst_core::{
-    ecs::{
-        storage::ComponentEvent, BitSet, Entities, Join, ReadExpect, ReadStorage, ReaderId, System,
-        SystemData, World, WriteStorage,
-    },
-    math::{Isometry3, Quaternion, RealField},
+    ecs::{Entities, Join, ReadExpect, ReadStorage, System, WriteStorage},
     transform::components::{Parent, Transform},
 };
 

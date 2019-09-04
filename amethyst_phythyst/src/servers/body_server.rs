@@ -1,5 +1,5 @@
 use amethyst_core::ecs::Entity;
-use amethyst_core::math::{Isometry3, RealField, Vector3};
+use amethyst_core::math::{Isometry3, Vector3};
 
 use crate::objects::*;
 
@@ -112,11 +112,15 @@ pub trait RBodyPhysicsServerTrait<N: crate::PtReal> {
 }
 
 /// This structure holds all information about the Rigid body before it is created.
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct RigidBodyDesc<N> {
+    /// Body mode
     pub mode: BodyMode,
+    /// Body mass
     pub mass: N,
+    /// Body friction range 0 - 1
     pub friction: N,
+    /// Body bounciness range 0 - 1
     pub bounciness: N,
 }
 

@@ -1,3 +1,5 @@
+//! This module contains all object types (like the physics tags) that are exposed trough `phythyst`.
+
 use std::sync::{Arc, RwLock};
 
 use amethyst_core::{
@@ -13,37 +15,49 @@ macro_rules! define_opaque_object {
         /// Create this Opaque ID manually is not safe, for this reason is marked as so.
         #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
         pub enum $what {
+            #[allow(missing_docs)]
             U32(u32),
+            #[allow(missing_docs)]
             U64(u64),
 
+            #[allow(missing_docs)]
             U32U32(u32, u32),
+            #[allow(missing_docs)]
             U64U64(u64, u64),
 
+            #[allow(missing_docs)]
             UsizeU32(usize, u32),
+            #[allow(missing_docs)]
             UsizeU64(usize, u64),
         }
 
         impl $what {
+            #[allow(missing_docs)]
             pub unsafe fn new_u32(a: u32) -> Self {
                 $what::U32(a)
             }
 
+            #[allow(missing_docs)]
             pub unsafe fn new_u64(a: u64) -> Self {
                 $what::U64(a)
             }
 
+            #[allow(missing_docs)]
             pub unsafe fn new_u32u32(a: u32, b: u32) -> Self {
                 $what::U32U32(a, b)
             }
 
+            #[allow(missing_docs)]
             pub unsafe fn new_u64u64(a: u64, b: u64) -> Self {
                 $what::U64U64(a, b)
             }
 
+            #[allow(missing_docs)]
             pub unsafe fn new_usizeu32(a: usize, b: u32) -> Self {
                 $what::UsizeU32(a, b)
             }
 
+            #[allow(missing_docs)]
             pub unsafe fn new_usizeu64(a: usize, b: u64) -> Self {
                 $what::UsizeU64(a, b)
             }
@@ -74,6 +88,7 @@ pub(crate) type PhysicsSetupStorages<'a> = (
 
 /// This trait must be implemented for each structure that want to use the PhysicsHandle.
 pub trait PhysicsTag: Copy + std::fmt::Debug + Sync + Send + Sized + 'static {
+    /// This function is called when the *tag* is no more owned by any `PhysicsHandle`.
     fn request_resource_removal(&mut self, gc: &mut PhysicsGarbageCollector);
 }
 
@@ -94,6 +109,9 @@ pub struct PhysicsHandle<T: PhysicsTag> {
 }
 
 impl<T: PhysicsTag> PhysicsHandle<T> {
+    /// Creates new `PhysicsHandle`.
+    ///
+    /// This function must be called only by a physics backend.
     pub fn new(tag: T, garbage_collector: Arc<RwLock<PhysicsGarbageCollector>>) -> Self {
         PhysicsHandle {
             tag_container: Arc::new(PhysicsTagContainer {
@@ -111,7 +129,7 @@ impl<T: PhysicsTag> PhysicsHandle<T> {
 }
 
 impl<T: PhysicsTag> std::fmt::Debug for PhysicsHandle<T> {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
             "PhysicsHandle{{\n   tag = {:?}\n   owner = {}\n   weak = {}\n}};",
@@ -172,10 +190,15 @@ impl<T: PhysicsTag> std::ops::Drop for PhysicsTagContainer<T> {
 /// Also the destruction pipeline is dictated by phythyst to each physics backend.
 ///
 /// Considering the above the GC seems a better way.
+#[derive(Debug)]
 pub struct PhysicsGarbageCollector {
+    /// List of body no more used.
     pub bodies: Vec<PhysicsRigidBodyTag>,
+    /// List of areas no more used.
     pub areas: Vec<PhysicsAreaTag>,
+    /// List of shapes no more used.
     pub shapes: Vec<PhysicsShapeTag>,
+    /// List of joints no mor used.
     pub joints: Vec<PhysicsJointTag>,
 }
 
@@ -199,6 +222,7 @@ impl Default for PhysicsGarbageCollector {
 /// for rendering purposes.
 ///
 /// Is necessary to also use the component `Parent`.
+#[allow(missing_debug_implementations)]
 pub struct PhysicsAttachment<N: PtReal> {
     /// This is a cache parameter used to remember the actual global transform of the `Entity`.
     pub(crate) cache_world_transform: Isometry3<N>,
