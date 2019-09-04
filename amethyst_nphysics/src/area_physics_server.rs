@@ -5,7 +5,7 @@ use amethyst_phythyst::{
     PtReal,
 };
 use log::error;
-use nalgebra::Isometry3;
+use amethyst_core::math::{zero, Isometry3};
 use nphysics3d::object::{
     BodyPartHandle as NpBodyPartHandle, BodyStatus as NpBodyStatus, Collider as NpCollider,
     ColliderDesc as NpColliderDesc, ColliderHandle as NpColliderHandle, RigidBody as NpRigidBody,
@@ -114,7 +114,7 @@ impl<N: PtReal> AreaNpServer<N> {
         shape: &Box<RigidShape<N>>,
         np_collider_desc: &mut NpColliderDesc<N>,
     ) {
-        np_collider_desc.set_density(nalgebra::zero());
+        np_collider_desc.set_density(zero());
         np_collider_desc.set_is_sensor(true);
     }
 }
@@ -134,8 +134,8 @@ where
 
         let a_key = bodies_storage.insert_body(Body::new_area(
             Box::new(np_rigid_body),
-            nalgebra::zero(),
-            nalgebra::zero(),
+            zero(),
+            zero(),
         ));
         let mut area = bodies_storage.get_body(a_key).unwrap();
         area.self_key = Some(a_key);

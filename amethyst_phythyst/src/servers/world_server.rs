@@ -1,4 +1,4 @@
-use nalgebra::Vector3;
+use amethyst_core::math::Vector3;
 
 use crate::PtReal;
 

@@ -63,7 +63,6 @@ impl TransfConversor {
     where
         N: PtReal,
     {
-        // TODO there is a much better way to do it!
         Isometry3::from_parts(
             Translation3::from(VecConversor::from_physics(&t.translation.vector)),
             UnitQuaternion::new_normalize(QuatConversor::from_physics(&t.rotation)),

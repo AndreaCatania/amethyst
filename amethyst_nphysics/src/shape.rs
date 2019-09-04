@@ -1,5 +1,5 @@
 use amethyst_phythyst::{objects::*, servers::ShapeDesc, PtReal};
-use nalgebra::{convert, Point3, Unit, Vector3};
+use amethyst_core::math::{convert, Point3, Unit, Vector3};
 use ncollide3d::shape::{
     Ball as NcBall, Capsule as NcCapsule, Compound as NcCompound, ConvexHull as NcConvexHull,
     Cuboid as NcCuboid, Cylinder as NcCylinder, Plane as NcPlane, ShapeHandle as NcShapeHandle,

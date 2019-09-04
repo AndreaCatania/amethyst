@@ -1,7 +1,7 @@
 use amethyst_core::ecs::Entity;
 use amethyst_phythyst::{objects::*, servers::*, PtReal};
 use log::error;
-use nalgebra::{Isometry3, Point, Vector3};
+use amethyst_core::math::{zero, one, Isometry3, Point, Vector3};
 use nphysics3d::{
     material::{BasicMaterial, MaterialHandle},
     math::{Force, ForceType},
@@ -56,9 +56,9 @@ impl<N: PtReal> RBodyNpServer<N> {
         colliders: &mut CollidersStorageWrite<N>,
     ) {
         if shape.is_concave() {
-            collider_desc.set_density(nalgebra::zero());
+            collider_desc.set_density(zero());
         } else {
-            collider_desc.set_density(nalgebra::one());
+            collider_desc.set_density(one());
         }
 
         collider_desc.set_material(body.material_handle.clone());
@@ -125,9 +125,9 @@ impl<N: PtReal> RBodyNpServer<N> {
         np_collider_desc: &mut NpColliderDesc<N>,
     ) {
         if shape.is_concave() {
-            np_collider_desc.set_density(nalgebra::zero());
+            np_collider_desc.set_density(zero());
         } else {
-            np_collider_desc.set_density(nalgebra::one());
+            np_collider_desc.set_density(one());
         }
     }
 

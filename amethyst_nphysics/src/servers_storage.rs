@@ -1,7 +1,7 @@
 use std::sync::{Arc, RwLock, RwLockReadGuard, RwLockWriteGuard};
 
 use amethyst_phythyst::{objects::*, PtReal};
-use nalgebra::RealField;
+use amethyst_core::math::RealField;
 use nphysics3d::object::{BodyHandle as NpBodyHandle, RigidBody as NpRigidBody};
 
 use crate::{

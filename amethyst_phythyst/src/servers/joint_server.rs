@@ -1,5 +1,5 @@
 use amethyst_core::components::Transform;
-use nalgebra::{Isometry3, Point3, RealField, Vector3};
+use amethyst_core::math::{Isometry3, Point3, RealField, Vector3};
 
 use crate::objects::*;
 

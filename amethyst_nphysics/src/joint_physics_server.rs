@@ -4,7 +4,7 @@ use amethyst_phythyst::{
     PtReal,
 };
 use log::error;
-use nalgebra::Isometry3;
+use amethyst_core::math::Isometry3;
 use nphysics3d::{
     joint::FixedConstraint as NpFixedConstraint,
     object::{Body, BodyPartHandle as NpBodyPartHandle, BodySet as NpBodySet},

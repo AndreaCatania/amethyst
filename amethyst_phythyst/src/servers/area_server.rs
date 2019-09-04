@@ -1,5 +1,5 @@
 use amethyst_core::ecs::Entity;
-use nalgebra::Isometry3;
+use amethyst_core::math::Isometry3;
 
 use crate::{objects::*, PtReal};
 

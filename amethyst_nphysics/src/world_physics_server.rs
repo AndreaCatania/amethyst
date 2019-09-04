@@ -5,7 +5,7 @@ use amethyst_phythyst::{
     servers::{OverlapEvent, WorldPhysicsServerTrait},
     PtReal,
 };
-use nalgebra::Vector3;
+use amethyst_core::math::Vector3;
 use ncollide3d::query::Proximity;
 use nphysics3d::world::{GeometricalWorld, MechanicalWorld};
 
