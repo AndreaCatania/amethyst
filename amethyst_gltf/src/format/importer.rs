@@ -10,6 +10,7 @@ use crate::error;
 pub enum ImageFormat {
     Png,
     Jpeg,
+    Tga,
 }
 
 impl ImageFormat {
@@ -17,6 +18,7 @@ impl ImageFormat {
         match mime {
             "image/jpeg" => ImageFormat::Jpeg,
             "image/png" => ImageFormat::Png,
+            "image/tga" => ImageFormat::Tga,
             _ => unreachable!(),
         }
     }
@@ -185,6 +187,7 @@ pub fn get_image_data(
                     let format = match &ext[..] {
                         "jpg" | "jpeg" => ImageFormat::Jpeg,
                         "png" => ImageFormat::Png,
+                        "tga" => ImageFormat::Tga,
                         _ => unreachable!(),
                     };
                     Ok((data, format))

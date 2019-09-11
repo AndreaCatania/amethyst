@@ -154,6 +154,7 @@ fn load_texture(
         format: match format {
             ImportDataFormat::Png => Some(DataFormat::PNG),
             ImportDataFormat::Jpeg => Some(DataFormat::JPEG),
+            ImportDataFormat::Tga => Some(DataFormat::TGA),
         },
         sampler_info: load_sampler_info(&texture.sampler()),
         ..Default::default()
